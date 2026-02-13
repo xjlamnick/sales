@@ -94,6 +94,152 @@
             gap: 20px;
         }
 
+        /* КАРУСЕЛЬ БАНЕРІВ */
+        .carousel-container {
+            margin-bottom: 30px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .carousel-wrapper {
+            display: flex;
+            gap: 15px;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            padding: 10px 0;
+        }
+
+        .carousel-wrapper::-webkit-scrollbar {
+            display: none;
+        }
+
+        .banner-card {
+            flex: 0 0 280px;
+            height: 380px;
+            border-radius: 22px;
+            padding: 30px;
+            border: 1.5px solid;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            text-decoration: none;
+            color: inherit;
+            scroll-snap-align: start;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .banner-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+
+        .banner-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+        }
+
+        .banner-card:hover::before {
+            opacity: 0.05;
+        }
+
+        .banner-special { 
+            border-color: var(--color-accent); 
+            background: linear-gradient(135deg, #f0f7ff 0%, #e3f2ff 100%);
+        }
+        
+        .banner-chart { 
+            border-color: #ff9500; 
+            background: linear-gradient(135deg, #fffcf5 0%, #fff4e6 100%);
+        }
+        
+        .banner-plan-fact { 
+            border-color: #34c759; 
+            background: linear-gradient(135deg, #f0fff4 0%, #e6ffe6 100%);
+        }
+        
+        .banner-plan-fact-2 { 
+            border-color: #af52de; 
+            background: linear-gradient(135deg, #f9f0ff 0%, #f3e6ff 100%);
+        }
+
+        .banner-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        .banner-content h2 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            line-height: 1.2;
+        }
+
+        .banner-content p {
+            font-size: 16px;
+            color: var(--color-text-secondary);
+            line-height: 1.4;
+        }
+
+        .banner-footer {
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .banner-cta {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--color-accent);
+        }
+
+        .section-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: var(--color-text);
+        }
+
+        @media (max-width: 600px) {
+            .banner-card {
+                flex: 0 0 260px;
+                height: 360px;
+                padding: 25px;
+            }
+
+            .banner-icon {
+                width: 70px;
+                height: 70px;
+                font-size: 32px;
+            }
+
+            .banner-content h2 {
+                font-size: 24px;
+            }
+
+            .banner-content p {
+                font-size: 14px;
+            }
+        }
+
         .card {
             background: var(--color-card-bg);
             border-radius: 22px;
@@ -218,11 +364,9 @@
     </div>
 
     <script>
-        // ==========================================
-        // НАЛАШТУВАННЯ ПАРОЛЯ
-        const SECRET_PASSWORD = "gteam"; // Змінюйте тут
-        const EXPIRY_DAYS = 30; // Термін входу (днів)
-        // ==========================================
+        // --- НАЛАШТУВАННЯ АВТОРИЗАЦІЇ ---
+        const SECRET_PASSWORD = "gteam"; 
+        const EXPIRY_DAYS = 30; 
 
         function checkPass() {
             const input = document.getElementById('pass-input').value;
@@ -267,7 +411,7 @@
             }
         };
 
-        // --- ВАША ЛОГІКА ДАНИХ ---
+        // --- ЛОГІКА ДАНИХ ТА ВІДОБРАЖЕННЯ ---
         let currentData = [];
 
         async function loadData() {
@@ -275,7 +419,9 @@
                 const response = await fetch('sales-data.json?t=' + Date.now());
                 currentData = await response.json();
                 renderCards(currentData);
-            } catch (error) { console.error(error); }
+            } catch (error) { 
+                console.error("Помилка завантаження даних:", error); 
+            }
         }
 
         function formatNumber(num) {
@@ -288,28 +434,49 @@
             const container = document.getElementById('sales-cards');
             container.innerHTML = '';
 
-            // Кнопки-картки
-            const createSpecialCard = (title, subtitle, icon, color, href, isBlank = false) => {
-                const card = document.createElement('a');
-                card.className = `card ${color}`;
-                card.href = href;
-                if(isBlank) card.target = '_blank';
-                card.innerHTML = `
-                    <div class="card-header">
-                        <div class="avatar" style="background: ${icon.bg}">${icon.img}</div>
-                        <div class="card-title"><h2>${title}</h2><p>${subtitle}</p></div>
+            // Створення каруселі банерів
+            const carouselContainer = document.createElement('div');
+            carouselContainer.className = 'carousel-container';
+            
+            const carouselWrapper = document.createElement('div');
+            carouselWrapper.className = 'carousel-wrapper';
+
+            const createBanner = (title, subtitle, icon, colorClass, href, isBlank = false) => {
+                const banner = document.createElement('a');
+                banner.className = `banner-card banner-${colorClass}`;
+                banner.href = href;
+                if(isBlank) banner.target = '_blank';
+                banner.innerHTML = `
+                    <div>
+                        <div class="banner-icon" style="background: ${icon.bg}">${icon.img}</div>
+                        <div class="banner-content">
+                            <h2>${title}</h2>
+                            <p>${subtitle}</p>
+                        </div>
                     </div>
-                    <div class="main-metric"><div class="main-metric-value" style="font-size:22px">Переглянути</div></div>
+                    <div class="banner-footer">
+                        <div class="banner-cta">Переглянути →</div>
+                    </div>
                 `;
-                return card;
+                return banner;
             };
 
-            container.appendChild(createSpecialCard('Щоденні продажі', 'Аналітика по днях', {bg:'var(--color-accent)', img:'📊'}, 'special-card', 'daily.html'));
-            container.appendChild(createSpecialCard('Графік виходу', 'Google Sheets', {bg:'#ff9500', img:'📅'}, 'chart-card', 'https://docs.google.com/spreadsheets/d/1-sUZg6C6w3-lImTpIv2ezkW-mKtK8zXZ_zf4bCK83R8/edit#gid=973370496', true));
-            container.appendChild(createSpecialCard('Продажі План Факт', 'Аналітика виконання', {bg:'#34c759', img:'📈'}, 'plan-fact-card', 'plan-fact.html'));
-            container.appendChild(createSpecialCard('Вечірній звіт', 'Розширена аналітика', {bg:'#af52de', img:'📊'}, 'plan-fact-2-card', 'plan-fact-2.html'));
+            carouselWrapper.appendChild(createBanner('Щоденні продажі', 'Аналітика по днях', {bg:'var(--color-accent)', img:'📊'}, 'special', 'daily.html'));
+            carouselWrapper.appendChild(createBanner('Графік виходу', 'Google Sheets', {bg:'#ff9500', img:'📅'}, 'chart', 'https://docs.google.com/spreadsheets/d/1-sUZg6C6w3-lImTpIv2ezkW-mKtK8zXZ_zf4bCK83R8/edit#gid=973370496', true));
+            carouselWrapper.appendChild(createBanner('Продажі План Факт', 'Аналітика виконання', {bg:'#34c759', img:'📈'}, 'plan-fact', 'plan-fact.html'));
+            carouselWrapper.appendChild(createBanner('Вечірній звіт', 'Розширена аналітика', {bg:'#af52de', img:'📊'}, 'plan-fact-2', 'plan-fact-2.html'));
 
-            // Продавці
+            carouselContainer.appendChild(carouselWrapper);
+            container.appendChild(carouselContainer);
+
+            const sectionTitle = document.createElement('div');
+            sectionTitle.className = 'section-title';
+            sectionTitle.textContent = 'Команда продавців';
+            container.appendChild(sectionTitle);
+
+            const cardsGrid = document.createElement('div');
+            cardsGrid.className = 'cards-grid';
+
             data.forEach(person => {
                 const to = person.metrics['ТО'] || {value: 0, unit: 'грн'};
                 const acc = person.metrics['% Доля ACC'] || {value: 0, unit: '%'};
@@ -332,8 +499,10 @@
                         <div><div class="metric-mini-label">Послуги</div><div class="metric-mini-value">${services.value}%</div></div>
                     </div>
                 `;
-                container.appendChild(card);
+                cardsGrid.appendChild(card);
             });
+
+            container.appendChild(cardsGrid);
         }
 
         function showDetail(id) {
@@ -377,9 +546,14 @@
             window.scrollTo(0, 0);
         }
 
-        // Свайпи
+        // Обробка жестів (свайп назад)
         let touchStartX = 0, touchStartY = 0, isSwiping = false;
-        document.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; touchStartY = e.changedTouches[0].screenY; isSwiping = true; }, { passive: true });
+        document.addEventListener('touchstart', e => { 
+            touchStartX = e.changedTouches[0].screenX; 
+            touchStartY = e.changedTouches[0].screenY; 
+            isSwiping = true; 
+        }, { passive: true });
+        
         document.addEventListener('touchend', e => {
             const distanceX = e.changedTouches[0].screenX - touchStartX;
             const distanceY = Math.abs(e.changedTouches[0].screenY - touchStartY);
