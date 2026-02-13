@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>План-Факт — Детальна Аналітика</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <style>
+        :root { --bg: #f5f5f7; --text: #1d1d1f; --accent: #0071e3; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 10px; }
+        .container { max-width: 100%; margin: 10px auto; }
+        .back-link { color: var(--accent); text-decoration: none; font-weight: 500; display: inline-block; margin-bottom: 15px; font-size: 14px; }
+        
+        .table-card { 
+            background: white; 
+            border-radius: 18px; 
+            box-shadow: 0 8px 30px rgba(0,0,0,0.04); 
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        table { width: 100%; border-collapse: collapse; min-width: 1200px; table-layout: fixed; }
+        
+        /* Кольорові групи */
+        .group-to { background: rgba(0, 113, 227, 0.05); }      /* Синій - ТО */
+        .group-serv { background: rgba(52, 199, 89, 0.05); }    /* Зелений - Послуги */
+        .group-acc { background: rgba(255, 149, 0, 0.05); }     /* Помаранчевий - АСС */
+        .group-checks { background: rgba(175, 82, 222, 0.05); } /* Фіолетовий - Чеки */
+
+        .group-header {
+            text-align: center;
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 10px;
+            color: #1d1d1f;
+            border-bottom: 1px solid #d2d2d7;
+        }
+
+        th { text-align: left; padding: 10px; color: #86868b; font-size: 10px; font-weight: 600; border-bottom: 1px solid #d2d2d7; background: white; }
+        td { padding: 12px 10px; border-bottom: 1px solid #f5f5f7; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        
+        /* Зменшена ширина першого стовбця */
+        .name-cell, th:first-child { 
+            position: sticky; 
+            left: 0; 
+            background: white; 
+            z-index: 10; 
+            width: 110px; /* Суттєво зменшено */
+            min-width: 110px;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+            font-weight: 600;
+            font-size: 12px;
+            white-space: normal; /* Дозволяємо перенос прізвища */
+            line-height: 1.2;
+        }
+        th:first-child { z-index: 11; }
+
+        .val-plan { color: #86868b; font-size: 11px; }
+        .val-fact { font-weight: 600; }
+        .val-pct { font-weight: 700; color: #1d1d1f; text-align: right; }
+        
+        .total-row { background: #1d1d1f !important; }
+        .total-row td { color: white !important; font-weight: 700; }
+        .total-row .name-cell { background: #1d1d1f !important; color: white; }
+        .total-row .val-plan { color: #a1a1a6; }
+
+        .loading { padding: 40px; text-align: center; color: #86868b; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← На головну</a>
+        <div class="table-card">
+            <div id="loader" class="loading">Завантаження даних...</div>
+            <table id="dataTable" style="display: none;">
+                <thead>
+                    <tr>
+                        <th rowspan="2">Продавець</th>
+                        <th colspan="3" class="group-header group-to">Товарообіг</th>
+                        <th colspan="3" class="group-header group-serv">Послуги</th>
+                        <th colspan="3" class="group-header group-acc">Аксесуари</th>
+                        <th colspan="3" class="group-header group-checks">Чеки</th>
+                    </tr>
+                    <tr>
+                        <th class="group-to">План</th><th class="group-to">Факт</th><th class="group-to">%</th>
+                        <th class="group-serv">План</th><th class="group-serv">Факт</th><th class="group-serv">%</th>
+                        <th class="group-acc">План</th><th class="group-acc">Факт</th><th class="group-acc">%</th>
+                        <th class="group-checks">План</th><th class="group-checks">Факт</th><th class="group-checks">%</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        function parseCSV(text) {
+            const rows = []; let row = []; let col = ""; let inQuotes = false;
+            for (let i = 0; i < text.length; i++) {
+                let char = text[i];
+                if (char === '"' && text[i+1] === '"') { col += '"'; i++; }
+                else if (char === '"') { inQuotes = !inQuotes; }
+                else if (char === ',' && !inQuotes) { row.push(col); col = ""; }
+                else if (char === '\n' && !inQuotes) { row.push(col); rows.push(row); row = []; col = ""; }
+                else { col += char; }
+            }
+            if (col || row.length) { row.push(col); rows.push(row); }
+            return rows;
+        }
+
+        function cleanVal(val) {
+            if (!val) return 0;
+            let s = val.toString().replace('%', '').replace(/\s/g, '').replace(',', '.');
+            return parseFloat(s) || 0;
+        }
+
+        // Форматування з точністю до сотих для %
+        function formatDisplay(val, isPct = false) {
+            let num = cleanVal(val);
+            if (isPct) {
+                // Якщо в таблиці 0.8542 -> це 85.42%
+                // Якщо в таблиці вже 85.42 -> залишаємо 85.42%
+                let displayPct = num < 2 ? num * 100 : num; 
+                return displayPct.toFixed(2) + '%';
+            }
+            return Math.round(num).toLocaleString('uk-UA');
+        }
+
+        async function loadTable() {
+            const URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTOUXHhUpCkh6tgvNpJzY-w5tVrhPkvEeC0W0ZWuy2YxPayuO3pvahfeKYmMZ1DwHnILTpsJFNtXLsH/pub?output=csv";
+            try {
+                const res = await fetch(URL + '&t=' + Date.now());
+                const text = await res.text();
+                const rows = parseCSV(text);
+                const dataRows = rows.slice(1);
+
+                document.getElementById('loader').style.display = 'none';
+                document.getElementById('dataTable').style.display = 'table';
+                const tbody = document.getElementById('tableBody');
+
+                dataRows.forEach(row => {
+                    if (row.length < 10 || !row[0].trim()) return;
+
+                    const tr = document.createElement('tr');
+                    const isTotal = row[0].toLowerCase().includes('разом') || row[0].toLowerCase().includes('сума');
+                    if (isTotal) tr.className = 'total-row';
+
+                    tr.innerHTML = `
+                        <td class="name-cell">${row[0]}</td>
+                        <td class="val-plan group-to">${formatDisplay(row[1])}</td>
+                        <td class="val-fact group-to">${formatDisplay(row[2])}</td>
+                        <td class="val-pct group-to">${formatDisplay(row[3], true)}</td>
+                        
+                        <td class="val-plan group-serv">${formatDisplay(row[4])}</td>
+                        <td class="val-fact group-serv">${formatDisplay(row[5])}</td>
+                        <td class="val-pct group-serv">${formatDisplay(row[6], true)}</td>
+                        
+                        <td class="val-plan group-acc">${formatDisplay(row[7])}</td>
+                        <td class="val-fact group-acc">${formatDisplay(row[8])}</td>
+                        <td class="val-pct group-acc">${formatDisplay(row[9], true)}</td>
+                        
+                        <td class="val-plan group-checks">${formatDisplay(row[10])}</td>
+                        <td class="val-fact group-checks">${formatDisplay(row[11])}</td>
+                        <td class="val-pct group-checks">${formatDisplay(row[12], true)}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (e) {
+                document.getElementById('loader').textContent = "Помилка завантаження";
+            }
+        }
+        loadTable();
+    </script>
+</body>
+</html>

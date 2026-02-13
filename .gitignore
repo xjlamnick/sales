@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Excel (не потрібен для Google Sheets версії)
+*.xlsx
+*.xls
+
+# Системні файли
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Тимчасові файли
+*.tmp
+*.bak
+*~
+
+# Логи
+*.log
+
+# Не ігноруємо sales-data.json - він потрібен для сайту
+# !sales-data.json
