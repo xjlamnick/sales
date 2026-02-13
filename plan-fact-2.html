@@ -80,21 +80,27 @@
         .val-plan { 
             color: #86868b; 
             font-size: 11px;
+            background: rgba(134, 134, 139, 0.05);
         }
         .val-fact { 
             font-weight: 600;
+            background: rgba(0, 113, 227, 0.08);
+            color: #0071e3;
         }
         .val-pct { 
             font-weight: 700; 
-            color: #1d1d1f; 
             text-align: right;
+            background: rgba(52, 199, 89, 0.1);
+            color: #34c759;
         }
         
         /* Для рядка "Разом" перевизначаємо кольори */
         .total-row { background: #1d1d1f !important; }
         .total-row td { color: white !important; font-weight: 700; }
         .total-row .name-cell { background: #1d1d1f !important; color: white; }
-        .total-row .val-plan { color: #a1a1a6; }
+        .total-row .val-plan { color: #a1a1a6; background: rgba(255,255,255,0.05); }
+        .total-row .val-fact { color: white; background: rgba(255,255,255,0.1); }
+        .total-row .val-pct { color: #34c759; background: rgba(52, 199, 89, 0.2); }
 
         .loading { padding: 40px; text-align: center; color: #86868b; }
     </style>
@@ -132,14 +138,15 @@
             return parseFloat(s) || 0;
         }
 
-        // Форматування з точністю до сотих для %
+        // Форматування з точністю до сотих
         function formatDisplay(val, isPct = false) {
             let num = cleanVal(val);
             if (isPct) {
                 let displayPct = num < 2 ? num * 100 : num; 
                 return displayPct.toFixed(2) + '%';
             }
-            return Math.round(num).toLocaleString('uk-UA');
+            // Для звичайних чисел теж залишаємо 2 знаки після коми
+            return num.toLocaleString('uk-UA', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         }
 
         // Визначаємо кольорову групу за назвою колонки
