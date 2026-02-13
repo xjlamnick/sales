@@ -19,7 +19,7 @@
             -webkit-overflow-scrolling: touch;
         }
 
-        table { width: 100%; border-collapse: collapse; min-width: 1200px; table-layout: fixed; }
+        table { width: 100%; border-collapse: collapse; min-width: 800px; table-layout: fixed; }
         
         /* Кольорові групи */
         .group-to { background: rgba(0, 113, 227, 0.05); }      /* Синій - ТО */
@@ -29,17 +29,35 @@
 
         .group-header {
             text-align: center;
-            font-size: 10px;
+            font-size: 9px;
             font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            padding: 10px;
+            letter-spacing: 0.3px;
+            padding: 8px 4px;
             color: #1d1d1f;
             border-bottom: 1px solid #d2d2d7;
         }
 
-        th { text-align: left; padding: 10px; color: #86868b; font-size: 10px; font-weight: 600; border-bottom: 1px solid #d2d2d7; background: white; }
-        td { padding: 12px 10px; border-bottom: 1px solid #f5f5f7; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        th { 
+            text-align: center; 
+            padding: 8px 4px; 
+            color: #86868b; 
+            font-size: 9px; 
+            font-weight: 600; 
+            border-bottom: 1px solid #d2d2d7; 
+            background: white;
+            width: 65px; /* Фіксована ширина для всіх колонок крім першої */
+        }
+        
+        td { 
+            padding: 10px 6px; 
+            border-bottom: 1px solid #f5f5f7; 
+            font-size: 12px; 
+            white-space: nowrap; 
+            overflow: hidden; 
+            text-overflow: ellipsis;
+            width: 65px; /* Фіксована ширина */
+        }
         
         /* Зменшена ширина першого стовбця */
         .name-cell, th:first-child { 
@@ -47,32 +65,41 @@
             left: 0; 
             background: white; 
             z-index: 10; 
-            width: 110px; /* Суттєво зменшено */
-            min-width: 110px;
+            width: 100px;
+            min-width: 100px;
+            max-width: 100px;
             box-shadow: 2px 0 5px rgba(0,0,0,0.05);
             font-weight: 600;
-            font-size: 12px;
-            white-space: normal; /* Дозволяємо перенос прізвища */
+            font-size: 11px;
+            white-space: normal;
             line-height: 1.2;
+            padding: 10px 8px;
+            text-align: left;
         }
-        th:first-child { z-index: 11; }
+        th:first-child { 
+            z-index: 11;
+            font-size: 10px;
+        }
 
         /* РІЗНІ КОЛЬОРИ ДЛЯ ПЛАН, ФАКТ, % */
         .val-plan { 
             color: #86868b; 
-            font-size: 11px;
-            background: rgba(134, 134, 139, 0.05);
+            font-size: 10px;
+            background: rgba(134, 134, 139, 0.05) !important;
+            text-align: right;
         }
         .val-fact { 
             font-weight: 600;
-            background: rgba(0, 113, 227, 0.08);
+            background: rgba(0, 113, 227, 0.08) !important;
             color: #0071e3;
+            text-align: right;
         }
         .val-pct { 
             font-weight: 700; 
             text-align: right;
-            background: rgba(52, 199, 89, 0.1);
+            background: rgba(52, 199, 89, 0.1) !important;
             color: #34c759;
+            font-size: 11px;
         }
         
         /* Для рядка "Разом" перевизначаємо кольори */
@@ -84,6 +111,31 @@
         .total-row .val-pct { color: #34c759 !important; background: rgba(52, 199, 89, 0.2) !important; }
 
         .loading { padding: 40px; text-align: center; color: #86868b; }
+        
+        /* Мобільна адаптація */
+        @media (max-width: 600px) {
+            .container { padding: 5px; margin: 5px auto; }
+            .table-card { border-radius: 12px; }
+            
+            th, td { 
+                padding: 8px 3px;
+                font-size: 10px;
+                width: 60px;
+            }
+            
+            .name-cell, th:first-child {
+                width: 80px;
+                min-width: 80px;
+                max-width: 80px;
+                font-size: 9px;
+                padding: 8px 4px;
+            }
+            
+            .group-header {
+                font-size: 8px;
+                padding: 6px 2px;
+            }
+        }
     </style>
 </head>
 <body>
