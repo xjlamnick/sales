@@ -94,6 +94,21 @@
             color: #34c759;
         }
         
+        /* Умовне форматування для останнього % стовпця */
+        .val-pct-success {
+            font-weight: 700;
+            text-align: right;
+            background: rgba(52, 199, 89, 0.15);
+            color: #34c759;
+        }
+        
+        .val-pct-danger {
+            font-weight: 700;
+            text-align: right;
+            background: rgba(255, 59, 48, 0.1);
+            color: #ff3b30;
+        }
+        
         /* Для рядка "Разом" перевизначаємо кольори */
         .total-row { background: #1d1d1f !important; }
         .total-row td { color: white !important; font-weight: 700; }
@@ -101,6 +116,8 @@
         .total-row .val-plan { color: #a1a1a6; background: rgba(255,255,255,0.05); }
         .total-row .val-fact { color: white; background: rgba(255,255,255,0.1); }
         .total-row .val-pct { color: #34c759; background: rgba(52, 199, 89, 0.2); }
+        .total-row .val-pct-success { color: #34c759 !important; background: rgba(52, 199, 89, 0.2); }
+        .total-row .val-pct-danger { color: #ff3b30 !important; background: rgba(255, 59, 48, 0.2); }
 
         .loading { padding: 40px; text-align: center; color: #86868b; }
     </style>
@@ -260,6 +277,7 @@
                     for (let i = 0; i < numGroups; i++) {
                         const startIdx = 1 + i * 3;
                         const groupClass = getGroupClass(groupHeaders[i]);
+                        const isLastGroup = (i === numGroups - 1);
                         
                         // План
                         const planCell = document.createElement('td');
@@ -275,7 +293,19 @@
                         
                         // %
                         const pctCell = document.createElement('td');
-                        pctCell.className = 'val-pct ' + groupClass;
+                        const pctValue = cleanVal(row[startIdx + 2] || 0);
+                        
+                        // Для останньої групи застосовуємо умовне форматування
+                        if (isLastGroup) {
+                            if (pctValue >= 100) {
+                                pctCell.className = 'val-pct-success ' + groupClass;
+                            } else {
+                                pctCell.className = 'val-pct-danger ' + groupClass;
+                            }
+                        } else {
+                            pctCell.className = 'val-pct ' + groupClass;
+                        }
+                        
                         pctCell.textContent = formatDisplay(row[startIdx + 2] || 0, true);
                         tr.appendChild(pctCell);
                     }
