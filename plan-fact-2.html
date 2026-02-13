@@ -140,12 +140,17 @@
 
         // Форматування: зберігаємо сотих якщо вони є в оригіналі
         function formatDisplay(val, isPct = false) {
-            if (!val) return '0';
+            if (!val && val !== 0) return '0';
             
             let originalStr = val.toString().trim();
+            
+            // Перевіряємо чи є символ % в оригіналі
+            let isPercentInOriginal = originalStr.includes('%');
+            
             let num = cleanVal(val);
             
-            if (isPct) {
+            // Якщо isPct=true або є % в оригіналі - форматуємо як відсоток
+            if (isPct || isPercentInOriginal) {
                 let displayPct = num < 2 ? num * 100 : num; 
                 return displayPct.toFixed(2) + '%';
             }
