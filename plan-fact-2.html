@@ -138,15 +138,28 @@
             return parseFloat(s) || 0;
         }
 
-        // Форматування з точністю до сотих
+        // Форматування: зберігаємо сотих якщо вони є в оригіналі
         function formatDisplay(val, isPct = false) {
+            if (!val) return '0';
+            
+            let originalStr = val.toString().trim();
             let num = cleanVal(val);
+            
             if (isPct) {
                 let displayPct = num < 2 ? num * 100 : num; 
                 return displayPct.toFixed(2) + '%';
             }
-            // Для звичайних чисел теж залишаємо 2 знаки після коми
-            return num.toLocaleString('uk-UA', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            
+            // Перевіряємо чи є десяткова частина в оригіналі
+            let hasDecimals = originalStr.includes('.') || originalStr.includes(',');
+            
+            if (hasDecimals) {
+                // Якщо є - показуємо 2 знаки після коми
+                return num.toLocaleString('uk-UA', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            } else {
+                // Якщо немає - показуємо як ціле число
+                return Math.round(num).toLocaleString('uk-UA');
+            }
         }
 
         // Визначаємо кольорову групу за назвою колонки
