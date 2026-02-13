@@ -57,14 +57,31 @@
         }
         th:first-child { z-index: 11; }
 
-        .val-plan { color: #86868b; font-size: 11px; }
-        .val-fact { font-weight: 600; }
-        .val-pct { font-weight: 700; color: #1d1d1f; text-align: right; }
+        /* РІЗНІ КОЛЬОРИ ДЛЯ ПЛАН, ФАКТ, % */
+        .val-plan { 
+            color: #86868b; 
+            font-size: 11px;
+            background: rgba(134, 134, 139, 0.05);
+        }
+        .val-fact { 
+            font-weight: 600;
+            background: rgba(0, 113, 227, 0.08);
+            color: #0071e3;
+        }
+        .val-pct { 
+            font-weight: 700; 
+            text-align: right;
+            background: rgba(52, 199, 89, 0.1);
+            color: #34c759;
+        }
         
+        /* Для рядка "Разом" перевизначаємо кольори */
         .total-row { background: #1d1d1f !important; }
         .total-row td { color: white !important; font-weight: 700; }
         .total-row .name-cell { background: #1d1d1f !important; color: white; }
-        .total-row .val-plan { color: #a1a1a6; }
+        .total-row .val-plan { color: #a1a1a6 !important; background: rgba(255,255,255,0.05) !important; }
+        .total-row .val-fact { color: white !important; background: rgba(255,255,255,0.1) !important; }
+        .total-row .val-pct { color: #34c759 !important; background: rgba(52, 199, 89, 0.2) !important; }
 
         .loading { padding: 40px; text-align: center; color: #86868b; }
     </style>
