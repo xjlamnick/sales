@@ -75,21 +75,7 @@
         <div class="table-card">
             <div id="loader" class="loading">Завантаження даних...</div>
             <table id="dataTable" style="display: none;">
-                <thead>
-                    <tr>
-                        <th rowspan="2">Продавець</th>
-                        <th colspan="3" class="group-header group-to">Товарообіг</th>
-                        <th colspan="3" class="group-header group-serv">Послуги</th>
-                        <th colspan="3" class="group-header group-acc">Аксесуари</th>
-                        <th colspan="3" class="group-header group-checks">Чеки</th>
-                    </tr>
-                    <tr>
-                        <th class="group-to">План</th><th class="group-to">Факт</th><th class="group-to">%</th>
-                        <th class="group-serv">План</th><th class="group-serv">Факт</th><th class="group-serv">%</th>
-                        <th class="group-acc">План</th><th class="group-acc">Факт</th><th class="group-acc">%</th>
-                        <th class="group-checks">План</th><th class="group-checks">Факт</th><th class="group-checks">%</th>
-                    </tr>
-                </thead>
+                <thead></thead>
                 <tbody id="tableBody"></tbody>
             </table>
         </div>
@@ -120,12 +106,20 @@
         function formatDisplay(val, isPct = false) {
             let num = cleanVal(val);
             if (isPct) {
-                // Якщо в таблиці 0.8542 -> це 85.42%
-                // Якщо в таблиці вже 85.42 -> залишаємо 85.42%
                 let displayPct = num < 2 ? num * 100 : num; 
                 return displayPct.toFixed(2) + '%';
             }
             return Math.round(num).toLocaleString('uk-UA');
+        }
+
+        // Визначаємо кольорову групу за назвою колонки
+        function getGroupClass(colName) {
+            const name = colName.toLowerCase();
+            if (name.includes('то') || name.includes('товарообіг')) return 'group-to';
+            if (name.includes('послуг') || name.includes('сервіс')) return 'group-serv';
+            if (name.includes('acc') || name.includes('акс')) return 'group-acc';
+            if (name.includes('чек')) return 'group-checks';
+            return '';
         }
 
         async function loadTable() {
@@ -134,41 +128,108 @@
                 const res = await fetch(URL + '&t=' + Date.now());
                 const text = await res.text();
                 const rows = parseCSV(text);
+                
+                if (rows.length < 2) {
+                    document.getElementById('loader').textContent = "Немає даних";
+                    return;
+                }
+
+                const headers = rows[0]; // Перший рядок - заголовки
                 const dataRows = rows.slice(1);
 
+                // Динамічно будуємо заголовки таблиці
+                const thead = document.querySelector('thead');
+                thead.innerHTML = '';
+                
+                // Перший рядок - групові заголовки
+                const headerRow1 = document.createElement('tr');
+                const th1 = document.createElement('th');
+                th1.rowSpan = 2;
+                th1.textContent = headers[0]; // Перша колонка (Продавець)
+                headerRow1.appendChild(th1);
+
+                // Групуємо колонки по 3 (План, Факт, %)
+                const numGroups = Math.floor((headers.length - 1) / 3);
+                const groupHeaders = [];
+                
+                for (let i = 0; i < numGroups; i++) {
+                    const startIdx = 1 + i * 3;
+                    const groupName = headers[startIdx].replace(/план/i, '').replace(/факт/i, '').replace(/%/g, '').trim();
+                    groupHeaders.push(groupName);
+                    
+                    const groupTh = document.createElement('th');
+                    groupTh.colSpan = 3;
+                    groupTh.className = 'group-header ' + getGroupClass(groupName);
+                    groupTh.textContent = groupName;
+                    headerRow1.appendChild(groupTh);
+                }
+
+                // Другий рядок - План, Факт, %
+                const headerRow2 = document.createElement('tr');
+                for (let i = 0; i < numGroups; i++) {
+                    const groupClass = getGroupClass(groupHeaders[i]);
+                    
+                    ['План', 'Факт', '%'].forEach(label => {
+                        const th = document.createElement('th');
+                        th.className = groupClass;
+                        th.textContent = label;
+                        headerRow2.appendChild(th);
+                    });
+                }
+
+                thead.appendChild(headerRow1);
+                thead.appendChild(headerRow2);
+
+                // Заповнюємо дані
                 document.getElementById('loader').style.display = 'none';
                 document.getElementById('dataTable').style.display = 'table';
                 const tbody = document.getElementById('tableBody');
+                tbody.innerHTML = '';
 
                 dataRows.forEach(row => {
-                    if (row.length < 10 || !row[0].trim()) return;
+                    if (!row[0] || !row[0].trim()) return;
 
                     const tr = document.createElement('tr');
-                    const isTotal = row[0].toLowerCase().includes('разом') || row[0].toLowerCase().includes('сума');
+                    const isTotal = row[0].toLowerCase().includes('разом') || 
+                                   row[0].toLowerCase().includes('сума') ||
+                                   row[0].toLowerCase().includes('всього');
                     if (isTotal) tr.className = 'total-row';
 
-                    tr.innerHTML = `
-                        <td class="name-cell">${row[0]}</td>
-                        <td class="val-plan group-to">${formatDisplay(row[1])}</td>
-                        <td class="val-fact group-to">${formatDisplay(row[2])}</td>
-                        <td class="val-pct group-to">${formatDisplay(row[3], true)}</td>
+                    // Перша колонка - ім'я
+                    const nameCell = document.createElement('td');
+                    nameCell.className = 'name-cell';
+                    nameCell.textContent = row[0];
+                    tr.appendChild(nameCell);
+
+                    // Решта колонок
+                    for (let i = 0; i < numGroups; i++) {
+                        const startIdx = 1 + i * 3;
+                        const groupClass = getGroupClass(groupHeaders[i]);
                         
-                        <td class="val-plan group-serv">${formatDisplay(row[4])}</td>
-                        <td class="val-fact group-serv">${formatDisplay(row[5])}</td>
-                        <td class="val-pct group-serv">${formatDisplay(row[6], true)}</td>
+                        // План
+                        const planCell = document.createElement('td');
+                        planCell.className = 'val-plan ' + groupClass;
+                        planCell.textContent = formatDisplay(row[startIdx] || 0);
+                        tr.appendChild(planCell);
                         
-                        <td class="val-plan group-acc">${formatDisplay(row[7])}</td>
-                        <td class="val-fact group-acc">${formatDisplay(row[8])}</td>
-                        <td class="val-pct group-acc">${formatDisplay(row[9], true)}</td>
+                        // Факт
+                        const factCell = document.createElement('td');
+                        factCell.className = 'val-fact ' + groupClass;
+                        factCell.textContent = formatDisplay(row[startIdx + 1] || 0);
+                        tr.appendChild(factCell);
                         
-                        <td class="val-plan group-checks">${formatDisplay(row[10])}</td>
-                        <td class="val-fact group-checks">${formatDisplay(row[11])}</td>
-                        <td class="val-pct group-checks">${formatDisplay(row[12], true)}</td>
-                    `;
+                        // %
+                        const pctCell = document.createElement('td');
+                        pctCell.className = 'val-pct ' + groupClass;
+                        pctCell.textContent = formatDisplay(row[startIdx + 2] || 0, true);
+                        tr.appendChild(pctCell);
+                    }
+
                     tbody.appendChild(tr);
                 });
             } catch (e) {
-                document.getElementById('loader').textContent = "Помилка завантаження";
+                console.error(e);
+                document.getElementById('loader').textContent = "Помилка завантаження: " + e.message;
             }
         }
         loadTable();
