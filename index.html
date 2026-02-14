@@ -94,6 +94,18 @@
             gap: 20px;
         }
 
+        @media (min-width: 1400px) {
+            .cards-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (min-width: 1000px) and (max-width: 1399px) {
+            .cards-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
         /* КАРУСЕЛЬ БАНЕРІВ */
         .carousel-container {
             margin-bottom: 30px;
@@ -109,6 +121,32 @@
             -webkit-overflow-scrolling: touch;
             scrollbar-width: none;
             padding: 10px 0;
+        }
+
+        @media (min-width: 1200px) {
+            .carousel-wrapper {
+                flex-wrap: wrap;
+                justify-content: flex-start;
+                overflow-x: visible;
+            }
+            
+            .banner-card {
+                flex: 0 0 calc(25% - 12px);
+                max-width: 300px;
+            }
+        }
+
+        @media (min-width: 900px) and (max-width: 1199px) {
+            .carousel-wrapper {
+                flex-wrap: wrap;
+                justify-content: flex-start;
+                overflow-x: visible;
+            }
+            
+            .banner-card {
+                flex: 0 0 calc(50% - 8px);
+                max-width: 350px;
+            }
         }
 
         .carousel-wrapper::-webkit-scrollbar {
@@ -251,6 +289,13 @@
             flex-direction: column;
             text-decoration: none;
             color: inherit;
+            max-width: 450px;
+        }
+
+        @media (min-width: 1400px) {
+            .card {
+                max-width: none;
+            }
         }
 
         .card:hover {
@@ -352,7 +397,7 @@
                 <h1>Команда</h1>
                 <p>Статистика та графіки департаменту</p>
             </header>
-            <div id="sales-cards" class="cards-grid"></div>
+            <div id="sales-cards"></div>
         </div>
 
         <div id="detail-page" class="detail-page">
