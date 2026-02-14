@@ -4,7 +4,8 @@ import sys
 import traceback
 
 MAIN_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRxPqHp5lwwhjdDTaJdiwWYbhqZmeALG5dVhSZ6rHx2W8KGrcNWaa5-7qiVB87KKbQEXjtF1WVwmBzp/pub?gid=50416606&single=true&output=csv"
-DAILY_SALES_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQOxz-ozH9yNLW3IAzlkMlbRqOTrR4sIUO1__KpAMBFEvvpMXr4LWTnRvzYGb_y6za7WBxOUhl2DV84/pub?output=csv"
+
+# DAILY_SALES_URL більше не потрібен - daily.html тепер завантажує дані напряму з Google Sheets
 
 PERCENT_COLUMNS = ['% Доля ACC', 'Доля Послуг', 'Конверсія ПК', 'Конверсія ПК Offline', 'Доля УДС']
 
@@ -44,8 +45,8 @@ def clean_number(value):
 
 def process_data():
     try:
-        # 1. Основні дані
-        print("Завантаження основних даних...")
+        # Завантаження основних даних для вечірнього звіту (index.html)
+        print("Завантаження основних даних для вечірнього звіту...")
         df = pd.read_csv(MAIN_SHEET_URL)
         df = df.fillna(0)
         
@@ -88,7 +89,6 @@ def process_data():
             })
 
         # Розрахунок загальних показників (МАГ)
-      # --- ВИПРАВЛЕНИЙ БЛОК ПІДСУМКІВ ---
         store_totals = {
             'id': 0,
             'name': 'Показники магазину',
@@ -133,24 +133,22 @@ def process_data():
                     res = round(sum(vals)/len(vals), 2) if vals else 0
             
             store_totals['metrics'][col] = {'value': res, 'label': col, 'unit': '%'}
-        # --- КІНЕЦЬ ВИПРАВЛЕНОГО БЛОКУ ---
 
-        # Збереження
+        # Збереження тільки sales-data.json (для вечірнього звіту index.html)
         final_json = [store_totals] + sales_data
         with open('sales-data.json', 'w', encoding='utf-8') as f:
             json.dump(final_json, f, ensure_ascii=False, indent=2)
 
-        # 2. Щоденні продажі
-        print("Завантаження щоденних продажів...")
-        df_daily = pd.read_csv(DAILY_SALES_URL).fillna(0)
-        df_daily.columns = [c.strip() for c in df_daily.columns]
-        with open('daily-sales.json', 'w', encoding='utf-8') as f:
-            json.dump(df_daily.to_dict(orient='records'), f, ensure_ascii=False, indent=2)
-            
-        print("✓ Дані успішно оновлені та очищені")
+        print("✓ sales-data.json успішно оновлений")
+        print("ℹ️  daily-sales.json більше не генерується - daily.html завантажує дані напряму з Google Sheets")
+        
+        # Виводимо статистику
+        print(f"\n📊 Оброблено продавців: {len(sales_data)}")
+        if total_to > 0:
+            print(f"💰 Загальний товарообіг: {total_to:,.2f} грн")
 
     except Exception as e:
-        print(f"Помилка: {e}")
+        print(f"❌ Помилка: {e}")
         traceback.print_exc()
         sys.exit(1)
 
