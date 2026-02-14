@@ -46,6 +46,7 @@
         .time-row .name-cell { background: #f5f5f7 !important; }
 
         .loading { padding: 40px; text-align: center; color: #86868b; }
+        .error { padding: 40px; text-align: center; color: #ff3b30; }
 
         /* МОБІЛЬНА ВЕРСІЯ: ЗМЕНШЕННЯ ШРИФТУ ПІБ */
         @media (max-width: 600px) {
@@ -53,13 +54,12 @@
                 min-width: 80px; 
                 max-width: 80px;
                 padding: 10px 5px;
-                font-size: 10px; /* Дуже дрібний шрифт для ПІБ */
-                white-space: normal; /* Дозволяємо перенос тексту, щоб влізло у вузьку колонку */
+                font-size: 10px;
+                white-space: normal;
                 line-height: 1.1;
                 text-align: center;
             }
             
-            /* Робимо цифри трохи компактнішими */
             td:not(.name-cell) {
                 padding: 12px 8px;
                 font-size: 13px;
@@ -72,7 +72,7 @@
         <a href="index.html" class="back-link">← Назад</a>
         <h1>Щоденні звіти</h1>
         <div class="table-card">
-            <div id="loader" class="loading">Оновлення...</div>
+            <div id="loader" class="loading">Завантаження даних з Google Sheets...</div>
             <table id="dataTable" style="display: none;">
                 <thead><tr id="headerRow"></tr></thead>
                 <tbody id="tableBody"></tbody>
@@ -80,53 +80,173 @@
         </div>
     </div>
     <script>
-        async function loadTable() {
-            try {
-                const r = await fetch('daily-sales.json?t=' + Date.now());
-                const data = await r.json();
-                if (!data.length) return;
+        // Покращений парсер CSV
+        function parseCSV(text) {
+            const rows = [];
+            const lines = text.split(/\r?\n/);
+            
+            for (let line of lines) {
+                if (!line.trim()) continue; // Пропускаємо порожні рядки
+                
+                const row = [];
+                let cell = '';
+                let inQuotes = false;
+                
+                for (let i = 0; i < line.length; i++) {
+                    const char = line[i];
+                    const nextChar = line[i + 1];
+                    
+                    if (char === '"') {
+                        if (inQuotes && nextChar === '"') {
+                            // Подвійні лапки всередині лапок
+                            cell += '"';
+                            i++; // Пропускаємо наступну лапку
+                        } else {
+                            // Початок або кінець лапок
+                            inQuotes = !inQuotes;
+                        }
+                    } else if (char === ',' && !inQuotes) {
+                        // Роздільник колонок
+                        row.push(cell.trim());
+                        cell = '';
+                    } else {
+                        cell += char;
+                    }
+                }
+                
+                // Додаємо останню комірку
+                row.push(cell.trim());
+                
+                if (row.length > 0 && row.some(c => c !== '')) {
+                    rows.push(row);
+                }
+            }
+            
+            return rows;
+        }
 
+        // Очищення значення
+        function cleanVal(val) {
+            if (!val) return "";
+            return val.toString().trim();
+        }
+
+        async function loadTable() {
+            // URL вашої Google таблиці для daily sales
+            // ЗАМІНІТЬ на правильний URL вашої таблиці для щоденних звітів!
+            const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQOxz-ozH9yNLW3IAzlkMlbRqOTrR4sIUO1__KpAMBFEvvpMXr4LWTnRvzYGb_y6za7WBxOUhl2DV84/pub?output=csv";
+            
+            try {
+                console.log("Завантаження даних з:", SHEET_URL);
+                
+                // Додаємо timestamp для уникнення кешування
+                const url = SHEET_URL + (SHEET_URL.includes('?') ? '&' : '?') + 't=' + Date.now();
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const text = await response.text();
+                console.log("Отримано CSV, довжина:", text.length);
+                
+                if (!text || text.length < 10) {
+                    throw new Error("Отримано порожній або занадто короткий CSV");
+                }
+                
+                const rows = parseCSV(text);
+                console.log("Розпарсено рядків:", rows.length);
+
+                if (!rows || rows.length < 2) {
+                    document.getElementById('loader').className = 'error';
+                    document.getElementById('loader').textContent = "Немає даних в таблиці";
+                    return;
+                }
+
+                // Приховуємо loader, показуємо таблицю
                 document.getElementById('loader').style.display = 'none';
                 document.getElementById('dataTable').style.display = 'table';
 
-                const headers = Object.keys(data[0]);
+                // Отримуємо заголовки (перший рядок)
+                const headers = rows[0];
+                console.log("Заголовки:", headers);
+                
                 const hRow = document.getElementById('headerRow');
+                hRow.innerHTML = ''; // Очищаємо попередні заголовки
+                
                 headers.forEach(h => {
                     let th = document.createElement('th');
                     th.textContent = h;
                     hRow.appendChild(th);
                 });
 
+                // Заповнюємо дані (всі рядки крім першого)
                 const tbody = document.getElementById('tableBody');
-                data.forEach(row => {
-                    let tr = document.createElement('tr');
-                    const nameVal = String(row[headers[0]] || "");
-                    
-                    if (nameVal.includes(":")) tr.className = 'time-row';
+                tbody.innerHTML = ''; // Очищаємо попередні дані
+                
+                const dataRows = rows.slice(1);
+                console.log("Рядків з даними:", dataRows.length);
 
-                    headers.forEach((h, index) => {
+                dataRows.forEach((row, idx) => {
+                    // Пропускаємо порожні рядки
+                    if (!row || row.length === 0 || !row[0] || row[0].trim() === '') {
+                        console.log("Пропущено порожній рядок:", idx + 2);
+                        return;
+                    }
+
+                    let tr = document.createElement('tr');
+                    const nameVal = cleanVal(row[0]);
+                    
+                    // Якщо в першій колонці час (формат HH:MM:SS) - це строка з часом
+                    if (nameVal.match(/^\d{2}:\d{2}:\d{2}$/)) {
+                        tr.className = 'time-row';
+                        console.log("Знайдено рядок з часом:", nameVal);
+                    }
+
+                    // Додаємо клітинки для кожної колонки
+                    for (let i = 0; i < headers.length; i++) {
                         let td = document.createElement('td');
-                        let val = row[h];
+                        let val = cleanVal(row[i] || '');
                         
-                        if (index === 0) {
+                        if (i === 0) {
+                            // Перша колонка - ПІБ або час
                             td.className = 'name-cell';
                             td.textContent = val;
                         } else {
+                            // Інші колонки - числа
                             td.textContent = val;
-                            const hName = h.toUpperCase();
-                            if (hName === 'ТО') td.classList.add('col-to');
-                            else if (hName.includes('ПОСЛУГИ')) td.classList.add('col-poslugi');
-                            else if (hName === 'АСС') td.classList.add('col-acc');
-                            else if (hName === 'ЧЕКИ') td.classList.add('col-cheky');
+                            
+                            // Застосовуємо кольори в залежності від назви колонки
+                            const hName = headers[i].toUpperCase();
+                            if (hName === 'ТО') {
+                                td.classList.add('col-to');
+                            } else if (hName.includes('ПОСЛУГИ') || hName.includes('ПОСЛУГ')) {
+                                td.classList.add('col-poslugi');
+                            } else if (hName === 'АСС' || hName.includes('АКСЕС')) {
+                                td.classList.add('col-acc');
+                            } else if (hName === 'ЧЕКИ' || hName.includes('ЧЕК')) {
+                                td.classList.add('col-cheky');
+                            }
                         }
                         tr.appendChild(td);
-                    });
+                    }
                     tbody.appendChild(tr);
                 });
+                
+                console.log("Таблиця успішно побудована");
+
             } catch (e) {
-                document.getElementById('loader').textContent = "Помилка: " + e.message;
+                console.error("Помилка завантаження:", e);
+                document.getElementById('loader').className = 'error';
+                document.getElementById('loader').innerHTML = 
+                    "❌ Помилка завантаження даних<br>" +
+                    "<small style='font-size: 12px; color: #86868b;'>" + e.message + "</small><br>" +
+                    "<small style='font-size: 11px; color: #86868b; margin-top: 10px; display: block;'>" +
+                    "Перевірте консоль браузера (F12) для деталей</small>";
             }
         }
+
+        // Завантажуємо дані при відкритті сторінки
         loadTable();
 
         // СВАЙП-НАВІГАЦІЯ
@@ -137,13 +257,11 @@
         let isSwiping = false;
         
         function handleSwipe() {
-            const swipeThreshold = 120; // Збільшено поріг
+            const swipeThreshold = 120;
             const swipeDistanceX = touchEndX - touchStartX;
             const swipeDistanceY = Math.abs(touchEndY - touchStartY);
             
-            // Свайп тільки якщо чіткий горизонтальний рух
             if (isSwiping && Math.abs(swipeDistanceX) > swipeThreshold && swipeDistanceX > 0 && swipeDistanceY < 50) {
-                // Свайп вправо - повернутися на головну
                 window.location.href = 'index.html';
             }
         }
@@ -157,7 +275,6 @@
         document.addEventListener('touchmove', e => {
             const moveY = Math.abs(e.changedTouches[0].screenY - touchStartY);
             const moveX = Math.abs(e.changedTouches[0].screenX - touchStartX);
-            // Якщо більше вертикальний рух - це не свайп
             if (moveY > 20 || moveX < 30) {
                 isSwiping = false;
             }
