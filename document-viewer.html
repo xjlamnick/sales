@@ -25,7 +25,7 @@
         }
         
         .container { 
-            max-width: 900px; 
+            max-width: 750px; 
             margin: 0 auto; 
             padding: 40px 20px; 
         }
@@ -41,6 +41,60 @@
         
         .back-link:hover {
             text-decoration: underline;
+        }
+        
+        /* Кнопки швидкої навігації */
+        .nav-buttons {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 1000;
+        }
+        
+        .nav-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--accent);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 20px;
+            box-shadow: 0 4px 12px rgba(0, 113, 227, 0.3);
+            transition: all 0.3s;
+            display: none;
+        }
+        
+        .nav-btn.visible {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .nav-btn:hover {
+            background: #0077ED;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 113, 227, 0.4);
+        }
+        
+        .nav-btn:active {
+            transform: translateY(0);
+        }
+        
+        @media (max-width: 768px) {
+            .nav-buttons {
+                right: 15px;
+                bottom: 15px;
+            }
+            
+            .nav-btn {
+                width: 45px;
+                height: 45px;
+                font-size: 18px;
+            }
         }
         
         .header {
@@ -104,7 +158,7 @@
         .document-card {
             background: var(--card-bg);
             border-radius: 22px;
-            padding: 50px;
+            padding: 40px;
             box-shadow: 0 8px 30px rgba(0,0,0,0.04);
             display: none;
         }
@@ -350,6 +404,16 @@
                 </div>
             </div>
         </div>
+        
+        <!-- Кнопки швидкої навігації -->
+        <div class="nav-buttons">
+            <button id="scrollTopBtn" class="nav-btn" onclick="scrollToTop()" title="На початок">
+                ↑
+            </button>
+            <button id="scrollBottomBtn" class="nav-btn" onclick="scrollToBottom()" title="В кінець">
+                ↓
+            </button>
+        </div>
     </div>
 
     <script>
@@ -533,6 +597,51 @@
         function resetViewer() {
             window.location.reload();
         }
+        
+        // Функції швидкої навігації
+        function scrollToTop() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+        
+        function scrollToBottom() {
+            window.scrollTo({
+                top: document.documentElement.scrollHeight,
+                behavior: 'smooth'
+            });
+        }
+        
+        // Показуємо/приховуємо кнопки в залежності від позиції прокрутки
+        window.addEventListener('scroll', function() {
+            const scrollTopBtn = document.getElementById('scrollTopBtn');
+            const scrollBottomBtn = document.getElementById('scrollBottomBtn');
+            const documentCard = document.getElementById('documentCard');
+            
+            // Показуємо кнопки тільки якщо документ завантажено
+            if (!documentCard.classList.contains('active')) {
+                return;
+            }
+            
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            const scrollHeight = document.documentElement.scrollHeight;
+            const clientHeight = document.documentElement.clientHeight;
+            
+            // Показуємо кнопку "вгору" якщо прокрутили вниз більше ніж на 300px
+            if (scrollTop > 300) {
+                scrollTopBtn.classList.add('visible');
+            } else {
+                scrollTopBtn.classList.remove('visible');
+            }
+            
+            // Показуємо кнопку "вниз" якщо не в кінці сторінки
+            if (scrollTop + clientHeight < scrollHeight - 100) {
+                scrollBottomBtn.classList.add('visible');
+            } else {
+                scrollBottomBtn.classList.remove('visible');
+            }
+        });
     </script>
 </body>
 </html>
