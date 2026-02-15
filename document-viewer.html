@@ -233,12 +233,57 @@
                 font-size: 28px;
             }
             
-            .document-card {
+            .upload-card {
                 padding: 30px 20px;
             }
             
+            .document-card {
+                padding: 25px 15px;
+                border-radius: 18px;
+            }
+            
             #documentContent {
-                font-size: 15px;
+                font-size: 14px;
+                line-height: 1.7;
+                overflow-wrap: break-word;
+                word-wrap: break-word;
+            }
+            
+            #documentContent h1 {
+                font-size: 24px;
+                margin: 20px 0 15px 0;
+            }
+            
+            #documentContent h2 {
+                font-size: 20px;
+                margin: 18px 0 12px 0;
+            }
+            
+            #documentContent h3 {
+                font-size: 18px;
+                margin: 15px 0 10px 0;
+            }
+            
+            #documentContent p {
+                margin: 12px 0;
+            }
+            
+            #documentContent table {
+                display: block;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                font-size: 13px;
+            }
+            
+            #documentContent th,
+            #documentContent td {
+                padding: 8px;
+                min-width: 100px;
+            }
+            
+            #documentContent img {
+                max-width: 100%;
+                height: auto;
             }
         }
     </style>
@@ -252,14 +297,10 @@
             <p>Завантажте Word документ для перегляду</p>
         </div>
         
-        <div class="upload-card" id="uploadCard">
+        <div class="upload-card" id="uploadCard" style="display: none;">
             <div class="upload-icon">📄</div>
-            <h2 style="margin-bottom: 10px;">Оберіть документ</h2>
-            <p style="color: #86868b; margin-bottom: 20px;">Підтримуються файли .docx</p>
-            <label for="fileInput" class="upload-button">
-                Обрати файл
-            </label>
-            <input type="file" id="fileInput" accept=".docx" onchange="loadDocument(event)">
+            <h2 style="margin-bottom: 10px;">Файл не знайдено</h2>
+            <p style="color: #86868b; margin-bottom: 20px;">Не вдалося завантажити документ з Google Drive</p>
         </div>
         
         <div class="loading" id="loading">
@@ -273,11 +314,158 @@
         
         <div class="document-card" id="documentCard">
             <div id="documentContent"></div>
-            <button class="download-button" onclick="resetViewer()">← Завантажити інший документ</button>
+            
+            <div style="margin-top: 40px; padding-top: 30px; border-top: 1px solid #d2d2d7;">
+                <button class="download-button" onclick="showUploadOptions()">
+                    📁 Завантажити інший документ
+                </button>
+                
+                <div id="uploadOptions" style="display: none; margin-top: 20px; padding: 20px; background: #f5f5f7; border-radius: 12px;">
+                    <h3 style="font-size: 16px; margin-bottom: 15px;">Оберіть інший документ</h3>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <label for="fileInput" class="upload-button" style="display: inline-block;">
+                            Обрати файл з пристрою
+                        </label>
+                        <input type="file" id="fileInput" accept=".docx" onchange="loadDocument(event)">
+                    </div>
+                    
+                    <div style="margin: 15px 0; color: #86868b; font-size: 14px;">або</div>
+                    
+                    <div>
+                        <input 
+                            type="text" 
+                            id="driveUrl" 
+                            placeholder="Вставте посилання на Google Drive файл"
+                            style="width: 100%; padding: 12px; border: 1px solid #d2d2d7; border-radius: 10px; font-size: 14px; margin-bottom: 10px;"
+                        >
+                        <button class="upload-button" onclick="loadFromDrive()" style="width: 100%; margin-top: 5px;">
+                            Завантажити з Google Drive
+                        </button>
+                    </div>
+                    
+                    <button onclick="hideUploadOptions()" style="margin-top: 15px; background: none; border: none; color: #86868b; cursor: pointer; font-size: 14px;">
+                        Скасувати
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
+        // URL файлу на Google Drive/Docs - ВСТАВТЕ СЮДИ ВАШЕ ПОСИЛАННЯ
+        const DEFAULT_DRIVE_URL = 'https://docs.google.com/document/d/1vOPXtlNiIwnobEEe0UeiBvSyl0D6kHWQ/edit?usp=drivesdk&ouid=113524751602305051183&rtpof=true&sd=true';
+        
+        // Автоматичне завантаження файлу при завантаженні сторінки
+        window.onload = function() {
+            // Перевіряємо чи є параметр url в адресі
+            const urlParams = new URLSearchParams(window.location.search);
+            const customUrl = urlParams.get('url');
+            
+            // Використовуємо або кастомний URL, або дефолтний
+            const fileUrl = customUrl || DEFAULT_DRIVE_URL;
+            
+            if (fileUrl) {
+                loadFromDrive(fileUrl);
+            } else {
+                // Якщо не вказано файл, показуємо форму завантаження
+                document.getElementById('uploadCard').style.display = 'block';
+            }
+        };
+        
+        async function loadFromDrive(urlInput = null) {
+            // Якщо URL не передано, беремо з поля вводу
+            if (!urlInput) {
+                urlInput = document.getElementById('driveUrl').value.trim();
+            }
+            
+            if (!urlInput) {
+                showError('Будь ласка, вставте посилання на Google Drive файл');
+                return;
+            }
+            
+            let downloadUrl = '';
+            
+            // Перевіряємо тип посилання
+            if (urlInput.includes('docs.google.com/document')) {
+                // Google Docs - отримуємо ID та експортуємо як .docx
+                let docId = '';
+                
+                if (urlInput.includes('/document/d/')) {
+                    docId = urlInput.split('/document/d/')[1].split('/')[0];
+                } else if (urlInput.includes('id=')) {
+                    docId = urlInput.split('id=')[1].split('&')[0];
+                }
+                
+                if (!docId) {
+                    showError('Не вдалося визначити ID документа');
+                    return;
+                }
+                
+                downloadUrl = `https://docs.google.com/document/d/${docId}/export?format=docx`;
+                
+            } else if (urlInput.includes('drive.google.com')) {
+                // Звичайний Drive файл
+                let fileId = '';
+                
+                if (urlInput.includes('/file/d/')) {
+                    fileId = urlInput.split('/file/d/')[1].split('/')[0];
+                } else if (urlInput.includes('id=')) {
+                    fileId = urlInput.split('id=')[1].split('&')[0];
+                }
+                
+                if (!fileId) {
+                    showError('Не вдалося визначити ID файлу');
+                    return;
+                }
+                
+                downloadUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
+            } else {
+                showError('Невірний формат посилання. Використайте посилання з Google Drive або Google Docs.');
+                return;
+            }
+            
+            // Показуємо індикатор завантаження
+            document.getElementById('uploadCard').style.display = 'none';
+            document.getElementById('loading').classList.add('active');
+            document.getElementById('error').classList.remove('active');
+            
+            try {
+                const response = await fetch(downloadUrl);
+                
+                if (!response.ok) {
+                    throw new Error('Не вдалося завантажити файл з Google Drive.');
+                }
+                
+                const blob = await response.blob();
+                const arrayBuffer = await blob.arrayBuffer();
+                
+                // Конвертуємо .docx в HTML
+                const result = await mammoth.convertToHtml(
+                    { arrayBuffer: arrayBuffer },
+                    {
+                        styleMap: [
+                            "p[style-name='Heading 1'] => h1:fresh",
+                            "p[style-name='Heading 2'] => h2:fresh",
+                            "p[style-name='Heading 3'] => h3:fresh",
+                            "p[style-name='Title'] => h1:fresh",
+                        ]
+                    }
+                );
+                
+                // Виводимо контент
+                document.getElementById('documentContent').innerHTML = result.value;
+                
+                // Показуємо документ
+                document.getElementById('loading').classList.remove('active');
+                document.getElementById('documentCard').classList.add('active');
+                
+            } catch (error) {
+                console.error('Помилка:', error);
+                showError('Не вдалося завантажити файл. Переконайтесь, що файл має відкритий доступ для перегляду (Налаштування доступу → Усі, хто має посилання, можуть переглядати)');
+            }
+        }
+        
         async function loadDocument(event) {
             const file = event.target.files[0];
             
@@ -290,7 +478,7 @@
             }
             
             // Показуємо індикатор завантаження
-            document.getElementById('uploadCard').style.display = 'none';
+            document.getElementById('uploadOptions').style.display = 'none';
             document.getElementById('loading').classList.add('active');
             document.getElementById('error').classList.remove('active');
             
@@ -317,14 +505,10 @@
                 document.getElementById('loading').classList.remove('active');
                 document.getElementById('documentCard').classList.add('active');
                 
-                // Виводимо попередження про втрачене форматування (якщо є)
-                if (result.messages.length > 0) {
-                    console.log('Повідомлення про конвертацію:', result.messages);
-                }
-                
             } catch (error) {
                 console.error('Помилка:', error);
                 showError('Не вдалося завантажити документ. Переконайтесь, що це коректний .docx файл.');
+                document.getElementById('uploadOptions').style.display = 'block';
             }
         }
         
@@ -338,11 +522,16 @@
             document.getElementById('fileInput').value = '';
         }
         
+        function showUploadOptions() {
+            document.getElementById('uploadOptions').style.display = 'block';
+        }
+        
+        function hideUploadOptions() {
+            document.getElementById('uploadOptions').style.display = 'none';
+        }
+        
         function resetViewer() {
-            document.getElementById('documentCard').classList.remove('active');
-            document.getElementById('uploadCard').style.display = 'block';
-            document.getElementById('documentContent').innerHTML = '';
-            document.getElementById('fileInput').value = '';
+            window.location.reload();
         }
     </script>
 </body>
