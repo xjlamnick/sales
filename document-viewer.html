@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Перегляд документа</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+    <style>
+        :root { 
+            --bg: #f5f5f7; 
+            --text: #1d1d1f; 
+            --accent: #0071e3;
+            --card-bg: #ffffff;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { 
+            font-family: 'Inter', -apple-system, sans-serif; 
+            background: var(--bg); 
+            color: var(--text); 
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        .container { 
+            max-width: 900px; 
+            margin: 0 auto; 
+            padding: 40px 20px; 
+        }
+        
+        .back-link { 
+            color: var(--accent); 
+            text-decoration: none; 
+            font-weight: 500; 
+            display: inline-block; 
+            margin-bottom: 20px; 
+            font-size: 16px;
+        }
+        
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        
+        .header {
+            margin-bottom: 30px;
+        }
+        
+        .header h1 { 
+            font-size: 40px; 
+            font-weight: 600; 
+            letter-spacing: -0.5px; 
+            margin-bottom: 10px;
+        }
+        
+        .header p { 
+            color: #86868b; 
+            font-size: 18px; 
+        }
+        
+        .upload-card {
+            background: var(--card-bg);
+            border-radius: 22px;
+            padding: 40px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.04);
+            text-align: center;
+            margin-bottom: 30px;
+            border: 2px dashed #d2d2d7;
+            transition: all 0.3s;
+        }
+        
+        .upload-card:hover {
+            border-color: var(--accent);
+        }
+        
+        .upload-icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+        }
+        
+        .upload-button {
+            display: inline-block;
+            background: var(--accent);
+            color: white;
+            padding: 12px 30px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+        
+        .upload-button:hover {
+            background: #0077ED;
+            transform: translateY(-2px);
+        }
+        
+        #fileInput {
+            display: none;
+        }
+        
+        .document-card {
+            background: var(--card-bg);
+            border-radius: 22px;
+            padding: 50px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.04);
+            display: none;
+        }
+        
+        .document-card.active {
+            display: block;
+        }
+        
+        #documentContent {
+            font-size: 16px;
+            line-height: 1.8;
+        }
+        
+        #documentContent h1 {
+            font-size: 32px;
+            font-weight: 600;
+            margin: 30px 0 20px 0;
+            color: var(--text);
+        }
+        
+        #documentContent h2 {
+            font-size: 26px;
+            font-weight: 600;
+            margin: 25px 0 15px 0;
+            color: var(--text);
+        }
+        
+        #documentContent h3 {
+            font-size: 22px;
+            font-weight: 600;
+            margin: 20px 0 12px 0;
+            color: var(--text);
+        }
+        
+        #documentContent p {
+            margin: 15px 0;
+            color: var(--text);
+        }
+        
+        #documentContent ul, 
+        #documentContent ol {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+        
+        #documentContent li {
+            margin: 8px 0;
+        }
+        
+        #documentContent table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        #documentContent th,
+        #documentContent td {
+            border: 1px solid #d2d2d7;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        #documentContent th {
+            background: #f5f5f7;
+            font-weight: 600;
+        }
+        
+        #documentContent strong,
+        #documentContent b {
+            font-weight: 600;
+        }
+        
+        #documentContent em,
+        #documentContent i {
+            font-style: italic;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #86868b;
+            display: none;
+        }
+        
+        .loading.active {
+            display: block;
+        }
+        
+        .error {
+            background: #fff5f5;
+            color: #ff3b30;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            display: none;
+        }
+        
+        .error.active {
+            display: block;
+        }
+        
+        .download-button {
+            display: inline-block;
+            background: #f5f5f7;
+            color: var(--text);
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            margin-top: 20px;
+            transition: all 0.2s;
+        }
+        
+        .download-button:hover {
+            background: #e8e8ed;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px 15px;
+            }
+            
+            .header h1 {
+                font-size: 28px;
+            }
+            
+            .document-card {
+                padding: 30px 20px;
+            }
+            
+            #documentContent {
+                font-size: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← Назад</a>
+        
+        <div class="header">
+            <h1>Перегляд документів</h1>
+            <p>Завантажте Word документ для перегляду</p>
+        </div>
+        
+        <div class="upload-card" id="uploadCard">
+            <div class="upload-icon">📄</div>
+            <h2 style="margin-bottom: 10px;">Оберіть документ</h2>
+            <p style="color: #86868b; margin-bottom: 20px;">Підтримуються файли .docx</p>
+            <label for="fileInput" class="upload-button">
+                Обрати файл
+            </label>
+            <input type="file" id="fileInput" accept=".docx" onchange="loadDocument(event)">
+        </div>
+        
+        <div class="loading" id="loading">
+            <p>Завантаження документа...</p>
+        </div>
+        
+        <div class="error" id="error">
+            <strong>Помилка завантаження</strong>
+            <p id="errorMessage"></p>
+        </div>
+        
+        <div class="document-card" id="documentCard">
+            <div id="documentContent"></div>
+            <button class="download-button" onclick="resetViewer()">← Завантажити інший документ</button>
+        </div>
+    </div>
+
+    <script>
+        async function loadDocument(event) {
+            const file = event.target.files[0];
+            
+            if (!file) return;
+            
+            // Перевірка типу файлу
+            if (!file.name.endsWith('.docx')) {
+                showError('Будь ласка, оберіть файл формату .docx');
+                return;
+            }
+            
+            // Показуємо індикатор завантаження
+            document.getElementById('uploadCard').style.display = 'none';
+            document.getElementById('loading').classList.add('active');
+            document.getElementById('error').classList.remove('active');
+            
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                
+                // Конвертуємо .docx в HTML
+                const result = await mammoth.convertToHtml(
+                    { arrayBuffer: arrayBuffer },
+                    {
+                        styleMap: [
+                            "p[style-name='Heading 1'] => h1:fresh",
+                            "p[style-name='Heading 2'] => h2:fresh",
+                            "p[style-name='Heading 3'] => h3:fresh",
+                            "p[style-name='Title'] => h1:fresh",
+                        ]
+                    }
+                );
+                
+                // Виводимо контент
+                document.getElementById('documentContent').innerHTML = result.value;
+                
+                // Показуємо документ
+                document.getElementById('loading').classList.remove('active');
+                document.getElementById('documentCard').classList.add('active');
+                
+                // Виводимо попередження про втрачене форматування (якщо є)
+                if (result.messages.length > 0) {
+                    console.log('Повідомлення про конвертацію:', result.messages);
+                }
+                
+            } catch (error) {
+                console.error('Помилка:', error);
+                showError('Не вдалося завантажити документ. Переконайтесь, що це коректний .docx файл.');
+            }
+        }
+        
+        function showError(message) {
+            document.getElementById('loading').classList.remove('active');
+            document.getElementById('uploadCard').style.display = 'block';
+            document.getElementById('error').classList.add('active');
+            document.getElementById('errorMessage').textContent = message;
+            
+            // Очищаємо input
+            document.getElementById('fileInput').value = '';
+        }
+        
+        function resetViewer() {
+            document.getElementById('documentCard').classList.remove('active');
+            document.getElementById('uploadCard').style.display = 'block';
+            document.getElementById('documentContent').innerHTML = '';
+            document.getElementById('fileInput').value = '';
+        }
+    </script>
+</body>
+</html>

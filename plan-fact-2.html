@@ -9,6 +9,15 @@
         :root { --bg: #f5f5f7; --text: #1d1d1f; --accent: #0071e3; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 10px; }
         .container { max-width: 100%; margin: 10px auto; }
+        
+        /* Десктопна версія - вужча таблиця */
+        @media (min-width: 768px) {
+            .container { 
+                max-width: 900px;
+                margin: 20px auto;
+            }
+        }
+        
         .back-link { color: var(--accent); text-decoration: none; font-weight: 500; display: inline-block; margin-bottom: 15px; font-size: 14px; }
         
         .table-card { 
@@ -21,11 +30,19 @@
 
         table { width: 100%; border-collapse: collapse; table-layout: auto; }
         
-        /* Кольорові групи */
-        .group-to { background: rgba(0, 113, 227, 0.05); }      /* Синій - ТО */
-        .group-serv { background: rgba(52, 199, 89, 0.05); }    /* Зелений - Послуги */
-        .group-acc { background: rgba(255, 149, 0, 0.05); }     /* Помаранчевий - АСС */
-        .group-checks { background: rgba(175, 82, 222, 0.05); } /* Фіолетовий - Чеки */
+        /* Кольорові групи для РЯДКІВ */
+        tr.group-to { background: rgba(52, 199, 89, 0.08); }       /* Зелений - ТО */
+        tr.group-serv { background: rgba(175, 82, 222, 0.08); }    /* Фіолетовий - Послуги */
+        tr.group-acc { background: rgba(255, 149, 0, 0.08); }      /* Помаранчевий - АСС */
+        tr.group-traffic { background: rgba(0, 113, 227, 0.08); }  /* Синій - Трафік/Чеки блок */
+        tr.group-other { background: rgba(142, 142, 147, 0.05); }  /* Сірий - Інше */
+        
+        /* Лівий бордер для кращої візуалізації */
+        tr.group-to td:first-child { border-left: 4px solid #34c759; }
+        tr.group-serv td:first-child { border-left: 4px solid #af52de; }
+        tr.group-acc td:first-child { border-left: 4px solid #ff9500; }
+        tr.group-traffic td:first-child { border-left: 4px solid #0071e3; }
+        tr.group-other td:first-child { border-left: 4px solid #8e8e93; }
 
         .group-header {
             text-align: center;
@@ -36,6 +53,7 @@
             padding: 10px;
             color: #1d1d1f;
             border-bottom: 1px solid #d2d2d7;
+            position: relative;
         }
 
         th { 
@@ -55,6 +73,60 @@
             white-space: nowrap; 
             overflow: hidden; 
             text-overflow: ellipsis;
+        }
+        
+        /* Ширина колонок: План менша, Факт і % трохи більші */
+        .val-plan { 
+            width: 80px;
+            min-width: 80px;
+        }
+        .val-fact { 
+            width: 95px;
+            min-width: 95px;
+        }
+        .val-pct, .val-pct-success, .val-pct-danger { 
+            width: 95px;
+            min-width: 95px;
+        }
+        
+        /* Мобільна версія - зменшуємо ширину колонок */
+        @media (max-width: 767px) {
+            .val-plan { 
+                width: 60px;
+                min-width: 60px;
+                padding: 8px 5px;
+            }
+            .val-fact { 
+                width: 70px;
+                min-width: 70px;
+                padding: 8px 5px;
+            }
+            .val-pct, .val-pct-success, .val-pct-danger { 
+                width: 65px;
+                min-width: 65px;
+                padding: 8px 5px;
+            }
+            
+            .name-cell, th:first-child { 
+                width: 90px;
+                min-width: 90px;
+                font-size: 11px;
+                padding: 8px 5px;
+            }
+            
+            td {
+                font-size: 11px;
+            }
+            
+            th {
+                font-size: 9px;
+                padding: 8px 5px;
+            }
+            
+            .group-header {
+                font-size: 9px;
+                padding: 8px 5px;
+            }
         }
         
         /* Зменшена ширина першого стовбця */
@@ -85,12 +157,12 @@
         .val-fact { 
             font-weight: 600;
             background: rgba(0, 113, 227, 0.08);
-            color: #0071e3;
+            color: #1d1d1f;
         }
         .val-pct { 
             font-weight: 700; 
             text-align: right;
-            background: rgba(52, 199, 89, 0.1);
+            background: rgba(52, 199, 89, 0.05);
             color: #34c759;
         }
         
@@ -98,15 +170,15 @@
         .val-pct-success {
             font-weight: 700;
             text-align: right;
-            background: rgba(52, 199, 89, 0.15);
-            color: #34c759;
+            background: rgba(52, 199, 89, 0.15) !important;
+            color: #34c759 !important;
         }
         
         .val-pct-danger {
             font-weight: 700;
             text-align: right;
-            background: rgba(255, 59, 48, 0.1);
-            color: #ff3b30;
+            background: rgba(255, 59, 48, 0.04) !important;
+            color: #d93025 !important;
         }
         
         /* Для рядка "Разом" перевизначаємо кольори */
@@ -117,7 +189,7 @@
         .total-row .val-fact { color: white; background: rgba(255,255,255,0.1); }
         .total-row .val-pct { color: #34c759; background: rgba(52, 199, 89, 0.2); }
         .total-row .val-pct-success { color: #34c759 !important; background: rgba(52, 199, 89, 0.2); }
-        .total-row .val-pct-danger { color: #ff3b30 !important; background: rgba(255, 59, 48, 0.2); }
+        .total-row .val-pct-danger { color: #d93025 !important; background: rgba(217, 48, 37, 0.1); }
 
         .loading { padding: 40px; text-align: center; color: #86868b; }
     </style>
@@ -168,8 +240,8 @@
             
             // Якщо isPct=true або є % в оригіналі - форматуємо як відсоток
             if (isPct || isPercentInOriginal) {
-                let displayPct = num < 2 ? num * 100 : num; 
-                return displayPct.toFixed(2) + '%';
+                // Просто додаємо % без конвертації
+                return num.toFixed(2) + '%';
             }
             
             // Перевіряємо чи є десяткова частина в оригіналі
@@ -184,14 +256,67 @@
             }
         }
 
-        // Визначаємо кольорову групу за назвою колонки
+        // Визначаємо кольорову групу за назвою колонки (для заголовків)
         function getGroupClass(colName) {
-            const name = colName.toLowerCase();
-            if (name.includes('то') || name.includes('товарообіг')) return 'group-to';
-            if (name.includes('послуг') || name.includes('сервіс')) return 'group-serv';
-            if (name.includes('acc') || name.includes('акс')) return 'group-acc';
-            if (name.includes('чек')) return 'group-checks';
-            return '';
+            const name = colName.toLowerCase().trim();
+            
+            // Видаляємо зайві символи для аналізу
+            const cleanName = name.replace(/₴/g, '').replace(/%/g, '').trim();
+            
+            // Блок ТО 
+            if (cleanName === 'то' || cleanName.startsWith('то ') || cleanName.endsWith(' то')) {
+                return 'group-to';
+            }
+            
+            // Блок Послуги
+            if (cleanName.includes('послуг')) {
+                return 'group-serv';
+            }
+            
+            // Блок АСС
+            if (cleanName === 'асс' || cleanName === 'acc' || cleanName.includes('асс ') || cleanName.includes('acc ')) {
+                return 'group-acc';
+            }
+            
+            // Блок Трафік/Чеки (трафік, чеки, ктч, срч, конверсія, pick-up, кредит)
+            if (cleanName === 'трафік' || cleanName === 'чеки' || cleanName === 'ктч' || 
+                cleanName === 'срч' || cleanName.includes('конверс') || cleanName.includes('pick-up') ||
+                cleanName === 'кредит') {
+                return 'group-traffic';
+            }
+            
+            // Все інше (logitech, tefal/philips та інші)
+            return 'group-other';
+        }
+
+        // Визначаємо кольорову групу для РЯДКА за назвою метрики
+        function getRowGroupClass(rowName) {
+            const name = rowName.toLowerCase().trim();
+            
+            // Блок ТО
+            if (name.includes('то ₴')) {
+                return 'group-to';
+            }
+            
+            // Блок Послуги
+            if (name.includes('послуг')) {
+                return 'group-serv';
+            }
+            
+            // Блок АСС
+            if (name.includes('асс')) {
+                return 'group-acc';
+            }
+            
+            // Блок Трафік/Чеки
+            if (name === 'трафік' || name === 'чеки' || name === 'ктч' || 
+                name === 'срч' || name.includes('конверс') || name === 'pick-up' ||
+                name === 'кредит') {
+                return 'group-traffic';
+            }
+            
+            // Все інше
+            return 'group-other';
         }
 
         async function loadTable() {
@@ -265,7 +390,15 @@
                     const isTotal = row[0].toLowerCase().includes('разом') || 
                                    row[0].toLowerCase().includes('сума') ||
                                    row[0].toLowerCase().includes('всього');
-                    if (isTotal) tr.className = 'total-row';
+                    
+                    // Визначаємо групу рядка за назвою метрики
+                    const rowGroupClass = getRowGroupClass(row[0]);
+                    
+                    if (isTotal) {
+                        tr.className = 'total-row';
+                    } else {
+                        tr.className = rowGroupClass;
+                    }
 
                     // Перша колонка - ім'я
                     const nameCell = document.createElement('td');
