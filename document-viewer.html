@@ -2,7 +2,7 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <title>Перегляд документа</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
@@ -280,64 +280,119 @@
         
         @media (max-width: 768px) {
             .container {
-                padding: 20px 15px;
+                padding: 20px 10px;
+                max-width: 100%;
             }
             
             .header h1 {
-                font-size: 28px;
+                font-size: 24px;
+            }
+            
+            .header p {
+                font-size: 15px;
             }
             
             .upload-card {
-                padding: 30px 20px;
+                padding: 25px 15px;
             }
             
             .document-card {
-                padding: 25px 15px;
+                padding: 20px 12px;
                 border-radius: 18px;
             }
             
             #documentContent {
-                font-size: 14px;
-                line-height: 1.7;
+                font-size: 13px;
+                line-height: 1.6;
+                overflow-wrap: break-word;
+                word-wrap: break-word;
+                word-break: break-word;
+                max-width: 100%;
+            }
+            
+            #documentContent * {
+                max-width: 100%;
                 overflow-wrap: break-word;
                 word-wrap: break-word;
             }
             
             #documentContent h1 {
-                font-size: 24px;
-                margin: 20px 0 15px 0;
+                font-size: 20px;
+                margin: 18px 0 12px 0;
+                line-height: 1.3;
             }
             
             #documentContent h2 {
-                font-size: 20px;
-                margin: 18px 0 12px 0;
+                font-size: 18px;
+                margin: 16px 0 10px 0;
+                line-height: 1.3;
             }
             
             #documentContent h3 {
-                font-size: 18px;
-                margin: 15px 0 10px 0;
+                font-size: 16px;
+                margin: 14px 0 8px 0;
+                line-height: 1.3;
             }
             
             #documentContent p {
-                margin: 12px 0;
+                margin: 10px 0;
+                text-align: justify;
+            }
+            
+            #documentContent ul,
+            #documentContent ol {
+                padding-left: 20px;
+                margin: 10px 0;
+            }
+            
+            #documentContent li {
+                margin: 6px 0;
             }
             
             #documentContent table {
                 display: block;
                 overflow-x: auto;
                 -webkit-overflow-scrolling: touch;
-                font-size: 13px;
+                font-size: 11px;
+                width: 100%;
+                max-width: 100%;
             }
             
             #documentContent th,
             #documentContent td {
-                padding: 8px;
-                min-width: 100px;
+                padding: 6px 4px;
+                min-width: 80px;
+                font-size: 11px;
             }
             
             #documentContent img {
-                max-width: 100%;
-                height: auto;
+                max-width: 100% !important;
+                height: auto !important;
+                display: block;
+                margin: 10px auto;
+            }
+            
+            /* Переносимо довгі слова та URL */
+            #documentContent a {
+                word-break: break-all;
+            }
+            
+            .download-button {
+                font-size: 13px;
+                padding: 8px 16px;
+            }
+            
+            #uploadOptions {
+                padding: 15px;
+            }
+            
+            #uploadOptions h3 {
+                font-size: 14px;
+            }
+            
+            #uploadOptions input,
+            #uploadOptions button {
+                font-size: 13px;
             }
         }
     </style>
