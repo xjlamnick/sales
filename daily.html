@@ -52,8 +52,7 @@
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
             overscroll-behavior-x: contain;
-            scroll-snap-type: x proximity;
-            -webkit-scroll-snap-type: x proximity;
+
         }
 
         /* === ТАБЛИЦІ === */
@@ -103,7 +102,6 @@
             left: 0;
             background: white;
             z-index: 10;
-            scroll-snap-align: start;
             width: var(--name-w);
             min-width: var(--name-w);
             max-width: var(--name-w);
@@ -118,10 +116,6 @@
 
         /* Роздільник між групами */
         .grp-start { border-left: 2px solid #e0e0e5 !important; }
-        /* Snap — фіксуємо на початку кожної групи */
-        td.grp-start {
-            scroll-snap-align: start;
-        }
 
         /* Дані */
         td {
@@ -365,13 +359,37 @@ async function load() {
         }
 
         // ===== СИНХРОНІЗАЦІЯ ГОРИЗОНТАЛЬНОГО СКРОЛУ =====
-        // thead-wrap НЕ має скролу → синхронізуємо JS
         const tbodyWrap = document.getElementById('tbodyWrap');
         const theadWrap = document.getElementById('theadWrap');
 
         tbodyWrap.addEventListener('scroll', () => {
             theadWrap.scrollLeft = tbodyWrap.scrollLeft;
         }, { passive: true });
+
+        // ===== SCROLL SNAP по групах =====
+        // Знаходимо позиції першої td кожної групи і snap до них
+        function setupSnap() {
+            const nameW = document.querySelector('td.name-cell')
+                        ? document.querySelector('td.name-cell').offsetWidth : 80;
+            
+            // scroll-padding-left = ширина sticky name-cell
+            tbodyWrap.style.scrollPaddingLeft = nameW + 'px';
+
+            // Знаходимо всі td.grp-start в першому рядку даних
+            const firstRow = document.querySelector('#tbody tr');
+            if (!firstRow) return;
+
+            firstRow.querySelectorAll('td.grp-start').forEach(td => {
+                td.style.scrollSnapAlign = 'start';
+                td.style.scrollMarginLeft = '0px';
+            });
+
+            // Вмикаємо snap на контейнері
+            tbodyWrap.style.scrollSnapType = 'x mandatory';
+        }
+
+        // Запускаємо після рендеру
+        requestAnimationFrame(() => requestAnimationFrame(setupSnap));
 
         // Вирівнюємо ширину thead-таблиці з tbody-таблицею
         function syncWidth() {
