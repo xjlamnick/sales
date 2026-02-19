@@ -16,94 +16,99 @@
             background: white; 
             border-radius: 22px; 
             box-shadow: 0 8px 30px rgba(0,0,0,0.04); 
-            overflow-x: auto; 
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior-x: contain;
         }
 
         table { width: 100%; border-collapse: collapse; min-width: 1000px; }
-        th { text-align: left; padding: 12px; color: #86868b; font-size: 11px; font-weight: 600; text-transform: uppercase; border-bottom: 1px solid #d2d2d7; background: white; }
-        td { padding: 12px; border-bottom: 1px solid #f5f5f7; font-size: 14px; white-space: nowrap; }
-        
-        /* ДЕСКТОПНА ВЕРСІЯ: компактніша таблиця */
-        @media (min-width: 768px) {
-            table { min-width: auto; width: 100%; }
-            th { padding: 10px 6px; font-size: 10px; }
-            td { padding: 10px 6px; font-size: 12px; }
-            .name-cell, th:first-child { 
-                min-width: 120px;
-                max-width: 120px;
-                padding: 10px 6px;
-                font-size: 12px;
-            }
+
+        /* ====== ГРУПОВІ ЗАГОЛОВКИ ====== */
+        .group-header { 
+            text-align: center; 
+            font-size: 10px; font-weight: 800; 
+            text-transform: uppercase; letter-spacing: 0.5px; 
+            padding: 10px; 
+            border-bottom: 1px solid #d2d2d7; 
+            background: white;
         }
-        
-        /* ФІКСОВАНА КОЛОНКА ПІБ */
+        .group-header.group-to     { color: #0071e3; border-bottom: 3px solid #0071e3; }
+        .group-header.group-serv   { color: #34c759; border-bottom: 3px solid #34c759; }
+        .group-header.group-acc    { color: #ff9500; border-bottom: 3px solid #ff9500; }
+        .group-header.group-checks { color: #af52de; border-bottom: 3px solid #af52de; }
+
+        th { 
+            text-align: left; 
+            padding: 10px; 
+            color: #86868b; 
+            font-size: 10px; font-weight: 600; 
+            text-transform: uppercase; 
+            border-bottom: 1px solid #d2d2d7; 
+            background: white; 
+            white-space: nowrap;
+        }
+        th.group-to     { color: #0071e3; }
+        th.group-serv   { color: #34c759; }
+        th.group-acc    { color: #ff9500; }
+        th.group-checks { color: #af52de; }
+
+        td { padding: 12px 10px; border-bottom: 1px solid #f5f5f7; font-size: 13px; white-space: nowrap; }
+
+        /* Роздільник між групами */
+        .group-start { border-left: 2px solid #d2d2d7 !important; }
+
+        /* ====== ФІКСОВАНА КОЛОНКА ====== */
         .name-cell, th:first-child { 
-            position: sticky; 
-            left: 0; 
+            position: sticky; left: 0; 
             background: white; 
             z-index: 10; 
-            min-width: 180px; 
+            min-width: 140px; max-width: 160px;
             box-shadow: 4px 0 8px -4px rgba(0,0,0,0.1);
+            white-space: normal; line-height: 1.2;
+            font-weight: 600; font-size: 12px;
         }
         th:first-child { z-index: 11; }
 
-        /* КОЛЬОРИ СТОВПЦІВ */
-        .col-to { color: #34c759; font-weight: 600; }
-        .col-poslugi { color: #af52de; font-weight: 600; }
-        .col-acc { color: #ff9500; font-weight: 600; }
-        .col-cheky { color: #0071e3; font-weight: 600; }
-        
-        /* КОЛОНКИ ПЛАН - сірий і менший шрифт */
-        .col-plan { color: #86868b; font-size: 12px; font-weight: 400; }
+        /* ====== СТИЛІ ЗНАЧЕНЬ ====== */
+        .val-plan   { color: #86868b; font-size: 11px; }
+        .val-fact   { font-weight: 600; }
+        .val-pct    { font-weight: 700; text-align: right; }
 
-        /* СТРОКА З ЧАСОМ */
+        .val-fact.group-to,     .val-pct.group-to     { color: #0071e3; }
+        .val-fact.group-serv,   .val-pct.group-serv   { color: #34c759; }
+        .val-fact.group-acc,    .val-pct.group-acc    { color: #ff9500; }
+        .val-fact.group-checks, .val-pct.group-checks { color: #af52de; }
+
+        /* ====== РЯДОК З ЧАСОМ ====== */
         .time-row { background: #f5f5f7 !important; font-weight: 800 !important; }
         .time-row td { color: #000; }
         .time-row .name-cell { background: #f5f5f7 !important; }
-        
-        /* СТРОКИ ВИКОНАННЯ ТА ЗАЛИШОК */
-        .summary-row { background: #fafafa !important; font-weight: 700 !important; }
-        .summary-row td { color: #1d1d1f !important; }
-        .summary-row .name-cell { background: #fafafa !important; }
+
+        /* ====== ПІДСУМКОВІ РЯДКИ ====== */
+        .summary-row { background: #e8f0fe !important; border-top: 2px solid #a8c4f0 !important; }
+        .summary-row td { font-weight: 700 !important; background: #e8f0fe !important; color: #1d1d1f !important; }
+        .summary-row .name-cell { background: #e8f0fe !important; }
 
         .loading { padding: 40px; text-align: center; color: #86868b; }
         .error { padding: 40px; text-align: center; color: #ff3b30; }
 
-        /* МОБІЛЬНА ВЕРСІЯ: ЗМЕНШЕННЯ ШРИФТУ ПІБ */
+        /* ====== ДЕСКТОП ====== */
+        @media (min-width: 768px) {
+            .name-cell, th:first-child { min-width: 120px; max-width: 140px; }
+        }
+
+        /* ====== МОБІЛЬНА ВЕРСІЯ ====== */
         @media (max-width: 600px) {
             .name-cell, th:first-child { 
-                min-width: 80px; 
-                max-width: 80px;
-                padding: 8px 5px;
-                font-size: 10px;
-                white-space: normal;
-                line-height: 1.1;
-                text-align: center;
+                min-width: 75px; max-width: 80px;
+                padding: 8px 4px;
+                font-size: 9.5px;
             }
-            
-            td:not(.name-cell) {
-                padding: 8px 6px;
-                font-size: 12px;
-            }
-            
-            th {
-                padding: 10px 6px;
-                font-size: 9px;
-            }
-            
-            h1 {
-                font-size: 26px;
-                margin-bottom: 15px;
-            }
-            
-            .container {
-                padding: 15px 10px;
-            }
-            
-            .back-link {
-                margin-bottom: 15px;
-                font-size: 14px;
-            }
+            td:not(.name-cell) { padding: 10px 6px; font-size: 12px; }
+            th { padding: 8px 5px; font-size: 9px; }
+            h1 { font-size: 24px; margin-bottom: 15px; }
+            .container { padding: 15px 10px; }
+            .back-link { margin-bottom: 15px; font-size: 14px; }
         }
     </style>
 </head>
@@ -114,235 +119,246 @@
         <div class="table-card">
             <div id="loader" class="loading">Завантаження даних з Google Sheets...</div>
             <table id="dataTable" style="display: none;">
-                <thead><tr id="headerRow"></tr></thead>
+                <thead id="tableHead"></thead>
                 <tbody id="tableBody"></tbody>
             </table>
         </div>
     </div>
+
     <script>
-        // Покращений парсер CSV
+        // ====== CSV ПАРСЕР ======
         function parseCSV(text) {
             const rows = [];
             const lines = text.split(/\r?\n/);
-            
             for (let line of lines) {
-                if (!line.trim()) continue; // Пропускаємо порожні рядки
-                
+                if (!line.trim()) continue;
                 const row = [];
-                let cell = '';
-                let inQuotes = false;
-                
+                let cell = ''; let inQuotes = false;
                 for (let i = 0; i < line.length; i++) {
-                    const char = line[i];
-                    const nextChar = line[i + 1];
-                    
+                    const char = line[i], nextChar = line[i + 1];
                     if (char === '"') {
-                        if (inQuotes && nextChar === '"') {
-                            // Подвійні лапки всередині лапок
-                            cell += '"';
-                            i++; // Пропускаємо наступну лапку
-                        } else {
-                            // Початок або кінець лапок
-                            inQuotes = !inQuotes;
-                        }
-                    } else if (char === ',' && !inQuotes) {
-                        // Роздільник колонок
-                        row.push(cell.trim());
-                        cell = '';
-                    } else {
-                        cell += char;
-                    }
+                        if (inQuotes && nextChar === '"') { cell += '"'; i++; }
+                        else { inQuotes = !inQuotes; }
+                    } else if (char === ',' && !inQuotes) { row.push(cell.trim()); cell = ''; }
+                    else { cell += char; }
                 }
-                
-                // Додаємо останню комірку
                 row.push(cell.trim());
-                
-                if (row.length > 0 && row.some(c => c !== '')) {
-                    rows.push(row);
-                }
+                if (row.some(c => c !== '')) rows.push(row);
             }
-            
             return rows;
         }
 
-        // Очищення значення
-        function cleanVal(val) {
-            if (!val) return "";
-            return val.toString().trim();
+        function cleanStr(val) { return val ? val.toString().trim() : ''; }
+
+        // ====== ФОРМАТУВАННЯ ЧИСЕЛ ======
+        function cleanNum(val) {
+            if (!val) return 0;
+            return parseFloat(val.toString().replace('%','').replace(/\s/g,'').replace(',','.')) || 0;
+        }
+        function fmtNum(val) {
+            const n = cleanNum(val);
+            if (n === 0 && !val) return '';
+            return Math.round(n).toLocaleString('uk-UA');
+        }
+        function fmtPct(val) {
+            let n = cleanNum(val);
+            if (n > 0 && n < 2) n = n * 100; // дробове (0.87 → 87%)
+            return n.toFixed(1) + '%';
         }
 
-        async function loadTable() {
-            // URL вашої Google таблиці для daily sales
-            // ЗАМІНІТЬ на правильний URL вашої таблиці для щоденних звітів!
-            const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQOxz-ozH9yNLW3IAzlkMlbRqOTrR4sIUO1__KpAMBFEvvpMXr4LWTnRvzYGb_y6za7WBxOUhl2DV84/pub?output=csv";
-            
-            try {
-                console.log("Завантаження даних з:", SHEET_URL);
-                
-                // Додаємо timestamp для уникнення кешування
-                const url = SHEET_URL + (SHEET_URL.includes('?') ? '&' : '?') + 't=' + Date.now();
-                const response = await fetch(url);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const text = await response.text();
-                console.log("Отримано CSV, довжина:", text.length);
-                
-                if (!text || text.length < 10) {
-                    throw new Error("Отримано порожній або занадто короткий CSV");
-                }
-                
-                const rows = parseCSV(text);
-                console.log("Розпарсено рядків:", rows.length);
+        // ====== КОЛЬОРОВИЙ СТИЛЬ % (як у plan-fact) ======
+        function getPctStyle(val) {
+            let n = cleanNum(val);
+            if (n > 0 && n < 2) n = n * 100;
+            if (n <= 0)  return { bg: 'rgba(255,59,48,0.15)',  color: '#cc2200' };
+            if (n < 50)  return { bg: 'rgba(255,59,48,0.12)',  color: '#d63b2a' };
+            if (n < 80)  return { bg: 'rgba(255,149,0,0.12)',  color: '#c97000' };
+            if (n < 100) return { bg: 'rgba(255,204,0,0.12)',  color: '#a07800' };
+            if (n < 120) return { bg: 'rgba(52,199,89,0.12)',  color: '#248a3d' };
+            return             { bg: 'rgba(52,199,89,0.22)',   color: '#1a6e30' };
+        }
 
+        // ====== ВИЗНАЧЕННЯ ГРУПИ КОЛОНКИ ======
+        function getColInfo(hName) {
+            const h = hName.toUpperCase();
+            let group = '', type = 'fact';
+
+            if (h.includes('ТО') && !h.includes('ТОЧ') && !h.includes('TOЧН')) {
+                group = 'to';
+                if (h.includes('ПЛАН')) type = 'plan';
+                else if (h.includes('%') || h.includes('ВИКО')) type = 'pct';
+            } else if (h.includes('ПОСЛУГ') || h.includes('ПОСЛ')) {
+                group = 'serv';
+                if (h.includes('ПЛАН')) type = 'plan';
+                else if (h.includes('%') || h.includes('ВИКО')) type = 'pct';
+                else if (h.includes('ДОЛЯ') || h.includes('SHARE')) type = 'share';
+            } else if (h.includes('АСС') || h.includes('ACC') || h.includes('АКСЕС')) {
+                group = 'acc';
+                if (h.includes('ПЛАН')) type = 'plan';
+                else if (h.includes('%') || h.includes('ВИКО')) type = 'pct';
+                else if (h.includes('ДОЛЯ') || h.includes('SHARE')) type = 'share';
+            } else if (h.includes('ЧЕК') || h.includes('CHECK')) {
+                group = 'checks';
+                if (h.includes('ПЛАН')) type = 'plan';
+                else if (h.includes('%') || h.includes('ВИКО')) type = 'pct';
+            }
+            return { group, type };
+        }
+
+        // ====== ПОБУДОВА ЗАГОЛОВКІВ ======
+        function buildHeaders(headers) {
+            const thead = document.getElementById('tableHead');
+            thead.innerHTML = '';
+
+            // Перший рядок: групові заголовки
+            const groupRow = document.createElement('tr');
+            const thName = document.createElement('th');
+            thName.rowSpan = 2;
+            thName.textContent = headers[0];
+            groupRow.appendChild(thName);
+
+            // Збираємо групи
+            const groupMap = [];
+            let curGroup = '', startIdx = 1;
+            for (let i = 1; i <= headers.length; i++) {
+                const { group } = i < headers.length ? getColInfo(headers[i]) : { group: '__end' };
+                if (group !== curGroup) {
+                    if (curGroup !== '') groupMap.push({ group: curGroup, count: i - startIdx });
+                    curGroup = group;
+                    startIdx = i;
+                }
+            }
+
+            const groupLabels = { 'to': 'Товарообіг', 'serv': 'Послуги', 'acc': 'Аксесуари', 'checks': 'Чеки', '': '' };
+
+            groupMap.forEach(g => {
+                const th = document.createElement('th');
+                th.colSpan = g.count;
+                th.className = 'group-header' + (g.group ? ' group-' + g.group : '');
+                th.textContent = groupLabels[g.group] || '';
+                groupRow.appendChild(th);
+            });
+            thead.appendChild(groupRow);
+
+            // Другий рядок: підзаголовки
+            const subRow = document.createElement('tr');
+            let prevGroup = '';
+            for (let i = 1; i < headers.length; i++) {
+                const th = document.createElement('th');
+                const { group } = getColInfo(headers[i]);
+                if (group) th.className = 'group-' + group;
+                if (group && group !== prevGroup) th.classList.add('group-start');
+                prevGroup = group;
+                th.textContent = headers[i];
+                subRow.appendChild(th);
+            }
+            thead.appendChild(subRow);
+        }
+
+        // ====== ЗАВАНТАЖЕННЯ ТАБЛИЦІ ======
+        async function loadTable() {
+            const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQOxz-ozH9yNLW3IAzlkMlbRqOTrR4sIUO1__KpAMBFEvvpMXr4LWTnRvzYGb_y6za7WBxOUhl2DV84/pub?output=csv";
+            try {
+                const response = await fetch(SHEET_URL + (SHEET_URL.includes('?') ? '&' : '?') + 't=' + Date.now());
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const text = await response.text();
+                if (!text || text.length < 10) throw new Error("Отримано порожній CSV");
+
+                const rows = parseCSV(text);
                 if (!rows || rows.length < 2) {
                     document.getElementById('loader').className = 'error';
                     document.getElementById('loader').textContent = "Немає даних в таблиці";
                     return;
                 }
 
-                // Приховуємо loader, показуємо таблицю
+                const headers = rows[0];
+
                 document.getElementById('loader').style.display = 'none';
                 document.getElementById('dataTable').style.display = 'table';
 
-                // Отримуємо заголовки (перший рядок)
-                const headers = rows[0];
-                console.log("Заголовки:", headers);
-                
-                const hRow = document.getElementById('headerRow');
-                hRow.innerHTML = ''; // Очищаємо попередні заголовки
-                
-                headers.forEach(h => {
-                    let th = document.createElement('th');
-                    th.textContent = h;
-                    hRow.appendChild(th);
-                });
+                buildHeaders(headers);
 
-                // Заповнюємо дані (всі рядки крім першого)
                 const tbody = document.getElementById('tableBody');
-                tbody.innerHTML = ''; // Очищаємо попередні дані
-                
-                const dataRows = rows.slice(1);
-                console.log("Рядків з даними:", dataRows.length);
+                tbody.innerHTML = '';
 
-                dataRows.forEach((row, idx) => {
-                    // Пропускаємо порожні рядки
-                    if (!row || row.length === 0 || !row[0] || row[0].trim() === '') {
-                        console.log("Пропущено порожній рядок:", idx + 2);
-                        return;
-                    }
+                rows.slice(1).forEach(row => {
+                    if (!row || !row[0] || !row[0].trim()) return;
 
-                    let tr = document.createElement('tr');
-                    const nameVal = cleanVal(row[0]);
-                    
-                    // Якщо в першій колонці час (формат HH:MM:SS) - це строка з часом
-                    if (nameVal.match(/^\d{2}:\d{2}:\d{2}$/)) {
-                        tr.className = 'time-row';
-                        console.log("Знайдено рядок з часом:", nameVal);
-                    }
-                    
-                    // Виконання та Залишок - чорний шрифт
-                    const rowName = row[0].toString().toLowerCase().trim();
-                    if (rowName.includes('виконання') || rowName.includes('залишок')) {
-                        tr.className = 'summary-row';
-                    }
+                    const tr = document.createElement('tr');
+                    const nameVal = cleanStr(row[0]);
+                    const nameLC  = nameVal.toLowerCase();
 
-                    // Додаємо клітинки для кожної колонки
-                    for (let i = 0; i < headers.length; i++) {
-                        let td = document.createElement('td');
-                        let val = cleanVal(row[i] || '');
-                        
-                        if (i === 0) {
-                            // Перша колонка - ПІБ або час
-                            td.className = 'name-cell';
-                            td.textContent = val;
+                    const isTime    = /^\d{1,2}:\d{2}(:\d{2})?$/.test(nameVal);
+                    const isSummary = nameLC.includes('виконання') || nameLC.includes('залишок')
+                                   || nameLC.includes('разом') || nameLC.includes('всього')
+                                   || nameLC.includes('підсумок') || nameLC.includes('total')
+                                   || nameLC.includes('итого');
+
+                    if (isTime)    tr.className = 'time-row';
+                    if (isSummary) tr.className = 'summary-row';
+
+                    // Перша колонка
+                    const tdName = document.createElement('td');
+                    tdName.className = 'name-cell';
+                    tdName.textContent = nameVal;
+                    tr.appendChild(tdName);
+
+                    // Решта колонок
+                    let prevGroup = '';
+                    for (let i = 1; i < headers.length; i++) {
+                        const { group, type } = getColInfo(headers[i]);
+                        const val = cleanStr(row[i] || '');
+                        const isGroupStart = group && group !== prevGroup;
+
+                        if (type === 'pct' && !isTime) {
+                            const { bg, color } = getPctStyle(val);
+                            const td = document.createElement('td');
+                            td.className = 'val-pct' + (group ? ' group-' + group : '');
+                            if (isGroupStart) td.classList.add('group-start');
+                            td.style.cssText = isSummary
+                                ? `background:${bg}!important;color:#1d1d1f!important;font-weight:700!important`
+                                : `background:${bg}!important;color:${color}!important`;
+                            td.textContent = val ? fmtPct(val) : '';
+                            tr.appendChild(td);
                         } else {
-                            // Інші колонки - числа
-                            td.textContent = val;
-                            
-                            // Застосовуємо кольори в залежності від назви колонки
-                            const hName = headers[i].toUpperCase();
-                            
-                            // Колонки План - сірий колір
-                            if (hName.includes('ПЛАН ТО') || hName.includes('ПЛАН ПОСЛУГИ') || hName.includes('ПЛАН АСС')) {
-                                td.classList.add('col-plan');
-                            }
-                            // Група ТО (зелений) - тільки Факт і %
-                            else if (hName.includes('ФАКТ ТО') || hName.includes('% ТО')) {
-                                td.classList.add('col-to');
-                            } 
-                            // Група Послуги (фіолетовий) - тільки Факт і Доля
-                            else if (hName.includes('ФАКТ ПОСЛУГИ') || hName.includes('ДОЛЯ ПОСЛУГ')) {
-                                td.classList.add('col-poslugi');
-                            } 
-                            // Група АСС (помаранчевий) - тільки Факт і Доля
-                            else if (hName.includes('ФАКТ АСС') || hName.includes('ДОЛЯ АСС')) {
-                                td.classList.add('col-acc');
-                            } 
-                            // Чеки (синій)
-                            else if (hName === 'ЧЕКИ' || hName.includes('ЧЕК')) {
-                                td.classList.add('col-cheky');
-                            }
+                            const td = document.createElement('td');
+                            td.className = (type === 'plan' ? 'val-plan' : 'val-fact') + (group ? ' group-' + group : '');
+                            if (isGroupStart) td.classList.add('group-start');
+                            // Числове форматування тільки для не-часових рядків
+                            const numVal = cleanNum(val);
+                            td.textContent = (!isTime && val && numVal !== 0) ? fmtNum(val) : val;
+                            tr.appendChild(td);
                         }
-                        tr.appendChild(td);
+
+                        prevGroup = group;
                     }
+
                     tbody.appendChild(tr);
                 });
-                
-                console.log("Таблиця успішно побудована");
 
             } catch (e) {
-                console.error("Помилка завантаження:", e);
                 document.getElementById('loader').className = 'error';
-                document.getElementById('loader').innerHTML = 
-                    "❌ Помилка завантаження даних<br>" +
-                    "<small style='font-size: 12px; color: #86868b;'>" + e.message + "</small><br>" +
-                    "<small style='font-size: 11px; color: #86868b; margin-top: 10px; display: block;'>" +
-                    "Перевірте консоль браузера (F12) для деталей</small>";
+                document.getElementById('loader').innerHTML =
+                    '❌ Помилка завантаження даних<br>' +
+                    '<small style="font-size:12px;color:#86868b;">' + e.message + '</small><br>' +
+                    '<small style="font-size:11px;color:#86868b;margin-top:10px;display:block;">Перевірте консоль браузера (F12) для деталей</small>';
             }
         }
 
-        // Завантажуємо дані при відкритті сторінки
         loadTable();
 
-        // СВАЙП-НАВІГАЦІЯ
-        let touchStartX = 0;
-        let touchStartY = 0;
-        let touchEndX = 0;
-        let touchEndY = 0;
-        let isSwiping = false;
-        
-        function handleSwipe() {
-            const swipeThreshold = 120;
-            const swipeDistanceX = touchEndX - touchStartX;
-            const swipeDistanceY = Math.abs(touchEndY - touchStartY);
-            
-            if (isSwiping && Math.abs(swipeDistanceX) > swipeThreshold && swipeDistanceX > 0 && swipeDistanceY < 50) {
-                window.location.href = 'index.html';
-            }
-        }
-        
-        document.addEventListener('touchstart', e => {
-            touchStartX = e.changedTouches[0].screenX;
-            touchStartY = e.changedTouches[0].screenY;
-            isSwiping = true;
-        }, { passive: true });
-        
+        // ====== СВАЙП-НАВІГАЦІЯ ======
+        let tX = 0, tY = 0, eX = 0, eY = 0, swiping = false;
+        document.addEventListener('touchstart', e => { tX = e.changedTouches[0].screenX; tY = e.changedTouches[0].screenY; swiping = true; }, { passive: true });
         document.addEventListener('touchmove', e => {
-            const moveY = Math.abs(e.changedTouches[0].screenY - touchStartY);
-            const moveX = Math.abs(e.changedTouches[0].screenX - touchStartX);
-            if (moveY > 20 || moveX < 30) {
-                isSwiping = false;
-            }
+            const mY = Math.abs(e.changedTouches[0].screenY - tY);
+            const mX = Math.abs(e.changedTouches[0].screenX - tX);
+            if (mY > 20 || mX < 30) swiping = false;
         }, { passive: true });
-        
         document.addEventListener('touchend', e => {
-            touchEndX = e.changedTouches[0].screenX;
-            touchEndY = e.changedTouches[0].screenY;
-            handleSwipe();
-            isSwiping = false;
+            eX = e.changedTouches[0].screenX; eY = e.changedTouches[0].screenY;
+            if (swiping && eX - tX > 120 && Math.abs(eY - tY) < 50) window.location.href = 'index.html';
+            swiping = false;
         }, { passive: true });
     </script>
 </body>
