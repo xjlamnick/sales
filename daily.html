@@ -163,7 +163,7 @@
         function fmtPct(val) {
             let n = cleanNum(val);
             if (n > 0 && n < 2) n = n * 100; // дробове (0.87 → 87%)
-            return n.toFixed(1) + '%';
+            return n.toFixed(2) + '%';
         }
 
         // ====== КОЛЬОРОВИЙ СТИЛЬ % (як у plan-fact) ======
