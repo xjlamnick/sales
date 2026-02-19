@@ -52,8 +52,8 @@
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
             overscroll-behavior-x: contain;
-            scroll-snap-type: x mandatory;
-            -webkit-scroll-snap-type: x mandatory;
+            scroll-snap-type: x proximity;
+            -webkit-scroll-snap-type: x proximity;
         }
 
         /* === ТАБЛИЦІ === */
@@ -121,7 +121,6 @@
         /* Snap — фіксуємо на початку кожної групи */
         td.grp-start {
             scroll-snap-align: start;
-            scroll-snap-stop: always;
         }
 
         /* Дані */
