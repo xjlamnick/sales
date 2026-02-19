@@ -6,78 +6,95 @@
     <title>Daily Sales — Apple Style</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
     <style>
-        :root { --bg: #f5f5f7; --text: #1d1d1f; --accent: #0071e3; }
+        :root { --bg: #f5f5f7; --text: #1d1d1f; --accent: #0071e3; --name-w: 90px; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 8px 10px; }
         .container { max-width: 1400px; margin: 8px auto; }
         .back-link { color: var(--accent); text-decoration: none; font-weight: 500; display: inline-block; margin-bottom: 8px; font-size: 14px; }
         h1 { font-size: 24px; font-weight: 600; margin-bottom: 10px; letter-spacing: -0.5px; }
-        
-        .table-card { 
-            background: white; 
-            border-radius: 22px; 
-            box-shadow: 0 8px 30px rgba(0,0,0,0.04); 
+
+        .table-card {
+            background: white;
+            border-radius: 18px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.06);
             overflow: hidden;
         }
 
-        /* ====== ОБГОРТКА ДЛЯ STICKY + SCROLL ====== */
-        /* Sticky thead працює лише коли overflow на самій таблиці, не на батьківському div */
+        /* Скрол-контейнер — overflow тут, не на table-card */
         .table-scroll-wrap {
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
             overscroll-behavior-x: contain;
-            /* scroll snap — фіксуємо по групах на мобільному */
-            scroll-snap-type: x mandatory;
         }
 
-        table { 
-            width: max-content; 
-            min-width: 100%; 
-            border-collapse: collapse; 
+        table {
+            border-collapse: collapse;
+            /* На мобільному: name + 3 колонки = 100% екрану */
+            width: max-content;
+            min-width: 100%;
         }
 
-        /* ====== STICKY ЗАГОЛОВКИ ====== */
+        /* ====== STICKY THEAD ====== */
+        /* Важливо: sticky в thead працює коли overflow на батьківському елементі таблиці */
         thead th {
             position: sticky;
             top: 0;
-            z-index: 12;
+            z-index: 10;
             background: white;
         }
         thead tr.subheader-row th {
             top: 32px;
+            z-index: 10;
         }
-        /* Перша колонка — sticky зліва + зверху */
-        thead tr:first-child th:first-child {
+
+        /* ====== ФІКСОВАНА КОЛОНКА ПК — sticky зліва ====== */
+        .name-cell,
+        th.name-th {
+            position: sticky;
             left: 0;
-            z-index: 22;
+            z-index: 15;
+            background: white;
+            width: var(--name-w);
+            min-width: var(--name-w);
+            max-width: var(--name-w);
+            white-space: normal;
+            line-height: 1.2;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 7px 5px;
+            box-shadow: 3px 0 6px -2px rgba(0,0,0,0.12);
+        }
+        /* Кут thead: sticky зліва І зверху */
+        thead th.name-th {
+            z-index: 25 !important;
         }
         thead tr.subheader-row th.name-th {
-            left: 0;
-            z-index: 22;
             top: 32px;
+            z-index: 25 !important;
         }
 
         /* ====== ГРУПОВІ ЗАГОЛОВКИ ====== */
-        .group-header { 
-            text-align: center; 
-            font-size: 10px; font-weight: 800; 
-            text-transform: uppercase; letter-spacing: 0.5px; 
-            padding: 7px 10px; 
-            border-bottom: 1px solid #d2d2d7; 
+        .group-header {
+            text-align: center;
+            font-size: 10px; font-weight: 800;
+            text-transform: uppercase; letter-spacing: 0.5px;
+            padding: 7px 8px;
+            border-bottom: 3px solid transparent;
             background: white;
         }
-        .group-header.group-to     { color: #0071e3; border-bottom: 3px solid #0071e3; }
-        .group-header.group-serv   { color: #34c759; border-bottom: 3px solid #34c759; }
-        .group-header.group-acc    { color: #ff9500; border-bottom: 3px solid #ff9500; }
-        .group-header.group-checks { color: #af52de; border-bottom: 3px solid #af52de; }
+        .group-header.group-to     { color: #0071e3; border-bottom-color: #0071e3; }
+        .group-header.group-serv   { color: #34c759; border-bottom-color: #34c759; }
+        .group-header.group-acc    { color: #ff9500; border-bottom-color: #ff9500; }
+        .group-header.group-checks { color: #af52de; border-bottom-color: #af52de; }
+        .group-header.group-none   { color: #86868b; border-bottom-color: #d2d2d7; }
 
-        th { 
-            text-align: left; 
-            padding: 7px 8px; 
-            color: #86868b; 
-            font-size: 10px; font-weight: 600; 
-            text-transform: uppercase; 
-            border-bottom: 1px solid #d2d2d7; 
-            background: white; 
+        th {
+            text-align: left;
+            padding: 7px 8px;
+            color: #86868b;
+            font-size: 10px; font-weight: 600;
+            text-transform: uppercase;
+            border-bottom: 1px solid #d2d2d7;
+            background: white;
             white-space: nowrap;
         }
         th.group-to     { color: #0071e3; }
@@ -85,27 +102,15 @@
         th.group-acc    { color: #ff9500; }
         th.group-checks { color: #af52de; }
 
-        td { padding: 8px 8px; border-bottom: 1px solid #f5f5f7; font-size: 12px; white-space: nowrap; }
-        
-        /* Snap-точки на першій колонці кожної групи */
-        .group-start { 
-            border-left: 2px solid #d2d2d7 !important;
-            scroll-snap-align: start;
+        td {
+            padding: 8px 8px;
+            border-bottom: 1px solid #f5f5f7;
+            font-size: 12px;
+            white-space: nowrap;
         }
 
-
-
-        /* ====== ФІКСОВАНА КОЛОНКА ====== */
-        .name-cell, th:first-child { 
-            position: sticky; left: 0; 
-            background: white; 
-            z-index: 10; 
-            min-width: 140px; max-width: 160px;
-            box-shadow: 4px 0 8px -4px rgba(0,0,0,0.1);
-            white-space: normal; line-height: 1.2;
-            font-weight: 600; font-size: 12px;
-        }
-        th:first-child { z-index: 11; }
+        /* Роздільник між групами */
+        .group-start { border-left: 2px solid #e0e0e5 !important; }
 
         /* ====== СТИЛІ ЗНАЧЕНЬ ====== */
         .val-plan   { color: #86868b; font-size: 11px; }
@@ -123,36 +128,29 @@
         .time-row .name-cell { background: #f5f5f7 !important; }
 
         /* ====== ПІДСУМКОВІ РЯДКИ ====== */
-        .summary-row { background: #e8f0fe !important; border-top: 2px solid #a8c4f0 !important; }
         .summary-row td { font-weight: 700 !important; background: #e8f0fe !important; color: #1d1d1f !important; }
         .summary-row .name-cell { background: #e8f0fe !important; }
 
         .loading { padding: 40px; text-align: center; color: #86868b; }
-        .error { padding: 40px; text-align: center; color: #ff3b30; }
-
-        /* ====== ДЕСКТОП ====== */
-        @media (min-width: 768px) {
-            .name-cell, th:first-child { min-width: 120px; max-width: 140px; }
-        }
+        .error   { padding: 40px; text-align: center; color: #ff3b30; }
 
         /* ====== МОБІЛЬНА ВЕРСІЯ ====== */
-        @media (max-width: 600px) {
-            .name-cell, th:first-child { 
-                min-width: 70px; max-width: 75px;
-                padding: 6px 4px;
-                font-size: 9px;
-            }
-            /* Кожна колонка ~(100vw - 75px) / 3 щоб рівно 3 колонки в групі */
-            td:not(.name-cell), th:not(:first-child) {
-                min-width: calc((100vw - 75px) / 3.2);
-                padding: 7px 5px; 
+        @media (max-width: 767px) {
+            :root { --name-w: 80px; }
+            /* Ширина кожної колонки даних = (екран - name) / 3 */
+            td:not(.name-cell),
+            th:not(.name-th) {
+                width: calc((100vw - var(--name-w) - 16px) / 3);
+                min-width: calc((100vw - var(--name-w) - 16px) / 3);
+                max-width: calc((100vw - var(--name-w) - 16px) / 3);
                 font-size: 11px;
+                padding: 7px 4px;
             }
-            th:not(:first-child) { font-size: 8.5px; padding: 6px 4px; }
-            h1 { font-size: 20px; margin-bottom: 8px; }
-            .container { padding: 6px 8px; }
-            .back-link { margin-bottom: 6px; font-size: 13px; }
-            thead tr.subheader-row th { top: 30px; }
+            th:not(.name-th) { font-size: 8.5px; padding: 6px 4px; }
+        }
+
+        @media (min-width: 768px) {
+            .name-cell, th.name-th { min-width: 130px; max-width: 150px; width: 130px; }
         }
     </style>
 </head>
@@ -265,6 +263,7 @@
             const groupRow = document.createElement('tr');
             const thName = document.createElement('th');
             thName.rowSpan = 2;
+            thName.className = 'name-th';
             thName.textContent = headers[0];
             groupRow.appendChild(thName);
 
@@ -291,7 +290,7 @@
             });
             thead.appendChild(groupRow);
 
-            // Другий рядок: підзаголовки
+            // Другий рядок: підзаголовки (перша комірка — порожня, бо name-th rowspan=2)
             const subRow = document.createElement('tr');
             subRow.className = 'subheader-row';
             let prevGroup = '';
@@ -358,6 +357,7 @@
                     // Перша колонка
                     const tdName = document.createElement('td');
                     tdName.className = 'name-cell';
+                    if (isSummary) tdName.style.background = '#e8f0fe';
                     tdName.textContent = nameVal;
                     tr.appendChild(tdName);
 
