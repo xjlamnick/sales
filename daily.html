@@ -16,27 +16,44 @@
             background: white; 
             border-radius: 22px; 
             box-shadow: 0 8px 30px rgba(0,0,0,0.04); 
+            overflow: hidden;
+        }
+
+        /* ====== ОБГОРТКА ДЛЯ STICKY + SCROLL ====== */
+        /* Sticky thead працює лише коли overflow на самій таблиці, не на батьківському div */
+        .table-scroll-wrap {
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
             overscroll-behavior-x: contain;
+            /* scroll snap — фіксуємо по групах на мобільному */
+            scroll-snap-type: x mandatory;
         }
 
-        table { width: 100%; border-collapse: collapse; min-width: 1000px; }
+        table { 
+            width: max-content; 
+            min-width: 100%; 
+            border-collapse: collapse; 
+        }
 
         /* ====== STICKY ЗАГОЛОВКИ ====== */
-        thead tr:first-child th {
+        thead th {
             position: sticky;
             top: 0;
             z-index: 12;
+            background: white;
         }
         thead tr.subheader-row th {
-            position: sticky;
-            top: 34px; /* висота першого рядка заголовка */
-            z-index: 12;
+            top: 32px;
         }
-        thead tr:first-child th:first-child,
-        thead tr.subheader-row th:first-child {
-            z-index: 20;
+        /* Перша колонка — sticky зліва + зверху */
+        thead tr:first-child th:first-child {
+            left: 0;
+            z-index: 22;
+        }
+        thead tr.subheader-row th.name-th {
+            left: 0;
+            z-index: 22;
+            top: 32px;
         }
 
         /* ====== ГРУПОВІ ЗАГОЛОВКИ ====== */
@@ -69,9 +86,14 @@
         th.group-checks { color: #af52de; }
 
         td { padding: 8px 8px; border-bottom: 1px solid #f5f5f7; font-size: 12px; white-space: nowrap; }
+        
+        /* Snap-точки на першій колонці кожної групи */
+        .group-start { 
+            border-left: 2px solid #d2d2d7 !important;
+            scroll-snap-align: start;
+        }
 
-        /* Роздільник між групами */
-        .group-start { border-left: 2px solid #d2d2d7 !important; }
+
 
         /* ====== ФІКСОВАНА КОЛОНКА ====== */
         .name-cell, th:first-child { 
@@ -120,8 +142,13 @@
                 padding: 6px 4px;
                 font-size: 9px;
             }
-            td:not(.name-cell) { padding: 7px 5px; font-size: 11px; }
-            th { padding: 6px 4px; font-size: 8.5px; }
+            /* Кожна колонка ~(100vw - 75px) / 3 щоб рівно 3 колонки в групі */
+            td:not(.name-cell), th:not(:first-child) {
+                min-width: calc((100vw - 75px) / 3.2);
+                padding: 7px 5px; 
+                font-size: 11px;
+            }
+            th:not(:first-child) { font-size: 8.5px; padding: 6px 4px; }
             h1 { font-size: 20px; margin-bottom: 8px; }
             .container { padding: 6px 8px; }
             .back-link { margin-bottom: 6px; font-size: 13px; }
@@ -135,10 +162,12 @@
         <h1>Щоденні звіти</h1>
         <div class="table-card">
             <div id="loader" class="loading">Завантаження даних з Google Sheets...</div>
-            <table id="dataTable" style="display: none;">
-                <thead id="tableHead"></thead>
-                <tbody id="tableBody"></tbody>
-            </table>
+            <div class="table-scroll-wrap">
+                <table id="dataTable" style="display: none;">
+                    <thead id="tableHead"></thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
         </div>
     </div>
 
@@ -273,9 +302,12 @@
                 if (group && group !== prevGroup) th.classList.add('group-start');
                 prevGroup = group;
                 // Не дублюємо назву групи в підзаголовку (напр. "ЧЕКИ" під групою "ЧЕКИ")
-                const label = headers[i].trim().toUpperCase();
-                const groupLabel = groupLabels[group] ? groupLabels[group].toUpperCase() : '';
-                th.textContent = (label === groupLabel) ? '' : headers[i];
+                // Порівнюємо без урахування регістру і пробілів
+                const label = headers[i].trim().toUpperCase().replace(/\s+/g,'');
+                const groupLabel = groupLabels[group] ? groupLabels[group].toUpperCase().replace(/\s+/g,'') : '';
+                // Також перевіряємо скорочення (ЧЕКИ = ЧЕКИ, ЧЕК = ЧЕКИ не збігається — ок)
+                const isDuplicate = groupLabel && (label === groupLabel || groupLabel.startsWith(label) && label.length >= 4);
+                th.textContent = isDuplicate ? '' : headers[i];
                 subRow.appendChild(th);
             }
             thead.appendChild(subRow);
