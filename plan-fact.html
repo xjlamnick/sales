@@ -19,159 +19,157 @@
             -webkit-overflow-scrolling: touch;
         }
 
-        table { width: 100%; border-collapse: collapse; min-width: 1200px; table-layout: fixed; }
+        table { width: 100%; border-collapse: collapse; table-layout: fixed; }
         
-        /* Кольорові групи */
-        .group-to { background: rgba(0, 113, 227, 0.05); }      /* Синій - ТО */
-        .group-serv { background: rgba(52, 199, 89, 0.05); }    /* Зелений - Послуги */
-        .group-acc { background: rgba(255, 149, 0, 0.05); }     /* Помаранчевий - АСС */
-        .group-checks { background: rgba(175, 82, 222, 0.05); } /* Фіолетовий - Чеки */
-
-        .group-header {
-            text-align: center;
-            font-size: 10px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            padding: 10px;
-            color: #1d1d1f;
-            border-bottom: 1px solid #d2d2d7;
-        }
+        .group-header { text-align: center; font-size: 10px; font-weight: 800; text-transform: uppercase; padding: 10px; border-bottom: 1px solid #d2d2d7; }
 
         th { text-align: left; padding: 10px; color: #86868b; font-size: 10px; font-weight: 600; border-bottom: 1px solid #d2d2d7; background: white; }
-        td { padding: 12px 10px; border-bottom: 1px solid #f5f5f7; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        td { padding: 12px 10px; border-bottom: 1px solid #f5f5f7; font-size: 13px; white-space: nowrap; }
         
-        /* Зменшена ширина першого стовбця */
+        .group-start { border-left: 2px solid #d2d2d7 !important; }
+
+        .group-header.group-to { color: #0071e3; border-bottom: 3px solid #0071e3; }
+        .group-header.group-serv { color: #34c759; border-bottom: 3px solid #34c759; border-left: 2px solid #d2d2d7; }
+        .group-header.group-acc { color: #ff9500; border-bottom: 3px solid #ff9500; border-left: 2px solid #d2d2d7; }
+        .group-header.group-checks { color: #af52de; border-bottom: 3px solid #af52de; border-left: 2px solid #d2d2d7; }
+
         .name-cell, th:first-child { 
-            position: sticky; 
-            left: 0; 
-            background: white; 
-            z-index: 10; 
-            width: 110px; /* Суттєво зменшено */
-            min-width: 110px;
+            position: sticky; left: 0; background: white; z-index: 10; 
+            width: 80px; min-width: 80px;
             box-shadow: 2px 0 5px rgba(0,0,0,0.05);
-            font-weight: 600;
-            font-size: 12px;
-            white-space: normal; /* Дозволяємо перенос прізвища */
-            line-height: 1.2;
+            font-weight: 600; font-size: 11px;
+            white-space: normal;
         }
         th:first-child { z-index: 11; }
 
-        .val-plan { color: #86868b; font-size: 11px; }
-        .val-fact { font-weight: 600; }
-        .val-pct { font-weight: 700; color: #1d1d1f; text-align: right; }
-        
-        .total-row { background: #1d1d1f !important; }
-        .total-row td { color: white !important; font-weight: 700; }
-        .total-row .name-cell { background: #1d1d1f !important; color: white; }
-        .total-row .val-plan { color: #a1a1a6; }
+        /* ===== MOBILE: блоками по групах ===== */
+        @media (max-width: 900px) {
+            .table-card {
+                scroll-snap-type: x mandatory;
+            }
 
+            table {
+                width: max-content;
+            }
+
+            .name-cell, th:first-child {
+                width: 70px;
+                min-width: 70px;
+                font-size: 9px;
+                padding: 6px 4px;
+            }
+
+            th, td {
+                font-size: 10px;
+                padding: 6px 6px;
+                min-width: 85px;
+                text-align: right;
+            }
+
+            /* SNAP НА ПОЧАТОК КОЖНОЇ ГРУПИ */
+            th:nth-child(2), td:nth-child(2),
+            th:nth-child(5), td:nth-child(5),
+            th:nth-child(9), td:nth-child(9),
+            th:nth-child(13), td:nth-child(13) {
+                scroll-snap-align: start;
+                scroll-margin-left: 70px;
+            }
+        }
+
+        .val-plan { color: #86868b; font-size: 11px; }
+        .val-fact { font-weight: 600; color: #1d1d1f; }
+        .val-pct { font-weight: 700; text-align: right; }
+
+        .val-fact.group-to, .val-pct.group-to { color: #0071e3; }
+        .val-fact.group-serv, .val-pct.group-serv { color: #34c759; }
+        .val-fact.group-acc, .val-pct.group-acc { color: #ff9500; }
+        .val-fact.group-checks, .val-pct.group-checks { color: #af52de; }
+
+        .total-row { background: #e8f0fe !important; font-weight: 700; }
         .loading { padding: 40px; text-align: center; color: #86868b; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <a href="index.html" class="back-link">← На головну</a>
-        <div class="table-card">
-            <div id="loader" class="loading">Завантаження даних...</div>
-            <table id="dataTable" style="display: none;">
-                <thead>
-                    <tr>
-                        <th rowspan="2">Продавець</th>
-                        <th colspan="3" class="group-header group-to">Товарообіг</th>
-                        <th colspan="3" class="group-header group-serv">Послуги</th>
-                        <th colspan="3" class="group-header group-acc">Аксесуари</th>
-                        <th colspan="3" class="group-header group-checks">Чеки</th>
-                    </tr>
-                    <tr>
-                        <th class="group-to">План</th><th class="group-to">Факт</th><th class="group-to">%</th>
-                        <th class="group-serv">План</th><th class="group-serv">Факт</th><th class="group-serv">%</th>
-                        <th class="group-acc">План</th><th class="group-acc">Факт</th><th class="group-acc">%</th>
-                        <th class="group-checks">План</th><th class="group-checks">Факт</th><th class="group-checks">%</th>
-                    </tr>
-                </thead>
-                <tbody id="tableBody"></tbody>
-            </table>
-        </div>
+<div class="container">
+    <a href="index.html" class="back-link">← На головну</a>
+    <div class="table-card">
+        <div id="loader" class="loading">Завантаження даних...</div>
+        <table id="dataTable" style="display:none;">
+            <thead>
+                <tr>
+                    <th rowspan="2">ПК</th>
+                    <th colspan="3" class="group-header group-to">Товарообіг</th>
+                    <th colspan="4" class="group-header group-serv">Послуги</th>
+                    <th colspan="4" class="group-header group-acc">Аксесуари</th>
+                    <th colspan="3" class="group-header group-checks">Чеки</th>
+                </tr>
+                <tr>
+                    <th class="group-to">План</th><th class="group-to">Факт</th><th class="group-to">%</th>
+                    <th class="group-serv">План</th><th class="group-serv">Факт</th><th class="group-serv">Доля</th><th class="group-serv">%</th>
+                    <th class="group-acc">План</th><th class="group-acc">Факт</th><th class="group-acc">Доля</th><th class="group-acc">%</th>
+                    <th class="group-checks">План</th><th class="group-checks">Факт</th><th class="group-checks">%</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+        </table>
     </div>
+</div>
 
-    <script>
-        function parseCSV(text) {
-            const rows = []; let row = []; let col = ""; let inQuotes = false;
-            for (let i = 0; i < text.length; i++) {
-                let char = text[i];
-                if (char === '"' && text[i+1] === '"') { col += '"'; i++; }
-                else if (char === '"') { inQuotes = !inQuotes; }
-                else if (char === ',' && !inQuotes) { row.push(col); col = ""; }
-                else if (char === '\n' && !inQuotes) { row.push(col); rows.push(row); row = []; col = ""; }
-                else { col += char; }
-            }
-            if (col || row.length) { row.push(col); rows.push(row); }
-            return rows;
-        }
+<script>
+function parseCSV(text) {
+    return text.split("\n").map(r => r.split(","));
+}
 
-        function cleanVal(val) {
-            if (!val) return 0;
-            let s = val.toString().replace('%', '').replace(/\s/g, '').replace(',', '.');
-            return parseFloat(s) || 0;
-        }
+function cleanVal(val) {
+    if (!val) return 0;
+    let s = val.toString().replace('%','').replace(/\s/g,'').replace(',','.');
+    return parseFloat(s) || 0;
+}
 
-        // Форматування з точністю до сотих для %
-        function formatDisplay(val, isPct = false) {
-            let num = cleanVal(val);
-            if (isPct) {
-                // Якщо в таблиці 0.8542 -> це 85.42%
-                // Якщо в таблиці вже 85.42 -> залишаємо 85.42%
-                let displayPct = num < 2 ? num * 100 : num; 
-                return displayPct.toFixed(2) + '%';
-            }
-            return Math.round(num).toLocaleString('uk-UA');
-        }
+function formatDisplay(val, isPct=false) {
+    let num = cleanVal(val);
+    if (isPct) return (num<2?num*100:num).toFixed(2)+'%';
+    return Math.round(num).toLocaleString('uk-UA');
+}
 
-        async function loadTable() {
-            const URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTOUXHhUpCkh6tgvNpJzY-w5tVrhPkvEeC0W0ZWuy2YxPayuO3pvahfeKYmMZ1DwHnILTpsJFNtXLsH/pub?output=csv";
-            try {
-                const res = await fetch(URL + '&t=' + Date.now());
-                const text = await res.text();
-                const rows = parseCSV(text);
-                const dataRows = rows.slice(1);
+async function loadTable() {
+    const URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTOUXHhUpCkh6tgvNpJzY-w5tVrhPkvEeC0W0ZWuy2YxPayuO3pvahfeKYmMZ1DwHnILTpsJFNtXLsH/pub?output=csv";
+    const res = await fetch(URL);
+    const text = await res.text();
+    const rows = parseCSV(text).slice(1);
 
-                document.getElementById('loader').style.display = 'none';
-                document.getElementById('dataTable').style.display = 'table';
-                const tbody = document.getElementById('tableBody');
+    document.getElementById('loader').style.display='none';
+    document.getElementById('dataTable').style.display='table';
 
-                dataRows.forEach(row => {
-                    if (row.length < 10 || !row[0].trim()) return;
+    const tbody = document.getElementById('tableBody');
 
-                    const tr = document.createElement('tr');
-                    const isTotal = row[0].toLowerCase().includes('разом') || row[0].toLowerCase().includes('сума');
-                    if (isTotal) tr.className = 'total-row';
+    rows.forEach(row=>{
+        if(!row[0]) return;
+        const tr=document.createElement('tr');
+        tr.innerHTML=`
+        <td class="name-cell">${row[0]}</td>
+        <td>${formatDisplay(row[1])}</td>
+        <td class="val-fact group-to">${formatDisplay(row[2])}</td>
+        <td class="val-pct group-to">${formatDisplay(row[3],true)}</td>
 
-                    tr.innerHTML = `
-                        <td class="name-cell">${row[0]}</td>
-                        <td class="val-plan group-to">${formatDisplay(row[1])}</td>
-                        <td class="val-fact group-to">${formatDisplay(row[2])}</td>
-                        <td class="val-pct group-to">${formatDisplay(row[3], true)}</td>
-                        
-                        <td class="val-plan group-serv">${formatDisplay(row[4])}</td>
-                        <td class="val-fact group-serv">${formatDisplay(row[5])}</td>
-                        <td class="val-pct group-serv">${formatDisplay(row[6], true)}</td>
-                        
-                        <td class="val-plan group-acc">${formatDisplay(row[7])}</td>
-                        <td class="val-fact group-acc">${formatDisplay(row[8])}</td>
-                        <td class="val-pct group-acc">${formatDisplay(row[9], true)}</td>
-                        
-                        <td class="val-plan group-checks">${formatDisplay(row[10])}</td>
-                        <td class="val-fact group-checks">${formatDisplay(row[11])}</td>
-                        <td class="val-pct group-checks">${formatDisplay(row[12], true)}</td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            } catch (e) {
-                document.getElementById('loader').textContent = "Помилка завантаження";
-            }
-        }
-        loadTable();
-    </script>
+        <td class="group-start">${formatDisplay(row[4])}</td>
+        <td class="val-fact group-serv">${formatDisplay(row[5])}</td>
+        <td>${row[6]}</td>
+        <td class="val-pct group-serv">${formatDisplay(row[7],true)}</td>
+
+        <td class="group-start">${formatDisplay(row[8])}</td>
+        <td class="val-fact group-acc">${formatDisplay(row[9])}</td>
+        <td>${row[10]}</td>
+        <td class="val-pct group-acc">${formatDisplay(row[11],true)}</td>
+
+        <td class="group-start">${formatDisplay(row[12])}</td>
+        <td class="val-fact group-checks">${formatDisplay(row[13])}</td>
+        <td class="val-pct group-checks">${formatDisplay(row[14],true)}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+loadTable();
+</script>
 </body>
 </html>
