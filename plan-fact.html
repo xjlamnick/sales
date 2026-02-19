@@ -17,25 +17,39 @@
             box-shadow: 0 8px 30px rgba(0,0,0,0.04); 
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
+            overscroll-behavior-x: contain;
         }
 
         table { width: 100%; border-collapse: collapse; min-width: 1400px; table-layout: fixed; }
         
+        /* Кольорові шрифти груп - БЕЗ заливки */
+        .group-to {}
+        .group-serv {}
+        .group-acc {}
+        .group-checks {}
+
+        /* Кольорові заголовки груп */
         .group-header { text-align: center; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; padding: 10px; color: #1d1d1f; border-bottom: 1px solid #d2d2d7; }
 
         th { text-align: left; padding: 10px; color: #86868b; font-size: 10px; font-weight: 600; border-bottom: 1px solid #d2d2d7; background: white; }
         td { padding: 12px 10px; border-bottom: 1px solid #f5f5f7; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         
+        /* Роздільники між групами */
         .group-start { border-left: 2px solid #d2d2d7 !important; }
-
+        
+        /* Підкреслення заголовків груп кольором */
         .group-header.group-to { color: #0071e3; border-bottom: 3px solid #0071e3; }
-        .group-header.group-serv { color: #34c759; border-bottom: 3px solid #34c759; border-left: 2px solid #d2d2d7; }
-        .group-header.group-acc { color: #ff9500; border-bottom: 3px solid #ff9500; border-left: 2px solid #d2d2d7; }
-        .group-header.group-checks { color: #af52de; border-bottom: 3px solid #af52de; border-left: 2px solid #d2d2d7; }
+        .group-header.group-serv { color: #34c759; border-bottom: 3px solid #34c759; }
+        .group-header.group-acc { color: #ff9500; border-bottom: 3px solid #ff9500; }
+        .group-header.group-checks { color: #af52de; border-bottom: 3px solid #af52de; }
+        
+        /* Роздільники в рядку заголовків другого рівня */
+        th.group-serv:first-of-type, th.group-acc:first-of-type, th.group-checks:first-of-type { border-left: 2px solid #d2d2d7; }
 
+        /* Зменшена ширина першого стовбця + sticky */
         .name-cell, th:first-child { 
             position: sticky; left: 0; background: white; z-index: 10; 
-            width: 90px; min-width: 90px;
+            width: 90px; min-width: 90px; max-width: 90px;
             box-shadow: 2px 0 5px rgba(0,0,0,0.05);
             font-weight: 600; font-size: 11px;
             white-space: normal; line-height: 1.2;
@@ -43,70 +57,133 @@
         }
         th:first-child { z-index: 11; }
 
-        /* ===== МОБІЛЬНА ВЕРСІЯ — НЕ ЛАМАЄ ФОРМАТУВАННЯ ===== */
-        @media (max-width: 900px) {
-            .table-card {
-                scroll-snap-type: x mandatory;
-            }
-
-            table {
-                min-width: 1400px; /* залишаємо як було */
-            }
-
-            .name-cell, th:first-child {
-                width: 75px;
-                min-width: 75px;
-                font-size: 9px;
-                padding: 6px 3px;
-                box-shadow: 4px 0 8px rgba(0,0,0,0.15);
-                background: white !important;
-            }
-
-            /* робимо так, щоб 4 колонки влазили в екран */
-            th, td {
-                font-size: 10px;
-                padding: 6px 5px;
-                white-space: nowrap;
-                min-width: calc((100vw - 75px) / 4);
-            }
-
-            /* SNAP НА ПОЧАТОК КОЖНОЇ ГРУПИ */
-            th:nth-child(2), tr td:nth-child(2) {
-                scroll-snap-align: start;
-                scroll-margin-left: 75px;
-            }
-
-            th:nth-child(5), tr td:nth-child(5) {
-                scroll-snap-align: start;
-                scroll-margin-left: 75px;
-            }
-
-            th:nth-child(9), tr td:nth-child(9) {
-                scroll-snap-align: start;
-                scroll-margin-left: 75px;
-            }
-
-            th:nth-child(13), tr td:nth-child(13) {
-                scroll-snap-align: start;
-                scroll-margin-left: 75px;
-            }
-        }
-
+        /* Загальні стилі значень */
         .val-plan { color: #86868b; font-size: 11px; }
         .val-fact { font-weight: 600; color: #1d1d1f; }
         .val-pct { font-weight: 700; text-align: right; }
 
+        /* Кольорові шрифти для груп */
         .val-fact.group-to, .val-pct.group-to { color: #0071e3; }
         .val-fact.group-serv, .val-pct.group-serv { color: #34c759; }
         .val-fact.group-acc, .val-pct.group-acc { color: #ff9500; }
         .val-fact.group-checks, .val-pct.group-checks { color: #af52de; }
+        
+        /* TOTAL рядок */
+        .total-row { 
+            background: #e8f0fe !important;
+            border-top: 2px solid #a8c4f0 !important;
+            border-bottom: 2px solid #a8c4f0 !important;
+        }
+        .total-row td { 
+            font-weight: 700 !important;
+            background: #e8f0fe !important;
+        }
+        .total-row .name-cell { 
+            background: #e8f0fe !important; 
+            color: #1d1d1f !important;
+            font-size: 13px !important;
+            letter-spacing: 0.5px !important;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.08) !important;
+        }
+        .total-row .val-plan { color: #86868b !important; }
+        .total-row .val-fact.group-to, .total-row .val-pct.group-to { color: #1d1d1f !important; }
+        .total-row .val-fact.group-serv, .total-row .val-pct.group-serv { color: #1d1d1f !important; }
+        .total-row .val-fact.group-acc, .total-row .val-pct.group-acc { color: #1d1d1f !important; }
+        .total-row .val-fact.group-checks, .total-row .val-pct.group-checks { color: #1d1d1f !important; }
+        .total-row .group-start { border-left-color: #a8c4f0 !important; }
+        
+        /* ВІДСТАВАННЯ рядок */
+        .deviation-row td {
+            font-style: italic !important;
+            color: #86868b !important;
+            font-size: 12px !important;
+        }
+        .deviation-row .name-cell {
+            font-style: italic !important;
+            color: #86868b !important;
+        }
 
         .loading { padding: 40px; text-align: center; color: #86868b; }
+
+        /* Мобільна версія - snap scroll по групах */
+        @media (max-width: 960px) {
+            .table-card {
+                scroll-snap-type: x mandatory;
+                -webkit-overflow-scrolling: touch;
+                overscroll-behavior-x: contain;
+            }
+            
+            table {
+                min-width: 1000px;
+            }
+            
+            .name-cell, th:first-child {
+                width: 75px;
+                min-width: 75px;
+                max-width: 75px;
+                font-size: 9.5px;
+                padding: 6px 4px;
+                box-shadow: 4px 0 8px rgba(0,0,0,0.12);
+            }
+            
+            th, td {
+                min-width: 80px;
+                max-width: 95px;
+                font-size: 10.5px;
+                padding: 6px 5px;
+            }
+            
+            .val-pct {
+                min-width: 60px;
+            }
+            
+            /* Snap на колонці ПЛАН кожної групи */
+            th:nth-child(2), td:nth-child(2) {
+                scroll-snap-align: start;
+                scroll-margin-left: 75px;
+            }
+            
+            th:nth-child(5), td:nth-child(5) {
+                scroll-snap-align: start;
+                scroll-margin-left: 75px;
+                border-left: 2px solid #e8e8ed;
+            }
+            
+            th:nth-child(9), td:nth-child(9) {
+                scroll-snap-align: start;
+                scroll-margin-left: 75px;
+                border-left: 2px solid #e8e8ed;
+            }
+            
+            th:nth-child(13), td:nth-child(13) {
+                scroll-snap-align: start;
+                scroll-margin-left: 75px;
+                border-left: 2px solid #e8e8ed;
+            }
+
+            td, th {
+                scroll-snap-stop: always;
+            }
+        }
+
+        .mobile-hint {
+            display: none;
+            font-size: 12px;
+            color: #86868b;
+            text-align: center;
+            margin: 8px 0 12px;
+            padding: 0 10px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <a href="index.html" class="back-link">← На головну</a>
+
+        <div class="mobile-hint">
+            Свайпніть вліво → перегляд груп: Товарообіг · Послуги · Аксесуари · Чеки
+        </div>
+
         <div class="table-card">
             <div id="loader" class="loading">Завантаження даних...</div>
             <table id="dataTable" style="display: none;">
@@ -130,73 +207,146 @@
         </div>
     </div>
 
-<script>
-function parseCSV(text) {
-    const rows = []; let row = []; let col = ""; let inQuotes = false;
-    for (let i = 0; i < text.length; i++) {
-        let char = text[i];
-        if (char === '"' && text[i+1] === '"') { col += '"'; i++; }
-        else if (char === '"') { inQuotes = !inQuotes; }
-        else if (char === ',' && !inQuotes) { row.push(col); col = ""; }
-        else if (char === '\n' && !inQuotes) { row.push(col); rows.push(row); row = []; col = ""; }
-        else { col += char; }
-    }
-    if (col || row.length) { row.push(col); rows.push(row); }
-    return rows;
-}
+    <script>
+        function parseCSV(text) {
+            const rows = []; let row = []; let col = ""; let inQuotes = false;
+            for (let i = 0; i < text.length; i++) {
+                let char = text[i];
+                if (char === '"' && text[i+1] === '"') { col += '"'; i++; }
+                else if (char === '"') { inQuotes = !inQuotes; }
+                else if (char === ',' && !inQuotes) { row.push(col); col = ""; }
+                else if (char === '\n' && !inQuotes) { row.push(col); rows.push(row); row = []; col = ""; }
+                else { col += char; }
+            }
+            if (col || row.length) { row.push(col); rows.push(row); }
+            return rows;
+        }
 
-function cleanVal(val) {
-    if (!val) return 0;
-    let s = val.toString().replace('%', '').replace(/\s/g, '').replace(',', '.');
-    return parseFloat(s) || 0;
-}
+        function cleanVal(val) {
+            if (!val) return 0;
+            let s = val.toString().replace('%', '').replace(/\s/g, '').replace(',', '.');
+            return parseFloat(s) || 0;
+        }
 
-function formatDisplay(val, isPct = false) {
-    let num = cleanVal(val);
-    if (isPct) {
-        let displayPct = num < 2 ? num * 100 : num; 
-        return displayPct.toFixed(2) + '%';
-    }
-    return Math.round(num).toLocaleString('uk-UA');
-}
+        function formatDisplay(val, isPct = false) {
+            let num = cleanVal(val);
+            if (isPct) {
+                let displayPct = num < 2 ? num * 100 : num; 
+                return displayPct.toFixed(2) + '%';
+            }
+            return Math.round(num).toLocaleString('uk-UA');
+        }
+        
+        function formatShare(val) {
+            let num = cleanVal(val);
+            return num.toFixed(2);
+        }
 
-async function loadTable() {
-    const URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTOUXHhUpCkh6tgvNpJzY-w5tVrhPkvEeC0W0ZWuy2YxPayuO3pvahfeKYmMZ1DwHnILTpsJFNtXLsH/pub?output=csv";
-    const res = await fetch(URL + '&t=' + Date.now());
-    const text = await res.text();
-    const rows = parseCSV(text).slice(1);
+        function getPctStyle(val) {
+            const num = cleanVal(val);
+            const pct = num < 2 ? num * 100 : num;
+            
+            if (pct <= 0)  return { bg: 'rgba(255, 59, 48, 0.15)',  color: '#cc2200' };
+            if (pct < 50)  return { bg: `rgba(255, 59, 48, ${0.05 + (0.15 * (1 - pct / 50))})`,  color: '#d63b2a' };
+            if (pct < 80)  return { bg: `rgba(255, 149, 0, ${0.08 + (0.1 * ((pct - 50) / 30))})`, color: '#c97000' };
+            if (pct < 100) return { bg: `rgba(255, 204, 0, ${0.08 + (0.1 * ((pct - 80) / 20))})`, color: '#a07800' };
+            if (pct < 120) return { bg: `rgba(52, 199, 89, ${0.08 + (0.1 * ((pct - 100) / 20))})`, color: '#248a3d' };
+            return { bg: 'rgba(52, 199, 89, 0.20)', color: '#1a6e30' };
+        }
 
-    document.getElementById('loader').style.display = 'none';
-    document.getElementById('dataTable').style.display = 'table';
-    const tbody = document.getElementById('tableBody');
+        function pctCell(val, groupClass, isGroupStart = false, isTotal = false) {
+            const { bg, color } = getPctStyle(val);
+            const startClass = isGroupStart ? ' group-start' : '';
+            const style = isTotal 
+                ? `background: ${bg} !important; color: #1d1d1f !important; font-weight: 700 !important`
+                : `background: ${bg} !important; color: ${color} !important`;
+            return `<td class="val-pct ${groupClass}${startClass}" style="${style}">${formatDisplay(val, true)}</td>`;
+        }
 
-    rows.forEach(row => {
-        if (!row[0]) return;
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td class="name-cell">${row[0]}</td>
-            <td>${formatDisplay(row[1])}</td>
-            <td class="val-fact group-to">${formatDisplay(row[2])}</td>
-            <td class="val-pct group-to">${formatDisplay(row[3], true)}</td>
+        async function loadTable() {
+            const URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTOUXHhUpCkh6tgvNpJzY-w5tVrhPkvEeC0W0ZWuy2YxPayuO3pvahfeKYmMZ1DwHnILTpsJFNtXLsH/pub?output=csv";
+            try {
+                const res = await fetch(URL + '&t=' + Date.now());
+                const text = await res.text();
+                const rows = parseCSV(text);
+                const dataRows = rows.slice(1);
+                
+                document.getElementById('loader').style.display = 'none';
+                document.getElementById('dataTable').style.display = 'table';
+                const tbody = document.getElementById('tableBody');
 
-            <td class="group-start">${formatDisplay(row[4])}</td>
-            <td class="val-fact group-serv">${formatDisplay(row[5])}</td>
-            <td>${row[6]}</td>
-            <td class="val-pct group-serv">${formatDisplay(row[7], true)}</td>
+                dataRows.forEach((row, idx) => {
+                    if (!row[0] || !row[0].trim()) return;
 
-            <td class="group-start">${formatDisplay(row[8])}</td>
-            <td class="val-fact group-acc">${formatDisplay(row[9])}</td>
-            <td>${row[10]}</td>
-            <td class="val-pct group-acc">${formatDisplay(row[11], true)}</td>
+                    const tr = document.createElement('tr');
+                    const nameLC = row[0].toLowerCase().trim();
+                    const isTotal = nameLC.includes('разом') || nameLC.includes('сума') || 
+                                    nameLC.includes('total') || nameLC.includes('тотал') ||
+                                    nameLC.includes('підсумок') || nameLC.includes('всього') ||
+                                    nameLC.includes('итого');
+                    const isDeviation = nameLC.includes('відставання') || nameLC.includes('відхилення');
+                    
+                    if (isTotal) tr.className = 'total-row';
+                    if (isDeviation) tr.className = 'deviation-row';
 
-            <td class="group-start">${formatDisplay(row[12])}</td>
-            <td class="val-fact group-checks">${formatDisplay(row[13])}</td>
-            <td class="val-pct group-checks">${formatDisplay(row[14], true)}</td>
-        `;
-        tbody.appendChild(tr);
-    });
-}
-loadTable();
-</script>
+                    const factStyle = isTotal ? ' style="color: #1d1d1f !important"' : '';
+                    
+                    if (isDeviation) {
+                        tr.innerHTML = `
+                            <td class="name-cell">${row[0]}</td>
+                            <td class="val-plan group-to">${row[1] || ''}</td>
+                            <td class="val-fact group-to">${row[2] || ''}</td>
+                            <td class="val-pct group-to">${row[3] || ''}</td>
+                            
+                            <td class="val-plan group-serv group-start">${row[4] || ''}</td>
+                            <td class="val-fact group-serv">${row[5] || ''}</td>
+                            <td class="val-fact group-serv">${row[6] || ''}</td>
+                            <td class="val-pct group-serv">${row[7] || ''}</td>
+                            
+                            <td class="val-plan group-acc group-start">${row[8] || ''}</td>
+                            <td class="val-fact group-acc"${row[9] || ''}</td>
+                            <td class="val-fact group-acc">${row[10] || ''}</td>
+                            <td class="val-pct group-acc">${row[11] || ''}</td>
+                            
+                            <td class="val-plan group-checks group-start">${row[12] || ''}</td>
+                            <td class="val-fact group-checks">${row[13] || ''}</td>
+                            <td class="val-pct group-checks">${row[14] || ''}</td>
+                        `;
+                    } else {
+                        tr.innerHTML = `
+                            <td class="name-cell">${row[0]}</td>
+                            <td class="val-plan group-to">${formatDisplay(row[1])}</td>
+                            <td class="val-fact group-to"${factStyle}>${formatDisplay(row[2])}</td>
+                            ${pctCell(row[3], 'group-to', false, isTotal)}
+                            
+                            <td class="val-plan group-serv group-start">${formatDisplay(row[4])}</td>
+                            <td class="val-fact group-serv"${factStyle}>${formatDisplay(row[5])}</td>
+                            <td class="val-fact group-serv"${factStyle}>${formatShare(row[6])}</td>
+                            ${pctCell(row[7], 'group-serv', false, isTotal)}
+                            
+                            <td class="val-plan group-acc group-start">${formatDisplay(row[8])}</td>
+                            <td class="val-fact group-acc"${factStyle}>${formatDisplay(row[9])}</td>
+                            <td class="val-fact group-acc"${factStyle}>${formatShare(row[10])}</td>
+                            ${pctCell(row[11], 'group-acc', false, isTotal)}
+                            
+                            <td class="val-plan group-checks group-start">${formatDisplay(row[12])}</td>
+                            <td class="val-fact group-checks"${factStyle}>${formatDisplay(row[13])}</td>
+                            ${pctCell(row[14], 'group-checks', false, isTotal)}
+                        `;
+                    }
+                    tbody.appendChild(tr);
+                });
+            } catch (e) {
+                document.getElementById('loader').textContent = "Помилка завантаження даних";
+            }
+        }
+
+        loadTable();
+
+        // Показуємо підказку тільки на мобільних
+        if (window.innerWidth <= 960) {
+            document.querySelector('.mobile-hint').style.display = 'block';
+        }
+    </script>
 </body>
 </html>
