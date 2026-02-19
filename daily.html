@@ -52,7 +52,8 @@
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
             overscroll-behavior-x: contain;
-            /* Вертикальний скрол — на сторінці (body), не тут */
+            scroll-snap-type: x mandatory;
+            -webkit-scroll-snap-type: x mandatory;
         }
 
         /* === ТАБЛИЦІ === */
@@ -102,6 +103,7 @@
             left: 0;
             background: white;
             z-index: 10;
+            scroll-snap-align: start;
             width: var(--name-w);
             min-width: var(--name-w);
             max-width: var(--name-w);
@@ -116,6 +118,11 @@
 
         /* Роздільник між групами */
         .grp-start { border-left: 2px solid #e0e0e5 !important; }
+        /* Snap — фіксуємо на початку кожної групи */
+        td.grp-start {
+            scroll-snap-align: start;
+            scroll-snap-stop: always;
+        }
 
         /* Дані */
         td {
