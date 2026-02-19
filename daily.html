@@ -7,10 +7,10 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
     <style>
         :root { --bg: #f5f5f7; --text: #1d1d1f; --accent: #0071e3; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 10px; }
-        .container { max-width: 1400px; margin: 20px auto; }
-        .back-link { color: var(--accent); text-decoration: none; font-weight: 500; display: inline-block; margin-bottom: 20px; }
-        h1 { font-size: 32px; font-weight: 600; margin-bottom: 20px; letter-spacing: -0.5px; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 8px 10px; }
+        .container { max-width: 1400px; margin: 8px auto; }
+        .back-link { color: var(--accent); text-decoration: none; font-weight: 500; display: inline-block; margin-bottom: 8px; font-size: 14px; }
+        h1 { font-size: 24px; font-weight: 600; margin-bottom: 10px; letter-spacing: -0.5px; }
         
         .table-card { 
             background: white; 
@@ -23,12 +23,28 @@
 
         table { width: 100%; border-collapse: collapse; min-width: 1000px; }
 
+        /* ====== STICKY ЗАГОЛОВКИ ====== */
+        thead tr:first-child th {
+            position: sticky;
+            top: 0;
+            z-index: 12;
+        }
+        thead tr.subheader-row th {
+            position: sticky;
+            top: 34px; /* висота першого рядка заголовка */
+            z-index: 12;
+        }
+        thead tr:first-child th:first-child,
+        thead tr.subheader-row th:first-child {
+            z-index: 20;
+        }
+
         /* ====== ГРУПОВІ ЗАГОЛОВКИ ====== */
         .group-header { 
             text-align: center; 
             font-size: 10px; font-weight: 800; 
             text-transform: uppercase; letter-spacing: 0.5px; 
-            padding: 10px; 
+            padding: 7px 10px; 
             border-bottom: 1px solid #d2d2d7; 
             background: white;
         }
@@ -39,7 +55,7 @@
 
         th { 
             text-align: left; 
-            padding: 10px; 
+            padding: 7px 8px; 
             color: #86868b; 
             font-size: 10px; font-weight: 600; 
             text-transform: uppercase; 
@@ -52,7 +68,7 @@
         th.group-acc    { color: #ff9500; }
         th.group-checks { color: #af52de; }
 
-        td { padding: 12px 10px; border-bottom: 1px solid #f5f5f7; font-size: 13px; white-space: nowrap; }
+        td { padding: 8px 8px; border-bottom: 1px solid #f5f5f7; font-size: 12px; white-space: nowrap; }
 
         /* Роздільник між групами */
         .group-start { border-left: 2px solid #d2d2d7 !important; }
@@ -100,15 +116,16 @@
         /* ====== МОБІЛЬНА ВЕРСІЯ ====== */
         @media (max-width: 600px) {
             .name-cell, th:first-child { 
-                min-width: 75px; max-width: 80px;
-                padding: 8px 4px;
-                font-size: 9.5px;
+                min-width: 70px; max-width: 75px;
+                padding: 6px 4px;
+                font-size: 9px;
             }
-            td:not(.name-cell) { padding: 10px 6px; font-size: 12px; }
-            th { padding: 8px 5px; font-size: 9px; }
-            h1 { font-size: 24px; margin-bottom: 15px; }
-            .container { padding: 15px 10px; }
-            .back-link { margin-bottom: 15px; font-size: 14px; }
+            td:not(.name-cell) { padding: 7px 5px; font-size: 11px; }
+            th { padding: 6px 4px; font-size: 8.5px; }
+            h1 { font-size: 20px; margin-bottom: 8px; }
+            .container { padding: 6px 8px; }
+            .back-link { margin-bottom: 6px; font-size: 13px; }
+            thead tr.subheader-row th { top: 30px; }
         }
     </style>
 </head>
@@ -247,6 +264,7 @@
 
             // Другий рядок: підзаголовки
             const subRow = document.createElement('tr');
+            subRow.className = 'subheader-row';
             let prevGroup = '';
             for (let i = 1; i < headers.length; i++) {
                 const th = document.createElement('th');
@@ -254,7 +272,10 @@
                 if (group) th.className = 'group-' + group;
                 if (group && group !== prevGroup) th.classList.add('group-start');
                 prevGroup = group;
-                th.textContent = headers[i];
+                // Не дублюємо назву групи в підзаголовку (напр. "ЧЕКИ" під групою "ЧЕКИ")
+                const label = headers[i].trim().toUpperCase();
+                const groupLabel = groupLabels[group] ? groupLabels[group].toUpperCase() : '';
+                th.textContent = (label === groupLabel) ? '' : headers[i];
                 subRow.appendChild(th);
             }
             thead.appendChild(subRow);
