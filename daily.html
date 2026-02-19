@@ -325,13 +325,22 @@
                                 : `background:${bg}!important;color:${color}!important`;
                             td.textContent = val ? fmtPct(val) : '';
                             tr.appendChild(td);
+                        } else if (type === 'share' && !isTime) {
+                            const td = document.createElement('td');
+                            td.className = 'val-fact' + (group ? ' group-' + group : '');
+                            if (isGroupStart) td.classList.add('group-start');
+                            td.textContent = val;
+                            tr.appendChild(td);
                         } else {
                             const td = document.createElement('td');
                             td.className = (type === 'plan' ? 'val-plan' : 'val-fact') + (group ? ' group-' + group : '');
                             if (isGroupStart) td.classList.add('group-start');
-                            // Числове форматування тільки для не-часових рядків
-                            const numVal = cleanNum(val);
-                            td.textContent = (!isTime && val && numVal !== 0) ? fmtNum(val) : val;
+                            if (!isTime && val && val.includes('%')) {
+                                td.textContent = val;
+                            } else {
+                                const numVal = cleanNum(val);
+                                td.textContent = (!isTime && val && numVal !== 0) ? fmtNum(val) : val;
+                            }
                             tr.appendChild(td);
                         }
 
