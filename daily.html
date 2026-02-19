@@ -7,89 +7,78 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
     <style>
         :root {
-            --bg: #f5f5f7;
-            --text: #1d1d1f;
-            --accent: #0071e3;
             --name-w: 90px;
             --col-w: 95px;
         }
-
-        * { box-sizing: border-box; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
             font-family: 'Inter', sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            margin: 0;
+            background: #f5f5f7;
+            color: #1d1d1f;
             padding: 8px 10px;
         }
 
         .back-link {
-            color: var(--accent);
+            color: #0071e3;
             text-decoration: none;
             font-weight: 500;
             display: inline-block;
             margin-bottom: 6px;
             font-size: 14px;
         }
-
-        h1 {
-            font-size: 22px;
-            font-weight: 700;
-            margin: 0 0 10px;
-        }
+        h1 { font-size: 22px; font-weight: 700; margin-bottom: 10px; }
 
         .table-card {
             background: white;
             border-radius: 16px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            overflow: hidden; /* НЕ overflow-x:auto — щоб sticky працював */
+        }
+
+        /* === STICKY HEADER КОНТЕЙНЕР === */
+        /* position:sticky по вертикалі — прилипає зверху при скролі СТОРІНКИ */
+        .thead-wrap {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            background: white;
+            overflow: hidden; /* ховаємо горизонтальний скрол, синхронізуємо JS */
+            border-bottom: 1px solid #e0e0e5;
+        }
+
+        /* === TBODY КОНТЕЙНЕР — горизонтальний скрол тут === */
+        .tbody-wrap {
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
             overscroll-behavior-x: contain;
+            /* Вертикальний скрол — на сторінці (body), не тут */
         }
 
+        /* === ТАБЛИЦІ === */
         table {
             border-collapse: collapse;
             width: max-content;
+            min-width: 100%;
         }
 
-        /* STICKY ЗАГОЛОВКИ */
-        thead th {
-            position: sticky;
-            top: 0;
+        /* Заголовки */
+        th {
             background: white;
-            z-index: 5;
-        }
-        thead tr:nth-child(2) th {
-            top: 30px;
-        }
-
-        /* STICKY ПЕРША КОЛОНКА */
-        td.name-cell, th.name-th {
-            position: sticky;
-            left: 0;
-            z-index: 6;
-            background: white;
-            width: var(--name-w);
-            min-width: var(--name-w);
-            max-width: var(--name-w);
-            white-space: normal;
-            word-break: break-word;
-            line-height: 1.2;
-            font-size: 10px;
+            white-space: nowrap;
+            font-size: 9px;
             font-weight: 600;
-            padding: 6px 5px;
-            box-shadow: 2px 0 6px -2px rgba(0,0,0,0.12);
+            text-transform: uppercase;
+            color: #86868b;
+            padding: 6px 6px;
+            border-bottom: 1px solid #e0e0e5;
         }
-        th.name-th { z-index: 15 !important; }
-        thead tr:nth-child(2) th.name-th { top: 30px; z-index: 15 !important; }
 
-        /* ГРУПОВІ ЗАГОЛОВКИ */
+        /* Групові заголовки (рядок 1) */
         th.group-header {
             text-align: center;
             font-size: 10px;
             font-weight: 800;
-            text-transform: uppercase;
             letter-spacing: 0.5px;
             padding: 7px 6px;
             border-bottom: 3px solid transparent;
@@ -100,26 +89,35 @@
         th.group-header.g-checks { color: #af52de; border-bottom-color: #af52de; }
         th.group-header.g-none   { color: #86868b; border-bottom-color: #d2d2d7; }
 
-        /* ПІДЗАГОЛОВКИ */
-        th.sub-th {
-            font-size: 9px;
-            font-weight: 600;
-            text-transform: uppercase;
-            color: #86868b;
-            padding: 5px 6px;
-            border-bottom: 1px solid #e0e0e5;
-            white-space: nowrap;
-            width: var(--col-w);
-            min-width: var(--col-w);
-        }
+        /* Підзаголовки (рядок 2) */
+        th.sub-th { width: var(--col-w); min-width: var(--col-w); }
         th.sub-th.g-to     { color: #0071e3; }
         th.sub-th.g-serv   { color: #34c759; }
         th.sub-th.g-acc    { color: #ff9500; }
         th.sub-th.g-checks { color: #af52de; }
 
+        /* Перша колонка (ПК) — sticky зліва, в обох таблицях */
+        th.name-th, td.name-cell {
+            position: sticky;
+            left: 0;
+            background: white;
+            z-index: 10;
+            width: var(--name-w);
+            min-width: var(--name-w);
+            max-width: var(--name-w);
+            white-space: normal;
+            word-break: break-word;
+            line-height: 1.2;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 6px 5px;
+            box-shadow: 2px 0 5px -1px rgba(0,0,0,0.10);
+        }
+
+        /* Роздільник між групами */
         .grp-start { border-left: 2px solid #e0e0e5 !important; }
 
-        /* ДАНІ */
+        /* Дані */
         td {
             padding: 7px 6px;
             border-bottom: 1px solid #f2f2f4;
@@ -138,16 +136,16 @@
         .val-fact.g-acc,    .val-pct.g-acc    { color: #ff9500; }
         .val-fact.g-checks, .val-pct.g-checks { color: #af52de; }
 
-        /* СПЕЦІАЛЬНІ РЯДКИ */
-        .time-row td            { background: #f5f5f7 !important; font-weight: 700; color: #333; }
-        .time-row td.name-cell  { background: #f5f5f7 !important; }
-        .summary-row td         { background: #eaf1fe !important; font-weight: 700; color: #1d1d1f !important; }
+        /* Спеціальні рядки */
+        .time-row td           { background: #f5f5f7 !important; font-weight: 700; color: #333; }
+        .time-row td.name-cell { background: #f5f5f7 !important; }
+        .summary-row td           { background: #eaf1fe !important; font-weight: 700; color: #1d1d1f !important; }
         .summary-row td.name-cell { background: #eaf1fe !important; }
 
         .loading { padding: 40px; text-align: center; color: #86868b; }
         .error   { padding: 40px; text-align: center; color: #ff3b30; }
 
-        /* МОБІЛЬНА ВЕРСІЯ */
+        /* Мобільна версія */
         @media (max-width: 767px) {
             :root {
                 --name-w: 80px;
@@ -162,13 +160,24 @@
 
     <div class="table-card">
         <div id="loader" class="loading">Завантаження...</div>
-        <table id="tbl" style="display:none">
-            <thead id="thead"></thead>
-            <tbody id="tbody"></tbody>
-        </table>
+
+        <!-- Sticky заголовок — окремий контейнер -->
+        <div class="thead-wrap" id="theadWrap" style="display:none">
+            <table id="tblHead">
+                <thead id="thead"></thead>
+            </table>
+        </div>
+
+        <!-- Scrollable тіло — горизонтальний скрол тут -->
+        <div class="tbody-wrap" id="tbodyWrap" style="display:none">
+            <table id="tblBody">
+                <tbody id="tbody"></tbody>
+            </table>
+        </div>
     </div>
 
 <script>
+// ===== CSV =====
 function parseCSV(text) {
     const rows = [];
     for (const line of text.split(/\r?\n/)) {
@@ -186,13 +195,14 @@ function parseCSV(text) {
     return rows;
 }
 
+// ===== ГРУПИ =====
 function colInfo(h) {
     const u = h.toUpperCase();
     let g = '', t = 'fact';
-    if      (u.includes('ПОСЛУГ') || u.includes('ПОСЛ'))                       g = 'serv';
-    else if (u.includes('АСС') || u.includes('ACC') || u.includes('АКСЕС'))    g = 'acc';
-    else if (u.includes('ЧЕК') || u.includes('CHECK'))                         g = 'checks';
-    else if (/ ТО$|^ТО |^ТО$|_ТО$| ТО | ТО,|ТО\b/.test(u))                  g = 'to';
+    if      (u.includes('ПОСЛУГ') || u.includes('ПОСЛ'))                    g = 'serv';
+    else if (u.includes('АСС') || u.includes('ACC') || u.includes('АКСЕС')) g = 'acc';
+    else if (u.includes('ЧЕК') || u.includes('CHECK'))                      g = 'checks';
+    else if (u.includes(' ТО') || u.startsWith('ТО') || u.endsWith(' ТО') || u.endsWith('ТО')) g = 'to';
 
     if      (u.includes('ПЛАН'))                             t = 'plan';
     else if (u.includes('%') || u.includes('ВИКО'))          t = 'pct';
@@ -202,6 +212,7 @@ function colInfo(h) {
 
 const GLABELS = { to:'Товарообіг', serv:'Послуги', acc:'Аксесуари', checks:'Чеки', '':'' };
 
+// ===== ЧИСЛА =====
 function toNum(v) {
     if (!v) return 0;
     return parseFloat(v.toString().replace('%','').replace(/\s/g,'').replace(',','.')) || 0;
@@ -228,6 +239,7 @@ function pctBg(v) {
     return             { bg:'rgba(52,199,89,0.20)',  fg:'#155724' };
 }
 
+// ===== ПОБУДОВА THEAD =====
 function buildThead(headers) {
     const thead = document.getElementById('thead');
 
@@ -236,7 +248,7 @@ function buildThead(headers) {
     let cur = null;
     for (let i = 1; i < headers.length; i++) {
         const { g } = colInfo(headers[i]);
-        if (!cur || cur.g !== g) { cur = { g, count: 1 }; groups.push(cur); }
+        if (!cur || cur.g !== g) { cur = { g, count:1 }; groups.push(cur); }
         else cur.count++;
     }
 
@@ -262,7 +274,7 @@ function buildThead(headers) {
     for (let i = 1; i < headers.length; i++) {
         const { g } = colInfo(headers[i]);
         const th = document.createElement('th');
-        th.className = 'sub-th' + (g ? ' g-' + g : '');
+        th.className = 'sub-th' + (g ? ' g-'+g : '');
         if (g !== prevG) th.classList.add('grp-start');
         prevG = g;
         // Не дублюємо назву групи
@@ -274,6 +286,57 @@ function buildThead(headers) {
     thead.appendChild(tr2);
 }
 
+// ===== ПОБУДОВА РЯДКА =====
+function buildRow(row, headers) {
+    const name = row[0].trim();
+    const nameLC = name.toLowerCase();
+    const isTime = /^\d{1,2}:\d{2}(:\d{2})?$/.test(name);
+    const isSummary = ['виконання','залишок','разом','всього','підсумок','total','итого']
+                      .some(k => nameLC.includes(k));
+
+    const tr = document.createElement('tr');
+    if (isTime)    tr.className = 'time-row';
+    if (isSummary) tr.className = 'summary-row';
+
+    // Перша колонка
+    const tdN = document.createElement('td');
+    tdN.className = 'name-cell';
+    tdN.textContent = name;
+    tr.appendChild(tdN);
+
+    let prevG = '';
+    for (let i = 1; i < headers.length; i++) {
+        const { g, t } = colInfo(headers[i]);
+        const val = (row[i] || '').trim();
+        const isStart = g !== prevG;
+        prevG = g;
+
+        const td = document.createElement('td');
+        if (isStart && g) td.classList.add('grp-start');
+
+        if (t === 'pct' && !isTime) {
+            const { bg, fg } = pctBg(val);
+            td.className = 'val-pct' + (g ? ' g-'+g : '');
+            if (isStart && g) td.classList.add('grp-start');
+            td.style.background = bg;
+            td.style.color = isSummary ? '#1d1d1f' : fg;
+            td.textContent = val ? fmtPct(val) : '';
+        } else if (t === 'share') {
+            td.className = 'val-fact' + (g ? ' g-'+g : '');
+            td.textContent = val;
+        } else if (t === 'plan') {
+            td.className = 'val-plan' + (g ? ' g-'+g : '');
+            td.textContent = isTime ? val : fmtInt(val);
+        } else {
+            td.className = 'val-fact' + (g ? ' g-'+g : '');
+            td.textContent = (!isTime && val && !val.includes('%')) ? fmtInt(val) : val;
+        }
+        tr.appendChild(td);
+    }
+    return tr;
+}
+
+// ===== ЗАВАНТАЖЕННЯ =====
 async function load() {
     const SHEET = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQOxz-ozH9yNLW3IAzlkMlbRqOTrR4sIUO1__KpAMBFEvvpMXr4LWTnRvzYGb_y6za7WBxOUhl2DV84/pub?output=csv";
     try {
@@ -284,60 +347,35 @@ async function load() {
 
         const headers = rows[0];
         document.getElementById('loader').style.display = 'none';
-        document.getElementById('tbl').style.display = '';
+        document.getElementById('theadWrap').style.display = '';
+        document.getElementById('tbodyWrap').style.display = '';
 
         buildThead(headers);
 
         const tbody = document.getElementById('tbody');
         for (const row of rows.slice(1)) {
             if (!row[0] || !row[0].trim()) continue;
-            const name   = row[0].trim();
-            const nameLC = name.toLowerCase();
-            const isTime = /^\d{1,2}:\d{2}(:\d{2})?$/.test(name);
-            const isSummary = ['виконання','залишок','разом','всього','підсумок','total','итого']
-                              .some(k => nameLC.includes(k));
-
-            const tr = document.createElement('tr');
-            if (isTime)    tr.className = 'time-row';
-            if (isSummary) tr.className = 'summary-row';
-
-            // Перша колонка (ПК)
-            const tdN = document.createElement('td');
-            tdN.className = 'name-cell';
-            tdN.textContent = name;
-            tr.appendChild(tdN);
-
-            let prevG = '';
-            for (let i = 1; i < headers.length; i++) {
-                const { g, t } = colInfo(headers[i]);
-                const val      = (row[i] || '').trim();
-                const isStart  = g !== prevG;
-                prevG = g;
-
-                const td = document.createElement('td');
-                if (isStart && g) td.classList.add('grp-start');
-
-                if (t === 'pct' && !isTime) {
-                    const { bg, fg } = pctBg(val);
-                    td.className = 'val-pct' + (g ? ' g-' + g : '');
-                    if (isStart && g) td.classList.add('grp-start');
-                    td.style.background = bg;
-                    td.style.color = isSummary ? '#1d1d1f' : fg;
-                    td.textContent = val ? fmtPct(val) : '';
-                } else if (t === 'share') {
-                    td.className = 'val-fact' + (g ? ' g-' + g : '');
-                    td.textContent = val;
-                } else if (t === 'plan') {
-                    td.className = 'val-plan' + (g ? ' g-' + g : '');
-                    td.textContent = isTime ? val : fmtInt(val);
-                } else {
-                    td.className = 'val-fact' + (g ? ' g-' + g : '');
-                    td.textContent = (!isTime && val && !val.includes('%')) ? fmtInt(val) : val;
-                }
-                tr.appendChild(td);
-            }
-            tbody.appendChild(tr);
+            tbody.appendChild(buildRow(row, headers));
         }
+
+        // ===== СИНХРОНІЗАЦІЯ ГОРИЗОНТАЛЬНОГО СКРОЛУ =====
+        // thead-wrap НЕ має скролу → синхронізуємо JS
+        const tbodyWrap = document.getElementById('tbodyWrap');
+        const theadWrap = document.getElementById('theadWrap');
+
+        tbodyWrap.addEventListener('scroll', () => {
+            theadWrap.scrollLeft = tbodyWrap.scrollLeft;
+        }, { passive: true });
+
+        // Вирівнюємо ширину thead-таблиці з tbody-таблицею
+        function syncWidth() {
+            const w = document.getElementById('tblBody').offsetWidth;
+            document.getElementById('tblHead').style.width = w + 'px';
+            document.getElementById('tblHead').style.minWidth = w + 'px';
+        }
+        syncWidth();
+        window.addEventListener('resize', syncWidth);
+
     } catch(e) {
         const el = document.getElementById('loader');
         el.className = 'error';
@@ -347,7 +385,7 @@ async function load() {
 
 load();
 
-// Свайп назад
+// ===== СВАЙП НАЗАД =====
 let x0=0, y0=0, sw=false;
 document.addEventListener('touchstart', e=>{x0=e.changedTouches[0].screenX; y0=e.changedTouches[0].screenY; sw=true;},{passive:true});
 document.addEventListener('touchmove',  e=>{if(Math.abs(e.changedTouches[0].screenY-y0)>25) sw=false;},{passive:true});
