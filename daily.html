@@ -6,21 +6,19 @@
     <title>Щоденні звіти</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
     <style>
-        :root {
-            --name-w: 90px;
-            --col-w: 95px;
-        }
+        :root { --bg: #f5f5f7; --text: #1d1d1f; --accent: #0071e3; }
+
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
             font-family: 'Inter', sans-serif;
-            background: #f5f5f7;
-            color: #1d1d1f;
+            background: var(--bg);
+            color: var(--text);
             padding: 8px 10px;
         }
 
         .back-link {
-            color: #0071e3;
+            color: var(--accent);
             text-decoration: none;
             font-weight: 500;
             display: inline-block;
@@ -29,104 +27,90 @@
         }
         h1 { font-size: 22px; font-weight: 700; margin-bottom: 10px; }
 
+        /* === ОДНА ТАБЛИЦЯ, overflow-x на table-card — як в plan-fact === */
         .table-card {
             background: white;
             border-radius: 16px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.06);
-            overflow: hidden; /* НЕ overflow-x:auto — щоб sticky працював */
-        }
-
-        /* === STICKY HEADER КОНТЕЙНЕР === */
-        /* position:sticky по вертикалі — прилипає зверху при скролі СТОРІНКИ */
-        .thead-wrap {
-            position: sticky;
-            top: 0;
-            z-index: 20;
-            background: white;
-            overflow: hidden; /* ховаємо горизонтальний скрол, синхронізуємо JS */
-            border-bottom: 1px solid #e0e0e5;
-        }
-
-        /* === TBODY КОНТЕЙНЕР — горизонтальний скрол тут === */
-        .tbody-wrap {
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
             overscroll-behavior-x: contain;
-
         }
 
-        /* === ТАБЛИЦІ === */
         table {
+            width: 100%;
             border-collapse: collapse;
-            width: max-content;
-            min-width: 100%;
+            min-width: 1200px;
+            table-layout: fixed;
         }
 
-        /* Заголовки */
-        th {
-            background: white;
-            white-space: nowrap;
-            font-size: 9px;
-            font-weight: 600;
-            text-transform: uppercase;
-            color: #86868b;
-            padding: 6px 6px;
-            border-bottom: 1px solid #e0e0e5;
-        }
-
-        /* Групові заголовки (рядок 1) */
+        /* === ГРУПОВІ ЗАГОЛОВКИ === */
         th.group-header {
             text-align: center;
             font-size: 10px;
             font-weight: 800;
+            text-transform: uppercase;
             letter-spacing: 0.5px;
             padding: 7px 6px;
-            border-bottom: 3px solid transparent;
+            color: #1d1d1f;
+            border-bottom: 1px solid #d2d2d7;
+            background: white;
         }
-        th.group-header.g-to     { color: #0071e3; border-bottom-color: #0071e3; }
-        th.group-header.g-serv   { color: #34c759; border-bottom-color: #34c759; }
-        th.group-header.g-acc    { color: #ff9500; border-bottom-color: #ff9500; }
-        th.group-header.g-checks { color: #af52de; border-bottom-color: #af52de; }
-        th.group-header.g-none   { color: #86868b; border-bottom-color: #d2d2d7; }
+        th.group-header.g-to     { color: #0071e3; border-bottom: 3px solid #0071e3; }
+        th.group-header.g-serv   { color: #34c759; border-bottom: 3px solid #34c759; }
+        th.group-header.g-acc    { color: #ff9500; border-bottom: 3px solid #ff9500; }
+        th.group-header.g-checks { color: #af52de; border-bottom: 3px solid #af52de; }
+        th.group-header.g-none   { color: #86868b; border-bottom: 3px solid #d2d2d7; }
 
-        /* Підзаголовки (рядок 2) */
-        th.sub-th { width: var(--col-w); min-width: var(--col-w); }
-        th.sub-th.g-to     { color: #0071e3; }
-        th.sub-th.g-serv   { color: #34c759; }
-        th.sub-th.g-acc    { color: #ff9500; }
-        th.sub-th.g-checks { color: #af52de; }
+        th {
+            text-align: left;
+            padding: 5px 6px;
+            color: #86868b;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            border-bottom: 1px solid #d2d2d7;
+            background: white;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        th.g-to     { color: #0071e3; }
+        th.g-serv   { color: #34c759; }
+        th.g-acc    { color: #ff9500; }
+        th.g-checks { color: #af52de; }
 
-        /* Перша колонка (ПК) — sticky зліва, в обох таблицях */
-        th.name-th, td.name-cell {
+        td {
+            padding: 5px 6px;
+            border-bottom: 1px solid #f2f2f4;
+            font-size: 12px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Роздільник між групами */
+        .grp-start { border-left: 2px solid #d2d2d7 !important; }
+
+        /* === STICKY ПЕРША КОЛОНКА — точно як plan-fact === */
+        .name-cell, th:first-child {
             position: sticky;
             left: 0;
             background: white;
             z-index: 10;
-            width: var(--name-w);
-            min-width: var(--name-w);
-            max-width: var(--name-w);
-            white-space: normal;
-            word-break: break-word;
-            line-height: 1.2;
-            font-size: 10px;
+            width: 90px;
+            min-width: 90px;
+            max-width: 90px;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.05);
             font-weight: 600;
-            padding: 6px 5px;
-            box-shadow: 2px 0 5px -1px rgba(0,0,0,0.10);
+            font-size: 11px;
+            white-space: normal;
+            line-height: 1.2;
+            padding: 5px 5px;
         }
+        th:first-child { z-index: 11; }
 
-        /* Роздільник між групами */
-        .grp-start { border-left: 2px solid #e0e0e5 !important; }
-
-        /* Дані */
-        td {
-            padding: 7px 6px;
-            border-bottom: 1px solid #f2f2f4;
-            font-size: 12px;
-            white-space: nowrap;
-            width: var(--col-w);
-            min-width: var(--col-w);
-        }
-
+        /* === ЗНАЧЕННЯ === */
         .val-plan   { color: #aaa; font-size: 10px; }
         .val-fact   { font-weight: 600; }
         .val-pct    { font-weight: 700; }
@@ -136,7 +120,7 @@
         .val-fact.g-acc,    .val-pct.g-acc    { color: #ff9500; }
         .val-fact.g-checks, .val-pct.g-checks { color: #af52de; }
 
-        /* Спеціальні рядки */
+        /* === СПЕЦІАЛЬНІ РЯДКИ === */
         .time-row td           { background: #f5f5f7 !important; font-weight: 700; color: #333; }
         .time-row td.name-cell { background: #f5f5f7 !important; }
         .summary-row td           { background: #eaf1fe !important; font-weight: 700; color: #1d1d1f !important; }
@@ -145,12 +129,72 @@
         .loading { padding: 40px; text-align: center; color: #86868b; }
         .error   { padding: 40px; text-align: center; color: #ff3b30; }
 
-        /* Мобільна версія */
+        /* === МОБІЛЬНА — точно як plan-fact === */
         @media (max-width: 767px) {
-            :root {
-                --name-w: 80px;
-                --col-w: calc((100vw - 80px - 20px) / 3);
+            .table-card {
+                scroll-snap-type: x proximity;
+                scroll-behavior: smooth;
+                scroll-padding-left: 80px;
+                -webkit-overflow-scrolling: touch;
+                overscroll-behavior-x: contain;
             }
+
+            table { min-width: 900px; }
+
+            .name-cell, th:first-child {
+                width: 80px;
+                min-width: 80px;
+                max-width: 80px;
+                font-size: 9.5px;
+                padding: 5px 4px;
+                z-index: 20 !important;
+                background: white;
+                background-clip: padding-box;
+                box-shadow: 4px 0 10px -2px rgba(0,0,0,0.14);
+                border-right: 1px solid #e0e0e5;
+            }
+            th:first-child { z-index: 21 !important; }
+
+            td:not(.name-cell), th:not(:first-child) {
+                position: relative;
+                z-index: 1;
+            }
+
+            th, td {
+                min-width: calc((100vw - 80px) / 3);
+                max-width: calc((100vw - 80px) / 3);
+                font-size: 10.5px;
+                padding: 5px 4px;
+            }
+
+            /* Snap точки — nth-child відповідає першій колонці кожної групи */
+            /* nth-child(2) = ПЛАН ТО (група to) */
+            th:nth-child(2), td:nth-child(2) {
+                scroll-snap-align: start;
+                scroll-margin-left: 80px;
+            }
+            /* nth-child(5) = ПЛАН Послуги (група serv) */
+            th:nth-child(5), td:nth-child(5) {
+                scroll-snap-align: start;
+                scroll-margin-left: 80px;
+            }
+            /* nth-child(8) = ПЛАН АСС (група acc) */
+            th:nth-child(8), td:nth-child(8) {
+                scroll-snap-align: start;
+                scroll-margin-left: 80px;
+            }
+            /* nth-child(11) = Чеки (група checks) */
+            th:nth-child(11), td:nth-child(11) {
+                scroll-snap-align: start;
+                scroll-margin-left: 80px;
+            }
+            /* nth-child(12) = Дохід (без групи) */
+            th:nth-child(12), td:nth-child(12) {
+                scroll-snap-align: start;
+                scroll-margin-left: 80px;
+            }
+
+            td, th { scroll-snap-stop: normal; }
         }
     </style>
 </head>
@@ -160,20 +204,10 @@
 
     <div class="table-card">
         <div id="loader" class="loading">Завантаження...</div>
-
-        <!-- Sticky заголовок — окремий контейнер -->
-        <div class="thead-wrap" id="theadWrap" style="display:none">
-            <table id="tblHead">
-                <thead id="thead"></thead>
-            </table>
-        </div>
-
-        <!-- Scrollable тіло — горизонтальний скрол тут -->
-        <div class="tbody-wrap" id="tbodyWrap" style="display:none">
-            <table id="tblBody">
-                <tbody id="tbody"></tbody>
-            </table>
-        </div>
+        <table id="tbl" style="display:none">
+            <thead id="thead"></thead>
+            <tbody id="tbody"></tbody>
+        </table>
     </div>
 
 <script>
@@ -197,12 +231,12 @@ function parseCSV(text) {
 
 // ===== ГРУПИ =====
 function colInfo(h) {
-    const u = h.toUpperCase();
+    const u = h.toUpperCase().trim();
     let g = '', t = 'fact';
-    if      (u.includes('ПОСЛУГ') || u.includes('ПОСЛ'))                    g = 'serv';
+    if      ('ПОСЛУГ' in u || u.includes('ПОСЛУГ') || u.includes('ПОСЛ')) g = 'serv';
     else if (u.includes('АСС') || u.includes('ACC') || u.includes('АКСЕС')) g = 'acc';
     else if (u === 'ЧЕКИ' || u === 'ЧЕК' || u.startsWith('ПЛАН ЧЕК') || u.startsWith('ФАКТ ЧЕК') || u.startsWith('% ЧЕК')) g = 'checks';
-    else if (u.includes(' ТО') || u.startsWith('ТО') || u.endsWith(' ТО') || u.endsWith('ТО')) g = 'to';
+    else if (u.includes(' ТО') || u.startsWith('ТО') || u.endsWith('ТО')) g = 'to';
 
     if      (u.includes('ПЛАН'))                             t = 'plan';
     else if (u.includes('%') || u.includes('ВИКО'))          t = 'pct';
@@ -239,7 +273,7 @@ function pctBg(v) {
     return             { bg:'rgba(52,199,89,0.20)',  fg:'#155724' };
 }
 
-// ===== ПОБУДОВА THEAD =====
+// ===== THEAD =====
 function buildThead(headers) {
     const thead = document.getElementById('thead');
 
@@ -256,7 +290,6 @@ function buildThead(headers) {
     const tr1 = document.createElement('tr');
     const corner = document.createElement('th');
     corner.rowSpan = 2;
-    corner.className = 'name-th';
     corner.textContent = headers[0];
     tr1.appendChild(corner);
     for (const grp of groups) {
@@ -274,66 +307,15 @@ function buildThead(headers) {
     for (let i = 1; i < headers.length; i++) {
         const { g } = colInfo(headers[i]);
         const th = document.createElement('th');
-        th.className = 'sub-th' + (g ? ' g-'+g : '');
+        th.className = (g ? 'g-'+g : '');
         if (g !== prevG) th.classList.add('grp-start');
         prevG = g;
-        // Не дублюємо назву групи
         const lbl = headers[i].trim().toUpperCase();
         const glbl = (GLABELS[g] || '').toUpperCase();
         th.textContent = (glbl && lbl === glbl) ? '' : headers[i];
         tr2.appendChild(th);
     }
     thead.appendChild(tr2);
-}
-
-// ===== ПОБУДОВА РЯДКА =====
-function buildRow(row, headers) {
-    const name = row[0].trim();
-    const nameLC = name.toLowerCase();
-    const isTime = /^\d{1,2}:\d{2}(:\d{2})?$/.test(name);
-    const isSummary = ['виконання','залишок','разом','всього','підсумок','total','итого']
-                      .some(k => nameLC.includes(k));
-
-    const tr = document.createElement('tr');
-    if (isTime)    tr.className = 'time-row';
-    if (isSummary) tr.className = 'summary-row';
-
-    // Перша колонка
-    const tdN = document.createElement('td');
-    tdN.className = 'name-cell';
-    tdN.textContent = name;
-    tr.appendChild(tdN);
-
-    let prevG = '';
-    for (let i = 1; i < headers.length; i++) {
-        const { g, t } = colInfo(headers[i]);
-        const val = (row[i] || '').trim();
-        const isStart = g !== prevG;
-        prevG = g;
-
-        const td = document.createElement('td');
-        if (isStart && g) td.classList.add('grp-start');
-
-        if (t === 'pct' && !isTime) {
-            const { bg, fg } = pctBg(val);
-            td.className = 'val-pct' + (g ? ' g-'+g : '');
-            if (isStart && g) td.classList.add('grp-start');
-            td.style.background = bg;
-            td.style.color = isSummary ? '#1d1d1f' : fg;
-            td.textContent = val ? fmtPct(val) : '';
-        } else if (t === 'share') {
-            td.className = 'val-fact' + (g ? ' g-'+g : '');
-            td.textContent = val;
-        } else if (t === 'plan') {
-            td.className = 'val-plan' + (g ? ' g-'+g : '');
-            td.textContent = isTime ? val : fmtInt(val);
-        } else {
-            td.className = 'val-fact' + (g ? ' g-'+g : '');
-            td.textContent = (!isTime && val && !val.includes('%')) ? fmtInt(val) : val;
-        }
-        tr.appendChild(td);
-    }
-    return tr;
 }
 
 // ===== ЗАВАНТАЖЕННЯ =====
@@ -347,59 +329,60 @@ async function load() {
 
         const headers = rows[0];
         document.getElementById('loader').style.display = 'none';
-        document.getElementById('theadWrap').style.display = '';
-        document.getElementById('tbodyWrap').style.display = '';
+        document.getElementById('tbl').style.display = '';
 
         buildThead(headers);
 
         const tbody = document.getElementById('tbody');
         for (const row of rows.slice(1)) {
             if (!row[0] || !row[0].trim()) continue;
-            tbody.appendChild(buildRow(row, headers));
+
+            const name   = row[0].trim();
+            const nameLC = name.toLowerCase();
+            const isTime = /^\d{1,2}:\d{2}(:\d{2})?$/.test(name);
+            const isSummary = ['виконання','залишок','разом','всього','підсумок','total','итого']
+                              .some(k => nameLC.includes(k));
+
+            const tr = document.createElement('tr');
+            if (isTime)    tr.className = 'time-row';
+            if (isSummary) tr.className = 'summary-row';
+
+            const tdN = document.createElement('td');
+            tdN.className = 'name-cell';
+            tdN.textContent = name;
+            tr.appendChild(tdN);
+
+            let prevG = '';
+            for (let i = 1; i < headers.length; i++) {
+                const { g, t } = colInfo(headers[i]);
+                const val      = (row[i] || '').trim();
+                const isStart  = g !== prevG;
+                prevG = g;
+
+                const td = document.createElement('td');
+                if (isStart && g) td.classList.add('grp-start');
+
+                if (t === 'pct' && !isTime) {
+                    const { bg, fg } = pctBg(val);
+                    td.className = 'val-pct' + (g ? ' g-'+g : '');
+                    if (isStart && g) td.classList.add('grp-start');
+                    td.style.background = bg;
+                    td.style.color = isSummary ? '#1d1d1f' : fg;
+                    td.textContent = val ? fmtPct(val) : '';
+                } else if (t === 'share') {
+                    td.className = 'val-fact' + (g ? ' g-'+g : '');
+                    td.textContent = val;
+                } else if (t === 'plan') {
+                    td.className = 'val-plan' + (g ? ' g-'+g : '');
+                    td.textContent = isTime ? val : fmtInt(val);
+                } else {
+                    td.className = 'val-fact' + (g ? ' g-'+g : '');
+                    td.textContent = (!isTime && val && !val.includes('%')) ? fmtInt(val) : val;
+                }
+                tr.appendChild(td);
+            }
+            tbody.appendChild(tr);
         }
-
-        // ===== СИНХРОНІЗАЦІЯ ГОРИЗОНТАЛЬНОГО СКРОЛУ =====
-        const tbodyWrap = document.getElementById('tbodyWrap');
-        const theadWrap = document.getElementById('theadWrap');
-
-        tbodyWrap.addEventListener('scroll', () => {
-            theadWrap.scrollLeft = tbodyWrap.scrollLeft;
-        }, { passive: true });
-
-        // ===== SCROLL SNAP по групах =====
-        // Знаходимо позиції першої td кожної групи і snap до них
-        function setupSnap() {
-            const nameW = document.querySelector('td.name-cell')
-                        ? document.querySelector('td.name-cell').offsetWidth : 80;
-            
-            // scroll-padding-left = ширина sticky name-cell
-            tbodyWrap.style.scrollPaddingLeft = nameW + 'px';
-
-            // Знаходимо всі td.grp-start в першому рядку даних
-            const firstRow = document.querySelector('#tbody tr');
-            if (!firstRow) return;
-
-            firstRow.querySelectorAll('td.grp-start').forEach(td => {
-                td.style.scrollSnapAlign = 'start';
-                td.style.scrollMarginLeft = '0px';
-            });
-
-            // Вмикаємо snap на контейнері
-            tbodyWrap.style.scrollSnapType = 'x mandatory';
-        }
-
-        // Запускаємо після рендеру
-        requestAnimationFrame(() => requestAnimationFrame(setupSnap));
-
-        // Вирівнюємо ширину thead-таблиці з tbody-таблицею
-        function syncWidth() {
-            const w = document.getElementById('tblBody').offsetWidth;
-            document.getElementById('tblHead').style.width = w + 'px';
-            document.getElementById('tblHead').style.minWidth = w + 'px';
-        }
-        syncWidth();
-        window.addEventListener('resize', syncWidth);
-
     } catch(e) {
         const el = document.getElementById('loader');
         el.className = 'error';
@@ -409,7 +392,7 @@ async function load() {
 
 load();
 
-// ===== СВАЙП НАЗАД =====
+// Свайп назад
 let x0=0, y0=0, sw=false;
 document.addEventListener('touchstart', e=>{x0=e.changedTouches[0].screenX; y0=e.changedTouches[0].screenY; sw=true;},{passive:true});
 document.addEventListener('touchmove',  e=>{if(Math.abs(e.changedTouches[0].screenY-y0)>25) sw=false;},{passive:true});
