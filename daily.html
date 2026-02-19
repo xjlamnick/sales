@@ -161,15 +161,20 @@
             return Math.round(n).toLocaleString('uk-UA');
         }
         function fmtPct(val) {
+            const s = val ? val.toString().trim() : '';
+            const hasSign = s.includes('%');
             let n = cleanNum(val);
-            if (n > 0 && n < 2) n = n * 100; // дробове (0.87 → 87%)
+            // Якщо значення вже містить % або більше 2 — не множимо
+            if (!hasSign && n > 0 && n < 2) n = n * 100;
             return n.toFixed(2) + '%';
         }
 
         // ====== КОЛЬОРОВИЙ СТИЛЬ % (як у plan-fact) ======
         function getPctStyle(val) {
+            const s = val ? val.toString().trim() : '';
+            const hasSign = s.includes('%');
             let n = cleanNum(val);
-            if (n > 0 && n < 2) n = n * 100;
+            if (!hasSign && n > 0 && n < 2) n = n * 100;
             if (n <= 0)  return { bg: 'rgba(255,59,48,0.15)',  color: '#cc2200' };
             if (n < 50)  return { bg: 'rgba(255,59,48,0.12)',  color: '#d63b2a' };
             if (n < 80)  return { bg: 'rgba(255,149,0,0.12)',  color: '#c97000' };
