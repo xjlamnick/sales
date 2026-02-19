@@ -201,7 +201,7 @@ function colInfo(h) {
     let g = '', t = 'fact';
     if      (u.includes('ПОСЛУГ') || u.includes('ПОСЛ'))                    g = 'serv';
     else if (u.includes('АСС') || u.includes('ACC') || u.includes('АКСЕС')) g = 'acc';
-    else if (u.includes('ЧЕК') || u.includes('CHECK'))                      g = 'checks';
+    else if (u === 'ЧЕКИ' || u === 'ЧЕК' || u.startsWith('ПЛАН ЧЕК') || u.startsWith('ФАКТ ЧЕК') || u.startsWith('% ЧЕК')) g = 'checks';
     else if (u.includes(' ТО') || u.startsWith('ТО') || u.endsWith(' ТО') || u.endsWith('ТО')) g = 'to';
 
     if      (u.includes('ПЛАН'))                             t = 'plan';
