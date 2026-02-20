@@ -233,7 +233,7 @@ function parseCSV(text) {
 function colInfo(h) {
     const u = h.toUpperCase().trim();
     let g = '', t = 'fact';
-    if      ('ПОСЛУГ' in u || u.includes('ПОСЛУГ') || u.includes('ПОСЛ')) g = 'serv';
+    if      (u.includes('ПОСЛУГ') || u.includes('ПОСЛ')) g = 'serv';
     else if (u.includes('АСС') || u.includes('ACC') || u.includes('АКСЕС')) g = 'acc';
     else if (u === 'ЧЕКИ' || u === 'ЧЕК' || u.startsWith('ПЛАН ЧЕК') || u.startsWith('ФАКТ ЧЕК') || u.startsWith('% ЧЕК')) g = 'checks';
     else if (u.includes(' ТО') || u.startsWith('ТО') || u.endsWith('ТО')) g = 'to';
