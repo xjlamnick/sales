@@ -397,24 +397,48 @@
         .detail-container { max-width: 900px; margin: 0 auto; }
         
         .metric-group {
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 15px;
+            gap: 10px;
         }
         .group-title {
             grid-column: 1 / -1;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 600;
             color: var(--color-text-secondary);
-            margin-bottom: 5px;
+            margin-bottom: 4px;
             padding-left: 5px;
             text-transform: uppercase;
         }
 
         .detail-metric-card {
-            background: #fff; padding: 20px; border-radius: 18px;
+            background: #fff; padding: 14px 16px; border-radius: 14px;
             border-left: 4px solid var(--color-border);
+        }
+
+        /* 2 колонки на мобільному */
+        @media (max-width: 600px) {
+            .metric-group {
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+                margin-bottom: 14px;
+            }
+            .detail-metric-card {
+                padding: 10px 12px;
+                border-radius: 12px;
+            }
+            .detail-metric-card div:first-child {
+                font-size: 10px !important;
+            }
+            .detail-metric-card div:last-child {
+                font-size: 18px !important;
+            }
+            .detail-metric-card div:last-child span {
+                font-size: 12px !important;
+            }
+            .group-title { font-size: 12px; margin-bottom: 2px; }
+            #detail-page { padding: 20px 14px; }
         }
         
         .group-sales .detail-metric-card { border-left-color: var(--group-sales); }
