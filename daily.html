@@ -168,31 +168,12 @@
             }
 
             /* Snap точки — nth-child відповідає першій колонці кожної групи */
-            /* nth-child(2) = ПЛАН ТО (група to) */
-            th:nth-child(2), td:nth-child(2) {
-                scroll-snap-align: start;
-                scroll-margin-left: 100px;
-            }
-            /* nth-child(5) = ПЛАН Послуги (група serv) */
-            th:nth-child(5), td:nth-child(5) {
-                scroll-snap-align: start;
-                scroll-margin-left: 100px;
-            }
-            /* nth-child(8) = ПЛАН АСС (група acc) */
-            th:nth-child(8), td:nth-child(8) {
-                scroll-snap-align: start;
-                scroll-margin-left: 100px;
-            }
-            /* nth-child(11) = Чеки (група checks) */
-            th:nth-child(11), td:nth-child(11) {
-                scroll-snap-align: start;
-                scroll-margin-left: 100px;
-            }
-            /* nth-child(12) = Дохід (без групи) */
-            th:nth-child(12), td:nth-child(12) {
-                scroll-snap-align: start;
-                scroll-margin-left: 100px;
-            }
+            /* scroll-padding-left на контейнері враховує sticky name-cell */
+            th:nth-child(2), td:nth-child(2) { scroll-snap-align: start; }
+            th:nth-child(5), td:nth-child(5) { scroll-snap-align: start; }
+            th:nth-child(8), td:nth-child(8) { scroll-snap-align: start; }
+            th:nth-child(11), td:nth-child(11) { scroll-snap-align: start; }
+            th:nth-child(12), td:nth-child(12) { scroll-snap-align: start; }
 
             td, th { scroll-snap-stop: normal; }
         }
