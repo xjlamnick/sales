@@ -31,18 +31,13 @@
         table { width: 100%; border-collapse: collapse; table-layout: auto; }
         
         /* Кольорові групи для РЯДКІВ */
-        tr.group-to { background: rgba(52, 199, 89, 0.08); }       /* Зелений - ТО */
-        tr.group-serv { background: rgba(175, 82, 222, 0.08); }    /* Фіолетовий - Послуги */
-        tr.group-acc { background: rgba(255, 149, 0, 0.08); }      /* Помаранчевий - АСС */
-        tr.group-traffic { background: rgba(0, 113, 227, 0.08); }  /* Синій - Трафік/Чеки блок */
-        tr.group-other { background: rgba(142, 142, 147, 0.05); }  /* Сірий - Інше */
-        
-        /* Лівий бордер для кращої візуалізації */
-        tr.group-to td:first-child { border-left: 4px solid #34c759; }
-        tr.group-serv td:first-child { border-left: 4px solid #af52de; }
-        tr.group-acc td:first-child { border-left: 4px solid #ff9500; }
+        /* Лівий бордер для кольорових груп */
+        tr.group-to td:first-child    { border-left: 4px solid #34c759; }
+        tr.group-serv td:first-child  { border-left: 4px solid #af52de; }
+        tr.group-acc td:first-child   { border-left: 4px solid #ff9500; }
         tr.group-traffic td:first-child { border-left: 4px solid #0071e3; }
-        tr.group-other td:first-child { border-left: 4px solid #8e8e93; }
+        tr.group-other td:first-child  { border-left: 4px solid #8e8e93; }
+
 
         .group-header {
             text-align: center;
@@ -149,16 +144,23 @@
         }
 
         /* РІЗНІ КОЛЬОРИ ДЛЯ ПЛАН, ФАКТ, % */
-        .val-plan { 
-            color: #86868b; 
-            font-size: 11px;
-            background: rgba(134, 134, 139, 0.05);
+        .val-plan { color: #86868b; font-size: 11px; background: transparent; }
+        .val-fact { font-weight: 600; background: transparent; color: #1d1d1f; }
+        .plan-badge {
+            display: inline-block; padding: 2px 7px; border-radius: 7px;
+            font-size: 11px; font-weight: 500; color: #6e6e73;
+            background: rgba(134,134,139,0.1); white-space: nowrap;
         }
-        .val-fact { 
-            font-weight: 600;
-            background: rgba(0, 113, 227, 0.08);
-            color: #1d1d1f;
+        .fact-badge {
+            display: inline-block; padding: 3px 8px; border-radius: 8px;
+            font-size: 12px; font-weight: 600; white-space: nowrap;
         }
+        .fact-badge.group-to      { background: rgba(52,199,89,0.15);  color: #1a7f37; }
+        .fact-badge.group-serv    { background: rgba(175,82,222,0.15); color: #7c3aed; }
+        .fact-badge.group-acc     { background: rgba(255,149,0,0.15);  color: #c05800; }
+        .fact-badge.group-traffic { background: rgba(0,113,227,0.15);  color: #1d4ed8; }
+        .fact-badge.group-other   { background: rgba(142,142,147,0.1); color: #3d3d3f; }
+        tr.group-border-top td { border-top: 10px solid #f0f0f5 !important; padding-top: 12px !important; }
         .val-pct, .val-pct-success, .val-pct-danger {
             font-weight: 700;
             text-align: right;
@@ -181,8 +183,8 @@
         .total-row { background: #1d1d1f !important; }
         .total-row td { color: white !important; font-weight: 700; }
         .total-row .name-cell { background: #1d1d1f !important; color: white; }
-        .total-row .val-plan { color: #a1a1a6; background: rgba(255,255,255,0.05); }
-        .total-row .val-fact { color: white; background: rgba(255,255,255,0.1); }
+        .total-row .plan-badge { background: rgba(255,255,255,0.1); color: #c0c0c0; }
+        .total-row .fact-badge { background: rgba(255,255,255,0.15) !important; color: white !important; }
         .total-row .pct-badge-success { background: rgba(52,199,89,0.3); color: #34c759; }
         .total-row .pct-badge-danger  { background: rgba(217,48,37,0.25); color: #ff6b6b; }
         .total-row .pct-badge-neutral { background: rgba(52,199,89,0.2); color: #34c759; }
@@ -411,13 +413,13 @@
                         // План
                         const planCell = document.createElement('td');
                         planCell.className = 'val-plan ' + groupClass;
-                        planCell.textContent = formatDisplay(row[startIdx] || 0);
+                        planCell.innerHTML = '<span class="plan-badge">' + formatDisplay(row[startIdx] || 0) + '</span>';
                         tr.appendChild(planCell);
                         
                         // Факт
                         const factCell = document.createElement('td');
                         factCell.className = 'val-fact ' + groupClass;
-                        factCell.textContent = formatDisplay(row[startIdx + 1] || 0);
+                        factCell.innerHTML = '<span class="fact-badge ' + groupClass + '">' + formatDisplay(row[startIdx + 1] || 0) + '</span>';
                         tr.appendChild(factCell);
                         
                         // %
