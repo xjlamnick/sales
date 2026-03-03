@@ -450,6 +450,151 @@
             header h1 { font-size: 32px; }
             .avatar { width: 50px; height: 50px; font-size: 18px; }
         }
+
+        /* --- ТАБЛИЦЯ З GOOGLE SHEETS --- */
+        .gsheet-block {
+            background: var(--color-card-bg);
+            border-radius: 22px;
+            border: 1px solid var(--color-border);
+            box-shadow: var(--shadow-md);
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .gsheet-block-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--color-border);
+            background: #f5f5f7;
+            border-radius: 22px 22px 0 0;
+        }
+
+        .gsheet-block-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--color-text);
+        }
+
+        .gsheet-block-title span.icon {
+            font-size: 20px;
+        }
+
+        .gsheet-refresh-btn {
+            background: none;
+            border: 1px solid var(--color-border);
+            border-radius: 10px;
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--color-text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .gsheet-refresh-btn:hover {
+            background: var(--color-bg);
+            color: var(--color-accent);
+            border-color: var(--color-accent);
+        }
+
+        .gsheet-table-wrapper {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            max-height: 340px;
+            overflow-y: auto;
+        }
+
+        .gsheet-table-wrapper::-webkit-scrollbar { height: 5px; width: 5px; }
+        .gsheet-table-wrapper::-webkit-scrollbar-track { background: #f5f5f7; }
+        .gsheet-table-wrapper::-webkit-scrollbar-thumb { background: #d2d2d7; border-radius: 10px; }
+
+        .gsheet-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .gsheet-table thead th {
+            background: #f5f5f7;
+            padding: 10px 14px;
+            text-align: left;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--color-text-secondary);
+            letter-spacing: 0.03em;
+            white-space: nowrap;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .gsheet-table tbody tr {
+            border-bottom: 1px solid #f0f0f5;
+            transition: background 0.15s;
+        }
+
+        .gsheet-table tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        .gsheet-table tbody tr:hover {
+            background: #f9f9fb;
+        }
+
+        .gsheet-table tbody td {
+            padding: 10px 14px;
+            color: var(--color-text);
+            white-space: nowrap;
+            vertical-align: middle;
+        }
+
+        .gsheet-loading {
+            padding: 30px;
+            text-align: center;
+            color: var(--color-text-secondary);
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .gsheet-loading-spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #d2d2d7;
+            border-top-color: var(--color-accent);
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .gsheet-error {
+            padding: 20px;
+            text-align: center;
+            color: #ff3b30;
+            font-size: 13px;
+        }
+
+        @media (max-width: 600px) {
+            .gsheet-table { font-size: 12px; }
+            .gsheet-table thead th { padding: 8px 10px; }
+            .gsheet-table tbody td { padding: 8px 10px; }
+            .gsheet-block-header { padding: 12px 16px; }
+        }
     </style>
 </head>
 <body>
@@ -477,6 +622,25 @@
                 <h1>Команда</h1>
                 <p>Статистика та графіки департаменту</p>
             </header>
+            <!-- ТАБЛИЦЯ З GOOGLE SHEETS -->
+            <div class="gsheet-block" id="gsheet-block">
+                <div class="gsheet-block-header">
+                    <div class="gsheet-block-title">
+                        <span class="icon">📋</span>
+                        <span id="gsheet-title">Дані з таблиці</span>
+                    </div>
+                    <button class="gsheet-refresh-btn" onclick="loadGSheet()">
+                        <span>↻</span> Оновити
+                    </button>
+                </div>
+                <div id="gsheet-content">
+                    <div class="gsheet-loading">
+                        <div class="gsheet-loading-spinner"></div>
+                        Завантаження...
+                    </div>
+                </div>
+            </div>
+
             <div id="sales-cards"></div>
         </div>
 
@@ -511,6 +675,7 @@
         function unlockSite() {
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('main-content').style.display = 'block';
+            loadGSheet();
             loadData();
         }
 
@@ -535,6 +700,83 @@
                 }
             }
         };
+
+        // --- GOOGLE SHEETS ТАБЛИЦЯ ---
+        const GSHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTd9BXXff9qHAx0Hp0MEgb-rzsHOgsnBUoqus8vf5zSCzmDfNbe0Js9pcY_2YMkZT6lLZp7vmTEbwM6/pub?output=csv';
+
+        async function loadGSheet() {
+            const content = document.getElementById('gsheet-content');
+            content.innerHTML = `<div class="gsheet-loading"><div class="gsheet-loading-spinner"></div>Завантаження...</div>`;
+
+            try {
+                const res = await fetch(GSHEET_CSV_URL + '&t=' + Date.now());
+                if (!res.ok) throw new Error('Не вдалося завантажити');
+                const text = await res.text();
+                renderGSheetTable(text);
+            } catch (e) {
+                content.innerHTML = `<div class="gsheet-error">⚠️ Помилка завантаження даних. Перевірте підключення.</div>`;
+            }
+        }
+
+        function parseCSV(text) {
+            const lines = [];
+            let cur = '', inQuotes = false;
+            const rows = [];
+            let cells = [];
+
+            for (let i = 0; i < text.length; i++) {
+                const ch = text[i];
+                if (ch === '"') {
+                    if (inQuotes && text[i+1] === '"') { cur += '"'; i++; }
+                    else inQuotes = !inQuotes;
+                } else if (ch === ',' && !inQuotes) {
+                    cells.push(cur); cur = '';
+                } else if ((ch === '\n' || ch === '\r') && !inQuotes) {
+                    if (ch === '\r' && text[i+1] === '\n') i++;
+                    cells.push(cur); cur = '';
+                    rows.push(cells); cells = [];
+                } else {
+                    cur += ch;
+                }
+            }
+            if (cur || cells.length) { cells.push(cur); rows.push(cells); }
+            return rows.filter(r => r.some(c => c.trim() !== ''));
+        }
+
+        function renderGSheetTable(csvText) {
+            const content = document.getElementById('gsheet-content');
+            const rows = parseCSV(csvText);
+            if (!rows || rows.length === 0) {
+                content.innerHTML = `<div class="gsheet-error">Таблиця порожня</div>`;
+                return;
+            }
+
+            const headers = rows[0];
+            const dataRows = rows.slice(1);
+
+            // Спробуємо знайти заголовок таблиці в першому рядку якщо є
+            const titleEl = document.getElementById('gsheet-title');
+            if (headers.length > 0 && headers[0].trim()) {
+                titleEl.textContent = headers[0].trim() || 'Дані з таблиці';
+            }
+
+            let html = `<div class="gsheet-table-wrapper"><table class="gsheet-table"><thead><tr>`;
+            headers.forEach(h => { html += `<th>${escapeHTML(h)}</th>`; });
+            html += `</tr></thead><tbody>`;
+            dataRows.forEach(row => {
+                html += `<tr>`;
+                headers.forEach((_, i) => {
+                    html += `<td>${escapeHTML(row[i] || '')}</td>`;
+                });
+                html += `</tr>`;
+            });
+            html += `</tbody></table></div>`;
+            content.innerHTML = html;
+        }
+
+        function escapeHTML(str) {
+            return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        }
 
         // --- ЛОГІКА ДАНИХ ТА ВІДОБРАЖЕННЯ ---
         let currentData = [];
