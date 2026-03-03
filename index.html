@@ -491,7 +491,7 @@
         .gsheet-table-wrapper::-webkit-scrollbar { height: 4px; width: 4px; }
         .gsheet-table-wrapper::-webkit-scrollbar-thumb { background: #d2d2d7; border-radius: 10px; }
         .gsheet-table {
-            width: 100%; border-collapse: collapse; table-layout: auto;
+            width: 100%; border-collapse: collapse; table-layout: fixed;
         }
         .gsheet-table thead th {
             background: #f5f5f7; padding: 5px 6px; text-align: left;
@@ -714,12 +714,15 @@
             // Визначаємо індекс колонки "Продавець" та колонки-групи
             const sellerIdx = headers.findIndex(h => /продав|seller|прод\./i.test(h));
 
-            // Генеруємо colgroup для фіксованих ширин
+            // Генеруємо colgroup — фіксовані пропорції під мобільний
+            // Колонки: [Група, Продавець, Ліміт у мене, На одиничні позиції, На одиничні товари, Від чек]
+            // Ширини в %: 8, 18, 22, 22, 16, 14
+            const colWidths = [8, 18, 22, 22, 16, 14];
             const total = headers.length;
             let colgroup = '<colgroup>';
             headers.forEach((h, i) => {
-                if (i >= total - 2) colgroup += '<col style="min-width:90px">';
-                else colgroup += '<col>';
+                const w = colWidths[i] !== undefined ? colWidths[i] : Math.floor(60 / Math.max(total - 2, 1));
+                colgroup += `<col style="width:${w}%">`;
             });
             colgroup += '</colgroup>';
 
