@@ -45,7 +45,7 @@
             font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            padding: 6px;
+            padding: 10px;
             color: #1d1d1f;
             border-bottom: 1px solid #d2d2d7;
             position: relative;
@@ -53,7 +53,7 @@
 
         th { 
             text-align: center; 
-            padding: 6px; 
+            padding: 10px; 
             color: #86868b; 
             font-size: 10px; 
             font-weight: 600; 
@@ -62,7 +62,7 @@
         }
         
         td { 
-            padding: 6px 8px; 
+            padding: 12px 10px; 
             border-bottom: 1px solid #f5f5f7; 
             font-size: 13px; 
             white-space: nowrap; 
@@ -71,30 +71,42 @@
         }
         
         /* Ширина колонок: План менша, Факт і % трохи більші */
-        .val-plan {
+        .val-plan { 
+            width: 65px;
+            min-width: 65px;
         }
-        .val-fact {
+        .val-fact { 
+            width: 105px;
+            min-width: 105px;
         }
-        .val-pct, .val-pct-success, .val-pct-danger {
+        .val-pct, .val-pct-success, .val-pct-danger { 
+            width: 70px;
+            min-width: 70px;
         }
         
         /* Мобільна версія - зменшуємо ширину колонок */
         @media (max-width: 767px) {
-            .val-plan {
-                padding: 5px 4px;
+            .val-plan { 
+                width: 52px;
+                min-width: 52px;
+                padding: 8px 5px;
             }
-            .val-fact {
-                padding: 5px 4px;
+            .val-fact { 
+                width: 80px;
+                min-width: 80px;
+                padding: 8px 5px;
             }
-            .val-pct, .val-pct-success, .val-pct-danger {
-                padding: 5px 4px;
+            .val-pct, .val-pct-success, .val-pct-danger { 
+                width: 56px;
+                min-width: 56px;
+                padding: 8px 5px;
             }
             
             .name-cell, th:first-child { 
                 width: 90px;
                 min-width: 90px;
                 font-size: 11px;
-                padding: 5px 4px;
+                padding: 8px 5px;
             }
             
             td {
@@ -103,12 +115,12 @@
             
             th {
                 font-size: 9px;
-                padding: 5px 4px;
+                padding: 8px 5px;
             }
             
             .group-header {
                 font-size: 9px;
-                padding: 5px 4px;
+                padding: 8px 5px;
             }
         }
         
@@ -118,7 +130,8 @@
             left: 0; 
             background: white; 
             z-index: 10; 
-            
+            width: 110px;
+            min-width: 110px;
             box-shadow: 2px 0 5px rgba(0,0,0,0.05);
             font-weight: 600;
             font-size: 12px;
@@ -135,7 +148,7 @@
         .val-fact { font-weight: 600; background: transparent; color: #1d1d1f; text-align: center; }
         /* === ПЛАН badge — розтягується на всю ширину клітинки === */
         .plan-badge {
-            display: block; padding: 1px 5px; border-radius: 6px;
+            display: block; padding: 2px 7px; border-radius: 7px;
             font-size: 11px; font-weight: 500; white-space: nowrap; text-align: center;
         }
         .group-to    .plan-badge { background: rgba(52,199,89,0.09);   color: #3a9e5f; }
@@ -146,7 +159,7 @@
 
         /* === ФАКТ badge — яскравіший колір рядка === */
         .fact-badge {
-            display: block; padding: 2px 6px; border-radius: 7px;
+            display: block; padding: 3px 8px; border-radius: 8px;
             font-size: 12px; font-weight: 600; white-space: nowrap; text-align: center;
         }
         .group-to    .fact-badge { background: rgba(52,199,89,0.18);   color: #1a7f37; }
@@ -156,7 +169,7 @@
         .group-other .fact-badge { background: rgba(142,142,147,0.12); color: #3d3d3f; }
 
         /* === Роздільник між групами — тонка лінія === */
-        tr.group-border-top td { border-top: 1px solid #e0e0e5 !important; padding-top: 6px !important; }
+        tr.group-border-top td { border-top: 12px solid #f0f0f5 !important; padding-top: 8px !important; }
         .val-pct, .val-pct-success, .val-pct-danger {
             font-weight: 700;
             text-align: right;
@@ -164,8 +177,8 @@
         }
         .pct-badge {
             display: block;
-            padding: 2px 6px;
-            border-radius: 7px;
+            padding: 3px 8px;
+            border-radius: 8px;
             font-size: 12px;
             font-weight: 700;
             line-height: 1.4;
@@ -383,12 +396,10 @@
                 const cg = document.getElementById('tableColgroup');
                 cg.innerHTML = '';
                 const isMob = window.innerWidth < 768;
-                // % від ширини таблиці — автоматично заповнює екран
-                // name=вузька, план=вузька, факт=широка, %=середня
-                const wName = isMob ? '22%' : '18%';
-                const wPlan = isMob ? '16%' : '14%';
-                const wFact = isMob ? '36%' : '40%';
-                const wPct  = isMob ? '26%' : '28%';
+                const wName = isMob ? '90px' : '110px';
+                const wPlan = isMob ? '52px' : '65px';
+                const wFact = isMob ? '82px' : '108px';
+                const wPct  = isMob ? '56px' : '72px';
                 const mkCol = w => { const c = document.createElement('col'); c.style.width = w; return c; };
                 cg.appendChild(mkCol(wName));
                 const nGroups = Math.floor((headers.length - 1) / 3);
