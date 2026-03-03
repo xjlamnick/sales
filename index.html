@@ -623,7 +623,7 @@
                 <div class="gsheet-block-header">
                     <div class="gsheet-block-title">
                         <span>📋</span>
-                        <span id="gsheet-title">Умови продажу</span>
+                        <span id="gsheet-title">ПОСИЛЕННЯ</span>
                     </div>
                     <div style="display:flex;align-items:center;gap:8px">
                         <button class="gsheet-refresh-btn" onclick="loadGSheet()">↻ Оновити</button>
@@ -792,18 +792,19 @@
             html += `</tr></thead><tbody>`;
             rows.slice(1).forEach(row => {
                 const cls = rowClass(row[0]);
-                // Перевіряємо чи рядок є "заголовком секції" — тільки перша колонка заповнена
-                const nonEmpty = row.filter(c => c.trim() !== '');
-                const isSection = nonEmpty.length <= 1 && row[0].trim() !== '';
-                if (isSection) {
-                    html += `<tr class="${cls}"><td colspan="${headers.length}" style="font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:0.04em;padding:7px 8px;border-left:3px solid currentColor">${esc(row[0])}</td></tr>`;
+                // Перевіряємо чи є дані після 2-ї колонки
+                const hasExtraCols = row.slice(2).some(c => (c || '').trim() !== '');
+                html += `<tr class="${cls}">`;
+                if (!hasExtraCols && headers.length > 2) {
+                    // Перша колонка — назва групи, решта — colspan
+                    html += `<td>${esc(row[0])}</td>`;
+                    html += `<td colspan="${headers.length - 1}" style="white-space:normal;word-break:break-word">${esc(row[1] || '')}</td>`;
                 } else {
-                    html += `<tr class="${cls}">`;
                     headers.forEach((_, i) => {
                         html += `<td>${esc(row[i])}</td>`;
                     });
-                    html += `</tr>`;
                 }
+                html += `</tr>`;
             });
             html += `</tbody></table></div>`;
             el.innerHTML = html;
