@@ -715,11 +715,11 @@
             const sellerIdx = headers.findIndex(h => /продав|seller|прод\./i.test(h));
 
             // Генеруємо colgroup для фіксованих ширин
+            const total = headers.length;
             let colgroup = '<colgroup>';
             headers.forEach((h, i) => {
-                const isGroup = i === 0;
-                const isSeller = i === sellerIdx;
-                colgroup += '<col>';
+                if (i >= total - 2) colgroup += '<col style="min-width:90px">';
+                else colgroup += '<col>';
             });
             colgroup += '</colgroup>';
 
