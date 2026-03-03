@@ -426,13 +426,13 @@
                     
                     // Роздільник при зміні групи
                     const isGroupChange = prevGroupClass !== null && rowGroupClass !== prevGroupClass && !isTotal;
-                    const isBigSep = isGroupChange && ['group-to','group-serv','group-acc'].includes(prevGroupClass);
+                    const isBigSep = isGroupChange && ['group-to','group-serv','group-acc','group-traffic'].includes(prevGroupClass);
                     if (!isTotal) prevGroupClass = rowGroupClass;
                     
                     if (isTotal) {
                         tr.className = 'total-row';
                     } else {
-                        tr.className = rowGroupClass + (isBigSep ? ' group-border-big' : isGroupChange ? ' group-border-top' : '');
+                        tr.className = rowGroupClass + (isBigSep ? ' group-border-big' : isGroupChange ? '' : '');
                     }
 
                     // Перша колонка - ім'я
