@@ -28,7 +28,7 @@
             -webkit-overflow-scrolling: touch;
         }
 
-        table { width: 100%; border-collapse: collapse; table-layout: auto; }
+        table { width: 100%; border-collapse: collapse; table-layout: fixed; }
         
         /* Кольорові групи для РЯДКІВ */
         /* Лівий бордер для кольорових груп */
@@ -72,33 +72,33 @@
         
         /* Ширина колонок: План менша, Факт і % трохи більші */
         .val-plan { 
-            width: 80px;
-            min-width: 80px;
+            width: 85px;
+            min-width: 85px;
         }
         .val-fact { 
-            width: 95px;
-            min-width: 95px;
+            width: 85px;
+            min-width: 85px;
         }
         .val-pct, .val-pct-success, .val-pct-danger { 
-            width: 95px;
-            min-width: 95px;
+            width: 85px;
+            min-width: 85px;
         }
         
         /* Мобільна версія - зменшуємо ширину колонок */
         @media (max-width: 767px) {
             .val-plan { 
-                width: 60px;
-                min-width: 60px;
+                width: 68px;
+                min-width: 68px;
                 padding: 8px 5px;
             }
             .val-fact { 
-                width: 70px;
-                min-width: 70px;
+                width: 68px;
+                min-width: 68px;
                 padding: 8px 5px;
             }
             .val-pct, .val-pct-success, .val-pct-danger { 
-                width: 65px;
-                min-width: 65px;
+                width: 68px;
+                min-width: 68px;
                 padding: 8px 5px;
             }
             
@@ -144,12 +144,12 @@
         }
 
         /* РІЗНІ КОЛЬОРИ ДЛЯ ПЛАН, ФАКТ, % */
-        .val-plan { color: #86868b; font-size: 11px; background: transparent; }
-        .val-fact { font-weight: 600; background: transparent; color: #1d1d1f; }
-        /* === ПЛАН badge — колір рядка, напівпрозорий === */
+        .val-plan { color: #86868b; font-size: 11px; background: transparent; text-align: center; }
+        .val-fact { font-weight: 600; background: transparent; color: #1d1d1f; text-align: center; }
+        /* === ПЛАН badge — розтягується на всю ширину клітинки === */
         .plan-badge {
-            display: inline-block; padding: 2px 7px; border-radius: 7px;
-            font-size: 11px; font-weight: 500; white-space: nowrap;
+            display: block; padding: 2px 7px; border-radius: 7px;
+            font-size: 11px; font-weight: 500; white-space: nowrap; text-align: center;
         }
         .group-to    .plan-badge { background: rgba(52,199,89,0.09);   color: #3a9e5f; }
         .group-serv  .plan-badge { background: rgba(175,82,222,0.09);  color: #8e44ad; }
@@ -159,8 +159,8 @@
 
         /* === ФАКТ badge — яскравіший колір рядка === */
         .fact-badge {
-            display: inline-block; padding: 3px 8px; border-radius: 8px;
-            font-size: 12px; font-weight: 600; white-space: nowrap;
+            display: block; padding: 3px 8px; border-radius: 8px;
+            font-size: 12px; font-weight: 600; white-space: nowrap; text-align: center;
         }
         .group-to    .fact-badge { background: rgba(52,199,89,0.18);   color: #1a7f37; }
         .group-serv  .fact-badge { background: rgba(175,82,222,0.18);  color: #6d28d9; }
@@ -176,13 +176,14 @@
             background: transparent !important;
         }
         .pct-badge {
-            display: inline-block;
+            display: block;
             padding: 3px 8px;
             border-radius: 8px;
             font-size: 12px;
             font-weight: 700;
             line-height: 1.4;
             white-space: nowrap;
+            text-align: center;
         }
         .pct-badge-success { background: rgba(52,199,89,0.15); color: #1a7f37; }
         .pct-badge-danger  { background: rgba(255,59,48,0.12); color: #d93025; }
