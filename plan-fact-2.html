@@ -71,34 +71,22 @@
         }
         
         /* Ширина колонок: План менша, Факт і % трохи більші */
-        .val-plan { 
-            width: 65px;
-            min-width: 65px;
+        .val-plan {
         }
-        .val-fact { 
-            width: 105px;
-            min-width: 105px;
+        .val-fact {
         }
-        .val-pct, .val-pct-success, .val-pct-danger { 
-            width: 70px;
-            min-width: 70px;
+        .val-pct, .val-pct-success, .val-pct-danger {
         }
         
         /* Мобільна версія - зменшуємо ширину колонок */
         @media (max-width: 767px) {
-            .val-plan { 
-                width: 52px;
-                min-width: 52px;
+            .val-plan {
                 padding: 8px 5px;
             }
-            .val-fact { 
-                width: 80px;
-                min-width: 80px;
+            .val-fact {
                 padding: 8px 5px;
             }
-            .val-pct, .val-pct-success, .val-pct-danger { 
-                width: 56px;
-                min-width: 56px;
+            .val-pct, .val-pct-success, .val-pct-danger {
                 padding: 8px 5px;
             }
             
@@ -130,8 +118,7 @@
             left: 0; 
             background: white; 
             z-index: 10; 
-            width: 110px;
-            min-width: 110px;
+            
             box-shadow: 2px 0 5px rgba(0,0,0,0.05);
             font-weight: 600;
             font-size: 12px;
@@ -396,10 +383,12 @@
                 const cg = document.getElementById('tableColgroup');
                 cg.innerHTML = '';
                 const isMob = window.innerWidth < 768;
-                const wName = isMob ? '90px' : '110px';
-                const wPlan = isMob ? '52px' : '65px';
-                const wFact = isMob ? '82px' : '108px';
-                const wPct  = isMob ? '56px' : '72px';
+                // % від ширини таблиці — автоматично заповнює екран
+                // name=вузька, план=вузька, факт=широка, %=середня
+                const wName = isMob ? '22%' : '18%';
+                const wPlan = isMob ? '16%' : '14%';
+                const wFact = isMob ? '36%' : '40%';
+                const wPct  = isMob ? '26%' : '28%';
                 const mkCol = w => { const c = document.createElement('col'); c.style.width = w; return c; };
                 cg.appendChild(mkCol(wName));
                 const nGroups = Math.floor((headers.length - 1) / 3);
