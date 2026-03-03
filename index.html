@@ -486,27 +486,39 @@
         }
         .gsheet-refresh-btn:hover { color: var(--color-accent); border-color: var(--color-accent); }
         .gsheet-table-wrapper {
-            overflow-x: auto; overflow-y: auto; flex: 1 1 auto;
+            overflow-x: hidden; overflow-y: auto; flex: 1 1 auto;
             -webkit-overflow-scrolling: touch;
         }
         .gsheet-table-wrapper::-webkit-scrollbar { height: 4px; width: 4px; }
         .gsheet-table-wrapper::-webkit-scrollbar-thumb { background: #d2d2d7; border-radius: 10px; }
-        .gsheet-table { width: 100%; border-collapse: collapse; }
+        .gsheet-table {
+            width: 100%; border-collapse: collapse; table-layout: fixed;
+        }
         .gsheet-table thead th {
-            background: #f5f5f7; padding: 6px 10px; text-align: left;
+            background: #f5f5f7; padding: 5px 6px; text-align: left;
             font-size: 10px; font-weight: 700; text-transform: uppercase;
-            color: var(--color-text-secondary); letter-spacing: 0.04em;
-            white-space: nowrap; position: sticky; top: 0; z-index: 1;
+            color: var(--color-text-secondary); letter-spacing: 0.03em;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            position: sticky; top: 0; z-index: 1;
             border-bottom: 1px solid var(--color-border);
+        }
+        /* Колонка "Продавець" (2-га) — вужча з переносом */
+        .gsheet-table thead th:nth-child(2),
+        .gsheet-table tbody td:nth-child(2) {
+            width: 70px; min-width: 70px; max-width: 70px;
+            white-space: normal; word-break: break-word;
         }
         .gsheet-table tbody tr { border-bottom: 1px solid rgba(0,0,0,0.04); }
         .gsheet-table tbody tr:last-child { border-bottom: none; }
         .gsheet-table tbody td {
-            padding: 5px 10px; white-space: nowrap; vertical-align: middle;
-            font-size: 11.5px; line-height: 1.3; color: var(--color-text);
+            padding: 5px 6px; white-space: nowrap; overflow: hidden;
+            text-overflow: ellipsis; vertical-align: middle;
+            font-size: 11px; line-height: 1.3; color: var(--color-text);
         }
         .gsheet-table tbody td:first-child {
-            font-weight: 600; border-left: 3px solid transparent; padding-left: 8px;
+            font-weight: 600; border-left: 3px solid transparent; padding-left: 6px;
+            width: 55px; min-width: 55px; max-width: 55px;
+            white-space: normal; word-break: break-word;
         }
         .gsheet-row-acc { background: #fff7ed; }
         .gsheet-row-acc td:first-child { color: #c05800; border-left-color: #f97316; }
@@ -705,13 +717,34 @@
             const rows = parseCSV(csv);
             if (!rows.length) { el.innerHTML = `<div class="gsheet-error">Порожня таблиця</div>`; return; }
             const headers = rows[0];
-            let html = `<div class="gsheet-table-wrapper"><table class="gsheet-table"><thead><tr>`;
-            headers.forEach(h => { html += `<th>${esc(h)}</th>`; });
+
+            // Визначаємо індекс колонки "Продавець" та колонки-групи
+            const sellerIdx = headers.findIndex(h => /продав|seller|прод\./i.test(h));
+
+            // Генеруємо colgroup для фіксованих ширин
+            let colgroup = '<colgroup>';
+            headers.forEach((h, i) => {
+                const isGroup = i === 0;
+                const isSeller = i === sellerIdx;
+                if (isGroup) colgroup += '<col style="width:52px;min-width:52px">';
+                else if (isSeller) colgroup += '<col style="width:68px;min-width:68px">';
+                else colgroup += '<col>';
+            });
+            colgroup += '</colgroup>';
+
+            let html = `<div class="gsheet-table-wrapper"><table class="gsheet-table">${colgroup}<thead><tr>`;
+            headers.forEach((h, i) => {
+                const wrap = (i === 0 || i === sellerIdx) ? ' style="white-space:normal"' : '';
+                html += `<th${wrap}>${esc(h)}</th>`;
+            });
             html += `</tr></thead><tbody>`;
             rows.slice(1).forEach(row => {
                 const cls = rowClass(row[0]);
                 html += `<tr class="${cls}">`;
-                headers.forEach((_, i) => { html += `<td>${esc(row[i])}</td>`; });
+                headers.forEach((_, i) => {
+                    const wrap = (i === sellerIdx) ? ' style="white-space:normal;word-break:break-word"' : '';
+                    html += `<td${wrap}>${esc(row[i])}</td>`;
+                });
                 html += `</tr>`;
             });
             html += `</tbody></table></div>`;
