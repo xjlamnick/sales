@@ -159,27 +159,23 @@
             background: rgba(0, 113, 227, 0.08);
             color: #1d1d1f;
         }
-        .val-pct { 
-            font-weight: 700; 
-            text-align: right;
-            background: rgba(52, 199, 89, 0.05);
-            color: #34c759;
-        }
-        
-        /* Умовне форматування для останнього % стовпця */
-        .val-pct-success {
+        .val-pct, .val-pct-success, .val-pct-danger {
             font-weight: 700;
             text-align: right;
-            background: rgba(52, 199, 89, 0.15) !important;
-            color: #34c759 !important;
+            background: transparent !important;
         }
-        
-        .val-pct-danger {
+        .pct-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 8px;
+            font-size: 12px;
             font-weight: 700;
-            text-align: right;
-            background: rgba(255, 59, 48, 0.04) !important;
-            color: #d93025 !important;
+            line-height: 1.4;
+            white-space: nowrap;
         }
+        .pct-badge-success { background: rgba(52,199,89,0.15); color: #1a7f37; }
+        .pct-badge-danger  { background: rgba(255,59,48,0.12); color: #d93025; }
+        .pct-badge-neutral { background: rgba(52,199,89,0.08); color: #34c759; }
         
         /* Для рядка "Разом" перевизначаємо кольори */
         .total-row { background: #1d1d1f !important; }
@@ -187,9 +183,9 @@
         .total-row .name-cell { background: #1d1d1f !important; color: white; }
         .total-row .val-plan { color: #a1a1a6; background: rgba(255,255,255,0.05); }
         .total-row .val-fact { color: white; background: rgba(255,255,255,0.1); }
-        .total-row .val-pct { color: #34c759; background: rgba(52, 199, 89, 0.2); }
-        .total-row .val-pct-success { color: #34c759 !important; background: rgba(52, 199, 89, 0.2); }
-        .total-row .val-pct-danger { color: #d93025 !important; background: rgba(217, 48, 37, 0.1); }
+        .total-row .pct-badge-success { background: rgba(52,199,89,0.3); color: #34c759; }
+        .total-row .pct-badge-danger  { background: rgba(217,48,37,0.25); color: #ff6b6b; }
+        .total-row .pct-badge-neutral { background: rgba(52,199,89,0.2); color: #34c759; }
 
         .loading { padding: 40px; text-align: center; color: #86868b; }
     </style>
@@ -427,19 +423,17 @@
                         // %
                         const pctCell = document.createElement('td');
                         const pctValue = cleanVal(row[startIdx + 2] || 0);
+                        const pctText = formatDisplay(row[startIdx + 2] || 0, true);
                         
-                        // Для останньої групи застосовуємо умовне форматування
                         if (isLastGroup) {
-                            if (pctValue >= 100) {
-                                pctCell.className = 'val-pct-success ' + groupClass;
-                            } else {
-                                pctCell.className = 'val-pct-danger ' + groupClass;
-                            }
+                            const badgeCls = pctValue >= 100 ? 'pct-badge-success' : 'pct-badge-danger';
+                            const tdCls = pctValue >= 100 ? 'val-pct-success' : 'val-pct-danger';
+                            pctCell.className = tdCls + ' ' + groupClass;
+                            pctCell.innerHTML = '<span class="pct-badge ' + badgeCls + '">' + pctText + '</span>';
                         } else {
                             pctCell.className = 'val-pct ' + groupClass;
+                            pctCell.innerHTML = '<span class="pct-badge pct-badge-neutral">' + pctText + '</span>';
                         }
-                        
-                        pctCell.textContent = formatDisplay(row[startIdx + 2] || 0, true);
                         tr.appendChild(pctCell);
                     }
 
