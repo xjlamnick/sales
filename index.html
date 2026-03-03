@@ -738,11 +738,18 @@
             html += `</tr></thead><tbody>`;
             rows.slice(1).forEach(row => {
                 const cls = rowClass(row[0]);
-                html += `<tr class="${cls}">`;
-                headers.forEach((_, i) => {
-                    html += `<td>${esc(row[i])}</td>`;
-                });
-                html += `</tr>`;
+                // Перевіряємо чи рядок є "заголовком секції" — тільки перша колонка заповнена
+                const nonEmpty = row.filter(c => c.trim() !== '');
+                const isSection = nonEmpty.length <= 1 && row[0].trim() !== '';
+                if (isSection) {
+                    html += `<tr class="${cls}"><td colspan="${headers.length}" style="font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:0.04em;padding:7px 8px;border-left:3px solid currentColor">${esc(row[0])}</td></tr>`;
+                } else {
+                    html += `<tr class="${cls}">`;
+                    headers.forEach((_, i) => {
+                        html += `<td>${esc(row[i])}</td>`;
+                    });
+                    html += `</tr>`;
+                }
             });
             html += `</tbody></table></div>`;
             el.innerHTML = html;
