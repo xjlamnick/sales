@@ -522,8 +522,8 @@
         });
 
         // Ширини колонок
-        const lastW = 18;
-        const firstW = 16;
+        const lastW = 14;
+        const firstW = 14;
         const restW = Math.floor((100 - firstW - lastW * 3) / Math.max(numCols - 4, 1));
         let colgroup = '<colgroup>';
         headers.forEach((_, i) => {
@@ -536,8 +536,9 @@
 
         let html = `<div class="gsheet-table-wrapper"><table class="gsheet-table">${colgroup}<thead><tr>`;
         headers.forEach((h, i) => {
-            const isLast4 = i >= headers.length - 4;
-            const fs = isLast4 ? 'font-size:7px;' : '';
+            const isFirst = i === 0;
+            const isLast3 = i >= headers.length - 3;
+            const fs = (isFirst || isLast3) ? 'font-size:7px;' : '';
             html += `<th style="white-space:normal;word-break:break-word;vertical-align:bottom;text-align:center;${fs}">${esc(h)}</th>`;
         });
         html += `</tr></thead><tbody>`;
