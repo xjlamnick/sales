@@ -522,7 +522,7 @@
         });
 
         // Ширини колонок
-        const firstW = 22;
+        const firstW = 16;
         const restW = Math.floor((100 - firstW) / Math.max(numCols - 1, 1));
         let colgroup = '<colgroup>';
         headers.forEach((_, i) => {
@@ -532,8 +532,7 @@
 
         let html = `<div class="gsheet-table-wrapper"><table class="gsheet-table">${colgroup}<thead><tr>`;
         headers.forEach((h, i) => {
-            const wrap = i === 0 ? ' style="white-space:normal"' : '';
-            html += `<th${wrap}>${esc(h)}</th>`;
+            html += `<th style="white-space:normal;word-break:break-word;vertical-align:bottom;text-align:center">${esc(h)}</th>`;
         });
         html += `</tr></thead><tbody>`;
 
