@@ -31,7 +31,6 @@
         }
         .error-msg { color: #ff3b30; font-size: 13px; margin-top: 10px; display: none; }
 
-        /* --- ВАШІ ОРИГІНАЛЬНІ СТИЛІ --- */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
             --color-bg: #fbfbfd;
@@ -41,10 +40,10 @@
             --color-accent: #0071e3;
             --color-border: #d2d2d7;
             --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
-            --group-sales: #0071e3;    
-            --group-eff: #af52de;      
-            --group-acc: #ff9500;      
-            --group-services: #34c759; 
+            --group-sales: #0071e3;
+            --group-eff: #af52de;
+            --group-acc: #ff9500;
+            --group-services: #34c759;
         }
 
         body {
@@ -55,395 +54,128 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        /* Приховано до авторизації */
         #main-content { display: none; }
 
         nav {
             background: rgba(255, 255, 255, 0.8);
             backdrop-filter: blur(20px);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
+            position: sticky; top: 0; z-index: 1000;
             border-bottom: 1px solid var(--color-border);
-            height: 48px;
-            display: flex;
-            align-items: center;
+            height: 48px; display: flex; align-items: center;
         }
-
         .nav-content {
-            max-width: 1100px;
-            margin: 0 auto;
-            width: 100%;
-            padding: 0 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            max-width: 1100px; margin: 0 auto; width: 100%;
+            padding: 0 20px; display: flex; justify-content: space-between; align-items: center;
         }
-
         .nav-logo { font-weight: 600; font-size: 17px; cursor: pointer; }
         .logout-btn { font-size: 12px; color: var(--color-text-secondary); cursor: pointer; border: none; background: none; }
 
         .container { max-width: 1100px; margin: 0 auto; padding: 20px 16px; }
-        
-        @media (min-width: 1200px) {
-            .container {
-                max-width: 1280px;
-                padding: 40px 30px;
-            }
-        }
+        @media (min-width: 1200px) { .container { max-width: 1280px; padding: 40px 30px; } }
         header { margin-bottom: 16px; }
         header h1 { font-size: 28px; font-weight: 600; letter-spacing: -0.02em; }
         header p { color: var(--color-text-secondary); font-size: 15px; }
 
-        .cards-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 20px;
-        }
+        .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+        @media (min-width: 1400px) { .cards-grid { grid-template-columns: repeat(3, 1fr); } }
+        @media (min-width: 1000px) and (max-width: 1399px) { .cards-grid { grid-template-columns: repeat(2, 1fr); } }
 
-        @media (min-width: 1400px) {
-            .cards-grid {
-                grid-template-columns: repeat(3, 1fr);
-            }
-        }
-
-        @media (min-width: 1000px) and (max-width: 1399px) {
-            .cards-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        /* КАРУСЕЛЬ БАНЕРІВ */
-        .carousel-container {
-            margin-bottom: 30px;
-            overflow: hidden;
-            position: relative;
-        }
-
+        /* КАРУСЕЛЬ */
+        .carousel-container { margin-bottom: 30px; overflow: hidden; position: relative; }
         .carousel-wrapper {
-            display: flex;
-            gap: 15px;
-            overflow-x: auto;
-            scroll-snap-type: x mandatory;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: none;
-            padding: 10px 0;
-            scroll-padding: 0 calc(50% - 140px);
+            display: flex; gap: 15px; overflow-x: auto;
+            scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch;
+            scrollbar-width: none; padding: 10px 0;
         }
-        
-        /* Центрування карток на мобільних */
         @media (max-width: 900px) {
-            .carousel-wrapper {
-                padding: 10px calc(50% - 140px);
-                scroll-padding: 0 calc(50% - 140px);
-            }
-            
-            .banner-card {
-                scroll-snap-align: center;
-            }
+            .carousel-wrapper { padding: 10px calc(50% - 140px); scroll-padding: 0 calc(50% - 140px); }
+            .banner-card { scroll-snap-align: center; }
         }
-
         @media (min-width: 1200px) {
-            .carousel-wrapper {
-                flex-wrap: wrap;
-                justify-content: flex-start;
-                overflow-x: visible;
-                gap: 15px;
-            }
-            
-            .banner-card {
-                flex: 1 1 calc(20% - 12px);
-                min-width: 220px;
-                max-width: 280px;
-            }
+            .carousel-wrapper { flex-wrap: wrap; justify-content: flex-start; overflow-x: visible; gap: 15px; }
+            .banner-card { flex: 1 1 calc(20% - 12px); min-width: 220px; max-width: 280px; }
         }
-
         @media (min-width: 900px) and (max-width: 1199px) {
-            .carousel-wrapper {
-                flex-wrap: wrap;
-                justify-content: flex-start;
-                overflow-x: visible;
-            }
-            
-            .banner-card {
-                flex: 0 0 calc(50% - 8px);
-                max-width: 350px;
-            }
+            .carousel-wrapper { flex-wrap: wrap; justify-content: flex-start; overflow-x: visible; }
+            .banner-card { flex: 0 0 calc(50% - 8px); max-width: 350px; }
         }
-
-        .carousel-wrapper::-webkit-scrollbar {
-            height: 8px;
-        }
-        
-        .carousel-wrapper::-webkit-scrollbar-track {
-            background: #f5f5f7;
-            border-radius: 10px;
-            margin: 0 20px;
-        }
-        
-        .carousel-wrapper::-webkit-scrollbar-thumb {
-            background: #d2d2d7;
-            border-radius: 10px;
-        }
-        
-        .carousel-wrapper::-webkit-scrollbar-thumb:hover {
-            background: #a1a1a6;
-        }
-        
-        @media (max-width: 900px) {
-            .carousel-wrapper::-webkit-scrollbar {
-                display: none;
-            }
-        }
+        .carousel-wrapper::-webkit-scrollbar { height: 8px; }
+        .carousel-wrapper::-webkit-scrollbar-track { background: #f5f5f7; border-radius: 10px; margin: 0 20px; }
+        .carousel-wrapper::-webkit-scrollbar-thumb { background: #d2d2d7; border-radius: 10px; }
+        .carousel-wrapper::-webkit-scrollbar-thumb:hover { background: #a1a1a6; }
+        @media (max-width: 900px) { .carousel-wrapper::-webkit-scrollbar { display: none; } }
 
         .banner-card {
-            flex: 0 0 280px;
-            height: 300px;
-            border-radius: 22px;
-            padding: 25px;
-            border: 1.5px solid;
-            cursor: pointer;
+            flex: 0 0 280px; height: 300px; border-radius: 22px; padding: 25px;
+            border: 1.5px solid; cursor: pointer;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            text-decoration: none;
-            color: inherit;
-            scroll-snap-align: start;
-            scroll-snap-stop: always;
-            position: relative;
-            overflow: hidden;
+            display: flex; flex-direction: column; justify-content: space-between;
+            text-decoration: none; color: inherit;
+            scroll-snap-align: start; scroll-snap-stop: always;
+            position: relative; overflow: hidden;
         }
-        
-        @media (min-width: 1200px) {
-            .banner-card {
-                padding: 20px;
-                height: 280px;
-            }
-        }
+        @media (min-width: 1200px) { .banner-card { padding: 20px; height: 280px; } }
+        .banner-card:hover { transform: translateY(-5px); box-shadow: 0 12px 40px rgba(0,0,0,0.12); }
+        .banner-special   { border-color: var(--color-accent); background: linear-gradient(135deg, #f0f7ff 0%, #e3f2ff 100%); }
+        .banner-chart     { border-color: #ff9500; background: linear-gradient(135deg, #fffcf5 0%, #fff4e6 100%); }
+        .banner-plan-fact { border-color: #34c759; background: linear-gradient(135deg, #f0fff4 0%, #e6ffe6 100%); }
+        .banner-plan-fact-2 { border-color: #af52de; background: linear-gradient(135deg, #f9f0ff 0%, #f3e6ff 100%); }
+        .banner-documents { border-color: #007aff; background: linear-gradient(135deg, #e6f2ff 0%, #d9ebff 100%); }
+        .banner-icon { width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; margin-bottom: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        .banner-content h2 { font-size: 22px; font-weight: 600; margin-bottom: 8px; line-height: 1.2; }
+        .banner-content p { font-size: 14px; color: var(--color-text-secondary); line-height: 1.4; }
+        .banner-footer { margin-top: auto; padding-top: 15px; border-top: 1px solid rgba(0,0,0,0.05); }
+        .banner-cta { font-size: 15px; font-weight: 600; color: var(--color-accent); }
 
-        .banner-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            opacity: 0;
-            transition: opacity 0.3s;
-            pointer-events: none;
-        }
-
-        .banner-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 40px rgba(0,0,0,0.12);
-        }
-
-        .banner-card:hover::before {
-            opacity: 0.05;
-        }
-
-        .banner-special { 
-            border-color: var(--color-accent); 
-            background: linear-gradient(135deg, #f0f7ff 0%, #e3f2ff 100%);
-        }
-        
-        .banner-chart { 
-            border-color: #ff9500; 
-            background: linear-gradient(135deg, #fffcf5 0%, #fff4e6 100%);
-        }
-        
-        .banner-plan-fact { 
-            border-color: #34c759; 
-            background: linear-gradient(135deg, #f0fff4 0%, #e6ffe6 100%);
-        }
-        
-        .banner-plan-fact-2 { 
-            border-color: #af52de; 
-            background: linear-gradient(135deg, #f9f0ff 0%, #f3e6ff 100%);
-        }
-        
-        .banner-documents { 
-            border-color: #007aff; 
-            background: linear-gradient(135deg, #e6f2ff 0%, #d9ebff 100%);
-        }
-
-        .banner-icon {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 28px;
-            margin-bottom: 15px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-        }
-
-        .banner-content h2 {
-            font-size: 22px;
-            font-weight: 600;
-            margin-bottom: 8px;
-            line-height: 1.2;
-        }
-
-        .banner-content p {
-            font-size: 14px;
-            color: var(--color-text-secondary);
-            line-height: 1.4;
-        }
-
-        .banner-footer {
-            margin-top: auto;
-            padding-top: 15px;
-            border-top: 1px solid rgba(0,0,0,0.05);
-        }
-
-        .banner-cta {
-            font-size: 15px;
-            font-weight: 600;
-            color: var(--color-accent);
-        }
-
-        .section-title {
-            font-size: 24px;
-            font-weight: 600;
-            margin-bottom: 20px;
-            color: var(--color-text);
-        }
+        .section-title { font-size: 24px; font-weight: 600; margin-bottom: 20px; color: var(--color-text); }
 
         @media (max-width: 600px) {
-            .banner-card {
-                flex: 0 0 260px;
-                height: 280px;
-                padding: 20px;
-            }
-
-            .banner-icon {
-                width: 55px;
-                height: 55px;
-                font-size: 26px;
-            }
-
-            .banner-content h2 {
-                font-size: 20px;
-            }
-
-            .banner-content p {
-                font-size: 13px;
-            }
+            .banner-card { flex: 0 0 260px; height: 280px; padding: 20px; }
+            .banner-icon { width: 55px; height: 55px; font-size: 26px; }
+            .banner-content h2 { font-size: 20px; }
+            .banner-content p { font-size: 13px; }
         }
 
         .card {
-            background: var(--color-card-bg);
-            border-radius: 22px;
-            padding: 24px;
-            border: 1px solid var(--color-border);
-            cursor: pointer;
+            background: var(--color-card-bg); border-radius: 22px; padding: 24px;
+            border: 1px solid var(--color-border); cursor: pointer;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            display: flex;
-            flex-direction: column;
-            text-decoration: none;
-            color: inherit;
-            max-width: 450px;
+            display: flex; flex-direction: column; text-decoration: none; color: inherit; max-width: 450px;
         }
-
-        @media (min-width: 1400px) {
-            .card {
-                max-width: none;
-            }
-        }
-
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-md);
-            border-color: transparent;
-        }
-        
-        .special-card { border: 1.5px solid var(--color-accent); background: #f0f7ff; }
-        .chart-card { border: 1.5px solid #ff9500; background: #fffcf5; }
-        .plan-fact-card { border: 1.5px solid #34c759; background: #f0fff4; }
-        .plan-fact-2-card { border: 1.5px solid #af52de; background: #f9f0ff; }
+        @media (min-width: 1400px) { .card { max-width: none; } }
+        .card:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); border-color: transparent; }
 
         .card-header { display: flex; align-items: center; margin-bottom: 20px; }
-        
-        .avatar {
-            width: 56px; height: 56px; border-radius: 50%; margin-right: 16px;
-            display: flex; align-items: center; justify-content: center;
-            color: white; font-weight: 600; font-size: 20px;
-            flex-shrink: 0; 
-        }
-
+        .avatar { width: 56px; height: 56px; border-radius: 50%; margin-right: 16px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 20px; flex-shrink: 0; }
         .card-title h2 { font-size: 18px; font-weight: 600; }
         .card-title p { font-size: 13px; color: var(--color-text-secondary); }
-
         .main-metric { margin-bottom: 20px; }
         .main-metric-label { font-size: 11px; text-transform: uppercase; font-weight: 600; color: var(--color-text-secondary); }
         .main-metric-value { font-size: 30px; font-weight: 600; }
-
-        .secondary-metrics {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
-            padding-top: 16px; border-top: 1px solid var(--color-border);
-        }
-
+        .secondary-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding-top: 16px; border-top: 1px solid var(--color-border); }
         .metric-mini-label { font-size: 10px; color: var(--color-text-secondary); text-transform: uppercase; }
         .metric-mini-value { font-size: 15px; font-weight: 600; }
 
-        .detail-page {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--color-bg); z-index: 2000; overflow-y: auto; padding: 40px 20px;
-        }
+        .detail-page { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--color-bg); z-index: 2000; overflow-y: auto; padding: 40px 20px; }
         .detail-page.active { display: block; }
         .detail-container { max-width: 900px; margin: 0 auto; }
-        
-        .metric-group {
-            margin-bottom: 20px;
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 10px;
-        }
-        .group-title {
-            grid-column: 1 / -1;
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--color-text-secondary);
-            margin-bottom: 4px;
-            padding-left: 5px;
-            text-transform: uppercase;
-        }
+        .metric-group { margin-bottom: 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+        .group-title { grid-column: 1 / -1; font-size: 13px; font-weight: 600; color: var(--color-text-secondary); margin-bottom: 4px; padding-left: 5px; text-transform: uppercase; }
+        .detail-metric-card { background: #fff; padding: 14px 16px; border-radius: 14px; border-left: 4px solid var(--color-border); }
 
-        .detail-metric-card {
-            background: #fff; padding: 14px 16px; border-radius: 14px;
-            border-left: 4px solid var(--color-border);
-        }
-
-        /* 2 колонки на мобільному */
         @media (max-width: 600px) {
-            .metric-group {
-                grid-template-columns: 1fr 1fr;
-                gap: 8px;
-                margin-bottom: 14px;
-            }
-            .detail-metric-card {
-                padding: 10px 12px;
-                border-radius: 12px;
-            }
-            .detail-metric-card div:first-child {
-                font-size: 10px !important;
-            }
-            .detail-metric-card div:last-child {
-                font-size: 18px !important;
-            }
-            .detail-metric-card div:last-child span {
-                font-size: 12px !important;
-            }
+            .metric-group { grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+            .detail-metric-card { padding: 10px 12px; border-radius: 12px; }
+            .detail-metric-card div:first-child { font-size: 10px !important; }
+            .detail-metric-card div:last-child { font-size: 18px !important; }
+            .detail-metric-card div:last-child span { font-size: 12px !important; }
             .group-title { font-size: 12px; margin-bottom: 2px; }
             #detail-page { padding: 20px 14px; }
         }
-        
+
         .group-sales .detail-metric-card { border-left-color: var(--group-sales); }
-        .group-eff .detail-metric-card { border-left-color: var(--group-eff); }
-        .group-acc .detail-metric-card { border-left-color: var(--group-acc); }
+        .group-eff   .detail-metric-card { border-left-color: var(--group-eff); }
+        .group-acc   .detail-metric-card { border-left-color: var(--group-acc); }
         .group-services .detail-metric-card { border-left-color: var(--group-services); }
 
         @media (max-width: 600px) {
@@ -451,146 +183,51 @@
             .avatar { width: 50px; height: 50px; font-size: 18px; }
         }
 
-        /* --- КОМПАКТНА ТАБЛИЦЯ З GOOGLE SHEETS --- */
+        /* --- GSHEET БЛОК (Посилення + КМОТ) --- */
         .gsheet-block {
-            background: #fff;
-            border-radius: 18px;
-            border: 1px solid var(--color-border);
-            box-shadow: var(--shadow-md);
-            margin-bottom: 24px;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
+            background: #fff; border-radius: 18px; border: 1px solid var(--color-border);
+            box-shadow: var(--shadow-md); margin-bottom: 24px; overflow: hidden; display: flex; flex-direction: column;
         }
-        /* Згорнутий стан */
-        .gsheet-block.collapsed .gsheet-body {
-            display: none;
-        }
-        .gsheet-body {
-            /* 48px nav + ~50px page header + 44px gsheet header + 24px margin */
-            max-height: calc(100dvh - 48px - 50px - 44px - 24px);
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
-        }
+        .gsheet-block.collapsed .gsheet-body { display: none; }
+        .gsheet-body { max-height: calc(100dvh - 48px - 50px - 44px - 24px); overflow-y: auto; -webkit-overflow-scrolling: touch; }
         .gsheet-body::-webkit-scrollbar { width: 3px; }
         .gsheet-body::-webkit-scrollbar-thumb { background: #d2d2d7; border-radius: 10px; }
-        .gsheet-block.collapsed {
-            border-radius: 18px;
-        }
-        .gsheet-expand-btn {
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 11px;
-            font-weight: 600;
-            color: var(--color-accent);
-            padding: 0;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            font-family: inherit;
-            transition: opacity 0.2s;
-        }
+        .gsheet-block.collapsed { border-radius: 18px; }
+        .gsheet-expand-btn { background: none; border: none; cursor: pointer; font-size: 11px; font-weight: 600; color: var(--color-accent); padding: 0; display: flex; align-items: center; gap: 4px; font-family: inherit; transition: opacity 0.2s; }
         .gsheet-expand-btn:hover { opacity: 0.7; }
-        .gsheet-expand-arrow {
-            display: inline-block;
-            transition: transform 0.25s ease;
-            font-style: normal;
-        }
-        .gsheet-block:not(.collapsed) .gsheet-expand-arrow {
-            transform: rotate(180deg);
-        }
-        .gsheet-block-header {
-            flex-shrink: 0;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 9px 14px;
-            border-bottom: 1px solid var(--color-border);
-            background: #f5f5f7;
-            border-radius: 18px 18px 0 0;
-        }
-        .gsheet-block-title {
-            display: flex; align-items: center; gap: 7px;
-            font-size: 13px; font-weight: 600; color: var(--color-text);
-        }
-        .gsheet-refresh-btn {
-            background: none; border: 1px solid var(--color-border);
-            border-radius: 8px; padding: 4px 9px; font-size: 11px;
-            font-weight: 500; color: var(--color-text-secondary);
-            cursor: pointer; transition: all 0.2s;
-            display: flex; align-items: center; gap: 4px; font-family: inherit;
-        }
+        .gsheet-expand-arrow { display: inline-block; transition: transform 0.25s ease; font-style: normal; }
+        .gsheet-block:not(.collapsed) .gsheet-expand-arrow { transform: rotate(180deg); }
+        .gsheet-block-header { flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 9px 14px; border-bottom: 1px solid var(--color-border); background: #f5f5f7; border-radius: 18px 18px 0 0; }
+        .gsheet-block-title { display: flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 600; color: var(--color-text); }
+        .gsheet-refresh-btn { background: none; border: 1px solid var(--color-border); border-radius: 8px; padding: 4px 9px; font-size: 11px; font-weight: 500; color: var(--color-text-secondary); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 4px; font-family: inherit; }
         .gsheet-refresh-btn:hover { color: var(--color-accent); border-color: var(--color-accent); }
-        .gsheet-table-wrapper {
-            overflow-x: hidden;
-        }
+        .gsheet-table-wrapper { overflow-x: hidden; }
         .gsheet-table-wrapper::-webkit-scrollbar { height: 4px; width: 4px; }
         .gsheet-table-wrapper::-webkit-scrollbar-thumb { background: #d2d2d7; border-radius: 10px; }
-        .gsheet-table {
-            width: 100%; border-collapse: collapse; table-layout: fixed;
-        }
-        .gsheet-table thead th {
-            background: #f5f5f7; padding: 5px 6px; text-align: left;
-            font-size: 9px; font-weight: 700; text-transform: uppercase;
-            color: var(--color-text-secondary); letter-spacing: 0.03em;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-            position: sticky; top: 0; z-index: 1;
-            border-bottom: 1px solid var(--color-border);
-        }
-
+        .gsheet-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        .gsheet-table thead th { background: #f5f5f7; padding: 5px 6px; text-align: left; font-size: 9px; font-weight: 700; text-transform: uppercase; color: var(--color-text-secondary); letter-spacing: 0.03em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; position: sticky; top: 0; z-index: 1; border-bottom: 1px solid var(--color-border); }
         .gsheet-table tbody tr { border-bottom: 1px solid rgba(0,0,0,0.04); }
         .gsheet-table tbody tr:last-child { border-bottom: none; }
-        .gsheet-table tbody td {
-            padding: 4px 5px; white-space: normal; word-break: break-word;
-            vertical-align: top; font-size: 10px; line-height: 1.25; color: var(--color-text);
-        }
-        .gsheet-table tbody td:first-child {
-            font-weight: 600; border-left: 3px solid transparent; padding-left: 6px;
-            width: 55px; min-width: 55px; max-width: 55px;
-            white-space: normal; word-break: break-word;
-        }
-        .gsheet-row-acc { background: #fff7ed; }
-        .gsheet-row-acc td:first-child { color: #c05800; border-left-color: #f97316; }
-        .gsheet-row-acc:hover { background: #ffedd5; }
-        .gsheet-row-av { background: #eff6ff; }
-        .gsheet-row-av td:first-child { color: #1d4ed8; border-left-color: #3b82f6; }
-        .gsheet-row-av:hover { background: #dbeafe; }
-        .gsheet-row-dig { background: #fefce8; }
-        .gsheet-row-dig td:first-child { color: #854d0e; border-left-color: #eab308; }
-        .gsheet-row-dig:hover { background: #fef9c3; }
-        .gsheet-row-it { background: #f0fdf4; }
-        .gsheet-row-it td:first-child { color: #166534; border-left-color: #22c55e; }
-        .gsheet-row-it:hover { background: #dcfce7; }
-        .gsheet-row-kbt { background: #fdf4ff; }
-        .gsheet-row-kbt td:first-child { color: #7c3aed; border-left-color: #a855f7; }
-        .gsheet-row-kbt:hover { background: #f3e8ff; }
-        .gsheet-row-mbt { background: #f0fdfa; }
-        .gsheet-row-mbt td:first-child { color: #0f766e; border-left-color: #14b8a6; }
-        .gsheet-row-mbt:hover { background: #ccfbf1; }
-        .gsheet-row-credit { background: #fff1f2; }
-        .gsheet-row-credit td:first-child { color: #be123c; border-left-color: #f43f5e; }
-        .gsheet-row-credit:hover { background: #ffe4e6; }
-        .gsheet-row-discount { background: #fdf2f8; }
-        .gsheet-row-discount td:first-child { color: #9d174d; border-left-color: #ec4899; }
-        .gsheet-row-discount:hover { background: #fce7f3; }
-        .gsheet-row-limit { background: #f8fafc; }
-        .gsheet-row-limit td:first-child { color: #475569; border-left-color: #94a3b8; }
-        .gsheet-row-limit:hover { background: #f1f5f9; }
-        .gsheet-row-other { background: #fff; }
-        .gsheet-row-other td:first-child { border-left-color: #d2d2d7; }
-        .gsheet-row-other:hover { background: #f9f9fb; }
-        .gsheet-loading {
-            padding: 20px; text-align: center; color: var(--color-text-secondary);
-            font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 8px;
-        }
-        .gsheet-loading-spinner {
-            width: 16px; height: 16px; border: 2px solid #d2d2d7;
-            border-top-color: var(--color-accent); border-radius: 50%;
-            animation: gsheet-spin 0.7s linear infinite;
-        }
+        .gsheet-table tbody td { padding: 4px 5px; white-space: normal; word-break: break-word; vertical-align: top; font-size: 10px; line-height: 1.25; color: var(--color-text); }
+        .gsheet-table tbody td:first-child { font-weight: 600; border-left: 3px solid transparent; padding-left: 6px; width: 55px; min-width: 55px; max-width: 55px; white-space: normal; word-break: break-word; }
+        .gsheet-row-acc { background: #fff7ed; } .gsheet-row-acc td:first-child { color: #c05800; border-left-color: #f97316; } .gsheet-row-acc:hover { background: #ffedd5; }
+        .gsheet-row-av  { background: #eff6ff; } .gsheet-row-av  td:first-child { color: #1d4ed8; border-left-color: #3b82f6; } .gsheet-row-av:hover  { background: #dbeafe; }
+        .gsheet-row-dig { background: #fefce8; } .gsheet-row-dig td:first-child { color: #854d0e; border-left-color: #eab308; } .gsheet-row-dig:hover { background: #fef9c3; }
+        .gsheet-row-it  { background: #f0fdf4; } .gsheet-row-it  td:first-child { color: #166534; border-left-color: #22c55e; } .gsheet-row-it:hover  { background: #dcfce7; }
+        .gsheet-row-kbt { background: #fdf4ff; } .gsheet-row-kbt td:first-child { color: #7c3aed; border-left-color: #a855f7; } .gsheet-row-kbt:hover { background: #f3e8ff; }
+        .gsheet-row-mbt { background: #f0fdfa; } .gsheet-row-mbt td:first-child { color: #0f766e; border-left-color: #14b8a6; } .gsheet-row-mbt:hover { background: #ccfbf1; }
+        .gsheet-row-credit   { background: #fff1f2; } .gsheet-row-credit   td:first-child { color: #be123c; border-left-color: #f43f5e; } .gsheet-row-credit:hover   { background: #ffe4e6; }
+        .gsheet-row-discount { background: #fdf2f8; } .gsheet-row-discount td:first-child { color: #9d174d; border-left-color: #ec4899; } .gsheet-row-discount:hover { background: #fce7f3; }
+        .gsheet-row-limit    { background: #f8fafc; } .gsheet-row-limit    td:first-child { color: #475569; border-left-color: #94a3b8; } .gsheet-row-limit:hover    { background: #f1f5f9; }
+        .gsheet-row-other    { background: #fff;    } .gsheet-row-other    td:first-child { border-left-color: #d2d2d7; }              .gsheet-row-other:hover    { background: #f9f9fb; }
+        .gsheet-loading { padding: 20px; text-align: center; color: var(--color-text-secondary); font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .gsheet-loading-spinner { width: 16px; height: 16px; border: 2px solid #d2d2d7; border-top-color: var(--color-accent); border-radius: 50%; animation: gsheet-spin 0.7s linear infinite; }
         @keyframes gsheet-spin { to { transform: rotate(360deg); } }
         .gsheet-error { padding: 16px; text-align: center; color: #ff3b30; font-size: 12px; }
+
+        /* cell-badge для КМОТ */
+        .cell-badge { display: block; border-radius: 6px; font-size: 10px; font-weight: 600; text-align: center; padding: 2px 3px; white-space: nowrap; }
+
         /* --- PLAN CSS --- */
         .plan-metrics { margin-top:12px; padding-top:12px; border-top:1px solid var(--color-border); }
         .plan-metrics-title { font-size:9px; font-weight:700; text-transform:uppercase; color:var(--color-text-secondary); letter-spacing:0.04em; margin-bottom:8px; }
@@ -606,477 +243,565 @@
         .detail-plan-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:10px; }
         .detail-plan-card { background:#fff; border-radius:12px; padding:10px 12px; display:flex; flex-direction:column; gap:3px; }
         .dpc-label { font-size:9px; font-weight:700; text-transform:uppercase; color:var(--color-text-secondary); }
-        .dpc-plan { font-size:11px; color:var(--color-text-secondary); }
-        .dpc-fact { font-size:17px; font-weight:600; color:var(--color-text); }
-        .dpc-rest { font-size:11px; color:var(--color-text-secondary); margin-top:1px; }
-
+        .dpc-plan  { font-size:11px; color:var(--color-text-secondary); }
+        .dpc-fact  { font-size:17px; font-weight:600; color:var(--color-text); }
+        .dpc-rest  { font-size:11px; color:var(--color-text-secondary); margin-top:1px; }
     </style>
 </head>
 <body>
 
-    <div id="login-screen">
-        <div class="login-box">
-            <div style="font-size: 40px; margin-bottom: 10px;">🔒</div>
-            <h2>GORODOK Dashboard</h2>
-            <input type="password" id="pass-input" placeholder="Введіть пароль" onkeypress="if(event.key==='Enter') checkPass()">
-            <button onclick="checkPass()">Увійти</button>
-            <p id="error-msg" class="error-msg">Невірний пароль. Спробуйте ще раз.</p>
-        </div>
+<div id="login-screen">
+    <div class="login-box">
+        <div style="font-size: 40px; margin-bottom: 10px;">🔒</div>
+        <h2>GORODOK Dashboard</h2>
+        <input type="password" id="pass-input" placeholder="Введіть пароль" onkeypress="if(event.key==='Enter') checkPass()">
+        <button onclick="checkPass()">Увійти</button>
+        <p id="error-msg" class="error-msg">Невірний пароль. Спробуйте ще раз.</p>
     </div>
+</div>
 
-    <div id="main-content">
-        <nav>
-            <div class="nav-content">
-                <div class="nav-logo" onclick="showHome()">Gorodok Sales Dashboard</div>
-                <button class="logout-btn" onclick="logout()">Вийти</button>
-            </div>
-        </nav>
+<div id="main-content">
+    <nav>
+        <div class="nav-content">
+            <div class="nav-logo" onclick="showHome()">Gorodok Sales Dashboard</div>
+            <button class="logout-btn" onclick="logout()">Вийти</button>
+        </div>
+    </nav>
 
-        <div id="home-page" class="container">
-            <header>
-                <h1>Команда</h1>
-                <p>Статистика та графіки департаменту</p>
-            </header>
-            <!-- ТАБЛИЦЯ З GOOGLE SHEETS -->
-            <div class="gsheet-block collapsed" id="gsheet-block">
-                <div class="gsheet-block-header">
-                    <div class="gsheet-block-title">
-                        <span>📋</span>
-                        <span id="gsheet-title">ПОСИЛЕННЯ</span>
-                    </div>
-                    <div style="display:flex;align-items:center;gap:8px">
-                        <button class="gsheet-refresh-btn" onclick="loadGSheet()">↻ Оновити</button>
-                        <button class="gsheet-expand-btn" onclick="toggleGSheet()">
-                            <span id="gsheet-expand-label">Розгорнути</span>
-                            <i class="gsheet-expand-arrow">▼</i>
-                        </button>
-                    </div>
+    <div id="home-page" class="container">
+        <header>
+            <h1>Команда</h1>
+            <p>Статистика та графіки департаменту</p>
+        </header>
+
+        <!-- БЛОК ПОСИЛЕННЯ -->
+        <div class="gsheet-block collapsed" id="gsheet-block">
+            <div class="gsheet-block-header">
+                <div class="gsheet-block-title">
+                    <span>📋</span>
+                    <span id="gsheet-title">ПОСИЛЕННЯ</span>
                 </div>
-                <div class="gsheet-body">
-                    <div id="gsheet-content">
-                        <div class="gsheet-loading">
-                            <div class="gsheet-loading-spinner"></div>
-                            Завантаження...
-                        </div>
-                    </div>
+                <div style="display:flex;align-items:center;gap:8px">
+                    <button class="gsheet-refresh-btn" onclick="loadGSheet()">↻ Оновити</button>
+                    <button class="gsheet-expand-btn" onclick="toggleGSheet()">
+                        <span id="gsheet-expand-label">Розгорнути</span>
+                        <i class="gsheet-expand-arrow">▼</i>
+                    </button>
                 </div>
             </div>
-
-            <div id="sales-cards"></div>
-        </div>
-
-        <div id="detail-page" class="detail-page">
-            <div class="detail-container">
-                <button onclick="showHome()" style="background:none; border:none; color:var(--color-accent); cursor:pointer; font-size:17px; margin-bottom:30px;">← Назад</button>
-                <div id="detail-content"></div>
+            <div class="gsheet-body">
+                <div id="gsheet-content">
+                    <div class="gsheet-loading">
+                        <div class="gsheet-loading-spinner"></div>
+                        Завантаження...
+                    </div>
+                </div>
             </div>
         </div>
+
+        <!-- БЛОК КМОТ -->
+        <div class="gsheet-block collapsed" id="kmot-block">
+            <div class="gsheet-block-header">
+                <div class="gsheet-block-title">
+                    <span>📊</span>
+                    <span>КМОТ</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px">
+                    <button class="gsheet-refresh-btn" onclick="loadKMOT()">↻ Оновити</button>
+                    <button class="gsheet-expand-btn" onclick="toggleKMOT()">
+                        <span id="kmot-expand-label">Розгорнути</span>
+                        <i class="gsheet-expand-arrow">▼</i>
+                    </button>
+                </div>
+            </div>
+            <div class="gsheet-body">
+                <div id="kmot-content">
+                    <div class="gsheet-loading">
+                        <div class="gsheet-loading-spinner"></div>
+                        Завантаження...
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="sales-cards"></div>
     </div>
 
-    <script>
-        // --- НАЛАШТУВАННЯ АВТОРИЗАЦІЇ ---
-        const SECRET_PASSWORD = "gteam"; 
-        const EXPIRY_DAYS = 30; 
+    <div id="detail-page" class="detail-page">
+        <div class="detail-container">
+            <button onclick="showHome()" style="background:none; border:none; color:var(--color-accent); cursor:pointer; font-size:17px; margin-bottom:30px;">← Назад</button>
+            <div id="detail-content"></div>
+        </div>
+    </div>
+</div>
 
-        function checkPass() {
-            const input = document.getElementById('pass-input').value;
-            const error = document.getElementById('error-msg');
-            
-            if (input === SECRET_PASSWORD) {
-                const now = new Date();
-                localStorage.setItem('auth_date', now.getTime());
-                localStorage.setItem('isAuthorized', 'true');
-                unlockSite();
+<script>
+    // --- АВТОРИЗАЦІЯ ---
+    const SECRET_PASSWORD = "gteam";
+    const EXPIRY_DAYS = 30;
+
+    function checkPass() {
+        const input = document.getElementById('pass-input').value;
+        const error = document.getElementById('error-msg');
+        if (input === SECRET_PASSWORD) {
+            const now = new Date();
+            localStorage.setItem('auth_date', now.getTime());
+            localStorage.setItem('isAuthorized', 'true');
+            unlockSite();
+        } else {
+            error.style.display = 'block';
+            document.getElementById('pass-input').value = '';
+        }
+    }
+
+    function unlockSite() {
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('main-content').style.display = 'block';
+        loadGSheet();
+        loadKMOT();
+        loadPlanData().then(() => loadData());
+    }
+
+    function logout() {
+        localStorage.removeItem('isAuthorized');
+        localStorage.removeItem('auth_date');
+        location.reload();
+    }
+
+    window.onload = function() {
+        const isAuth = localStorage.getItem('isAuthorized');
+        const authDate = localStorage.getItem('auth_date');
+        if (isAuth === 'true' && authDate) {
+            const now = new Date().getTime();
+            const expiryMs = EXPIRY_DAYS * 24 * 60 * 60 * 1000;
+            if (now - authDate < expiryMs) { unlockSite(); } else { logout(); }
+        }
+    };
+
+    // --- CSV PARSER ---
+    function parseCSV(text) {
+        const rows = []; let cells = [], cur = '', inQ = false;
+        for (let i = 0; i < text.length; i++) {
+            const ch = text[i];
+            if (ch === '"') { if (inQ && text[i+1] === '"') { cur += '"'; i++; } else inQ = !inQ; }
+            else if (ch === ',' && !inQ) { cells.push(cur); cur = ''; }
+            else if ((ch === '\n' || ch === '\r') && !inQ) {
+                if (ch === '\r' && text[i+1] === '\n') i++;
+                cells.push(cur); cur = ''; rows.push(cells); cells = [];
+            } else cur += ch;
+        }
+        if (cur || cells.length) { cells.push(cur); rows.push(cells); }
+        return rows.filter(r => r.some(c => c.trim()));
+    }
+
+    function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+    // --- ПОСИЛЕННЯ ---
+    const GSHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTd9BXXff9qHAx0Hp0MEgb-rzsHOgsnBUoqus8vf5zSCzmDfNbe0Js9pcY_2YMkZT6lLZp7vmTEbwM6/pub?output=csv';
+
+    function toggleGSheet() {
+        const block = document.getElementById('gsheet-block');
+        const label = document.getElementById('gsheet-expand-label');
+        const isCollapsed = block.classList.contains('collapsed');
+        if (isCollapsed) { block.classList.remove('collapsed'); label.textContent = 'Згорнути'; }
+        else             { block.classList.add('collapsed');    label.textContent = 'Розгорнути'; }
+    }
+
+    async function loadGSheet() {
+        const content = document.getElementById('gsheet-content');
+        content.innerHTML = `<div class="gsheet-loading"><div class="gsheet-loading-spinner"></div>Завантаження...</div>`;
+        try {
+            const res = await fetch(GSHEET_CSV_URL + '&t=' + Date.now());
+            if (!res.ok) throw new Error('fail');
+            renderGSheetTable(await res.text());
+        } catch(e) {
+            content.innerHTML = `<div class="gsheet-error">⚠️ Помилка завантаження</div>`;
+        }
+    }
+
+    function rowClass(val) {
+        const v = (val || '').trim().toLowerCase();
+        if (v.startsWith('асс') || v === 'acc') return 'gsheet-row-acc';
+        if (v.startsWith('ав') || v === 'av')   return 'gsheet-row-av';
+        if (v.startsWith('діг') || v.startsWith('dig')) return 'gsheet-row-dig';
+        if (v.startsWith('іт') || v === 'it')   return 'gsheet-row-it';
+        if (v.startsWith('кбт') || v === 'kbt') return 'gsheet-row-kbt';
+        if (v.startsWith('мбт') || v === 'mbt') return 'gsheet-row-mbt';
+        if (v.includes('кредит'))  return 'gsheet-row-credit';
+        if (v.includes('знижк') || v.includes('інет')) return 'gsheet-row-discount';
+        if (v.includes('обмеж'))   return 'gsheet-row-limit';
+        return 'gsheet-row-other';
+    }
+
+    function renderGSheetTable(csv) {
+        const el = document.getElementById('gsheet-content');
+        const rows = parseCSV(csv);
+        if (!rows.length) { el.innerHTML = `<div class="gsheet-error">Порожня таблиця</div>`; return; }
+        const headers = rows[0];
+        const sellerIdx = headers.findIndex(h => /продав|seller|прод\./i.test(h));
+        const colWidths = [8, 24, 18, 18, 18, 14];
+        const total = headers.length;
+        let colgroup = '<colgroup>';
+        headers.forEach((h, i) => {
+            const w = colWidths[i] !== undefined ? colWidths[i] : Math.floor(60 / Math.max(total - 2, 1));
+            colgroup += `<col style="width:${w}%">`;
+        });
+        colgroup += '</colgroup>';
+
+        let html = `<div class="gsheet-table-wrapper"><table class="gsheet-table">${colgroup}<thead><tr>`;
+        headers.forEach((h, i) => {
+            const wrap = (i === 0 || i === sellerIdx) ? ' style="white-space:normal"' : '';
+            html += `<th${wrap}>${esc(h)}</th>`;
+        });
+        html += `</tr></thead><tbody>`;
+        rows.slice(1).forEach(row => {
+            const cls = rowClass(row[0]);
+            const hasExtraCols = row.slice(2).some(c => (c || '').trim() !== '');
+            html += `<tr class="${cls}">`;
+            if (!hasExtraCols && headers.length > 2) {
+                html += `<td>${esc(row[0])}</td>`;
+                html += `<td colspan="${headers.length - 1}" style="white-space:normal;word-break:break-word">${esc(row[1] || '')}</td>`;
             } else {
-                error.style.display = 'block';
-                document.getElementById('pass-input').value = '';
+                headers.forEach((_, i) => { html += `<td>${esc(row[i])}</td>`; });
             }
-        }
+            html += `</tr>`;
+        });
+        html += `</tbody></table></div>`;
+        el.innerHTML = html;
+    }
 
-        function unlockSite() {
-            document.getElementById('login-screen').style.display = 'none';
-            document.getElementById('main-content').style.display = 'block';
-            loadGSheet();
-            loadPlanData().then(() => loadData());
-        }
+    // --- КМОТ ---
+    const KMOT_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vROoCZz1kw9l2RJoVweetVCzehrD79TfH2m7meuZAedA_MDc6KShkWQCfTgbX92BVs4Xol2fI55GwZc/pub?output=csv';
 
-        function logout() {
-            localStorage.removeItem('isAuthorized');
-            localStorage.removeItem('auth_date');
-            location.reload();
-        }
+    function toggleKMOT() {
+        const block = document.getElementById('kmot-block');
+        const label = document.getElementById('kmot-expand-label');
+        const isCollapsed = block.classList.contains('collapsed');
+        if (isCollapsed) { block.classList.remove('collapsed'); label.textContent = 'Згорнути'; }
+        else             { block.classList.add('collapsed');    label.textContent = 'Розгорнути'; }
+    }
 
-        window.onload = function() {
-            const isAuth = localStorage.getItem('isAuthorized');
-            const authDate = localStorage.getItem('auth_date');
-            
-            if (isAuth === 'true' && authDate) {
-                const now = new Date().getTime();
-                const expiryMs = EXPIRY_DAYS * 24 * 60 * 60 * 1000;
-                
-                if (now - authDate < expiryMs) {
-                    unlockSite();
-                } else {
-                    logout();
+    async function loadKMOT() {
+        const content = document.getElementById('kmot-content');
+        content.innerHTML = `<div class="gsheet-loading"><div class="gsheet-loading-spinner"></div>Завантаження...</div>`;
+        try {
+            const res = await fetch(KMOT_CSV_URL + '&t=' + Date.now());
+            if (!res.ok) throw new Error('fail');
+            renderKMOTTable(await res.text());
+        } catch(e) {
+            content.innerHTML = `<div class="gsheet-error">⚠️ Помилка завантаження</div>`;
+        }
+    }
+
+    function renderKMOTTable(csv) {
+        const el = document.getElementById('kmot-content');
+        const rows = parseCSV(csv);
+        if (!rows.length) { el.innerHTML = `<div class="gsheet-error">Порожня таблиця</div>`; return; }
+
+        const headers = rows[0];
+        const dataRows = rows.slice(1).filter(r => r[0] && r[0].trim());
+        const numCols = headers.length;
+
+        // Визначаємо % колонки
+        const pctColIndexes = [];
+        headers.forEach((h, i) => {
+            if (i === 0) return;
+            const u = h.toUpperCase();
+            if (u.includes('%') || u.includes('ВИКО') || u.includes('ДОЛЯ') || u.includes('SHARE')) {
+                pctColIndexes.push(i);
+            }
+        });
+
+        // Рахуємо min/max для % колонок (без підсумкових рядків)
+        const pctRanges = {};
+        pctColIndexes.forEach(ci => {
+            const vals = dataRows
+                .filter(r => !['разом','сума','total','тотал','підсумок','всього','итого'].some(k => (r[0]||'').toLowerCase().includes(k)))
+                .map(r => parseFloat((r[ci]||'').replace('%','').replace(/\s/g,'').replace(',','.')) || 0);
+            pctRanges[ci] = { min: Math.min(...vals), max: Math.max(...vals) };
+        });
+
+        // Ширини колонок
+        const firstW = 22;
+        const restW = Math.floor((100 - firstW) / Math.max(numCols - 1, 1));
+        let colgroup = '<colgroup>';
+        headers.forEach((_, i) => {
+            colgroup += `<col style="width:${i === 0 ? firstW : restW}%">`;
+        });
+        colgroup += '</colgroup>';
+
+        let html = `<div class="gsheet-table-wrapper"><table class="gsheet-table">${colgroup}<thead><tr>`;
+        headers.forEach((h, i) => {
+            const wrap = i === 0 ? ' style="white-space:normal"' : '';
+            html += `<th${wrap}>${esc(h)}</th>`;
+        });
+        html += `</tr></thead><tbody>`;
+
+        dataRows.forEach(row => {
+            const name = (row[0] || '').trim();
+            const nameLC = name.toLowerCase();
+            const isTotal = ['разом','сума','total','тотал','підсумок','всього','итого'].some(k => nameLC.includes(k));
+            const totalStyle = isTotal ? ' style="background:#eaf1fe;font-weight:700"' : '';
+
+            html += `<tr${totalStyle}>`;
+            headers.forEach((h, ci) => {
+                const val = (row[ci] != null ? row[ci] : '').toString().trim();
+
+                if (ci === 0) {
+                    html += `<td style="font-weight:600;border-left:3px solid #d2d2d7;white-space:normal;word-break:break-word">${esc(val)}</td>`;
+                    return;
                 }
-            }
+
+                // % колонка — динамічна заливка (тільки не підсумок)
+                if (pctColIndexes.includes(ci) && !isTotal) {
+                    const n = parseFloat(val.replace('%','').replace(/\s/g,'').replace(',','.')) || 0;
+                    const { min, max } = pctRanges[ci] || { min:0, max:1 };
+                    const range = max - min || 1;
+                    const ratio = (n - min) / range;
+                    const hue = Math.round(ratio * 120);
+                    const bg = `hsl(${hue},70%,${Math.round(88-ratio*10)}%)`;
+                    const fg = `hsl(${hue},60%,${Math.round(28+ratio*10)}%)`;
+                    html += `<td><span class="cell-badge" style="background:${bg};color:${fg}">${esc(val)}</span></td>`;
+                    return;
+                }
+
+                // Числові значення — сірий бейдж
+                const numVal = parseFloat(val.replace(/\s/g,'').replace(',','.'));
+                if (!isNaN(numVal) && val !== '') {
+                    const fmt = Number.isInteger(numVal)
+                        ? Math.round(numVal).toLocaleString('uk-UA')
+                        : numVal.toLocaleString('uk-UA', { minimumFractionDigits:2, maximumFractionDigits:2 });
+                    const bg = isTotal ? 'rgba(0,113,227,0.10)' : 'rgba(134,134,139,0.08)';
+                    const fg = isTotal ? '#1a50b8' : '#3d3d3f';
+                    html += `<td><span class="cell-badge" style="background:${bg};color:${fg}">${fmt}</span></td>`;
+                    return;
+                }
+
+                html += `<td>${esc(val)}</td>`;
+            });
+            html += `</tr>`;
+        });
+
+        html += `</tbody></table></div>`;
+        el.innerHTML = html;
+    }
+
+    // --- PLAN DATA ---
+    const PLAN_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTOUXHhUpCkh6tgvNpJzY-w5tVrhPkvEeC0W0ZWuy2YxPayuO3pvahfeKYmMZ1DwHnILTpsJFNtXLsH/pub?output=csv';
+    let planData = {};
+
+    async function loadPlanData() {
+        try {
+            const res = await fetch(PLAN_CSV_URL + '&t=' + Date.now());
+            const text = await res.text();
+            const rows = parseCSV(text);
+            if (!rows.length) return;
+            const hdr = rows[0].map(h => h.trim());
+            const iTO = hdr.findIndex(h => h === 'ТО план');
+            const iACC = hdr.findIndex(h => h === 'АСС план');
+            const iServ = hdr.findIndex(h => h === 'ПОСЛУГИ план');
+            rows.slice(1).forEach(row => {
+                const name = (row[0] || '').trim();
+                if (!name) return;
+                const num = s => parseFloat((s||'0').replace(/[\s\u00a0]/g,'').replace(',','.')) || 0;
+                planData[name] = { to: num(row[iTO]), acc: num(row[iACC]), serv: num(row[iServ]) };
+                if (/тотал|total|загалом/i.test(name)) planData['Показники магазину'] = planData[name];
+            });
+        } catch(e) { console.warn('Plan error:', e); }
+    }
+
+    function getPlan(name) {
+        if (planData[name]) return planData[name];
+        const key = Object.keys(planData).find(k =>
+            k.toLowerCase().includes(name.toLowerCase()) || name.toLowerCase().includes(k.toLowerCase())
+        );
+        return key ? planData[key] : null;
+    }
+    function pctCls(p) { return p >= 100 ? 'pct-good' : p >= 70 ? 'pct-mid' : 'pct-bad'; }
+    function fmtPct(fact, plan) {
+        if (!plan) return '';
+        const p = Math.round(fact / plan * 100);
+        return '<span class="plan-pct ' + pctCls(p) + '">' + p + '%</span>';
+    }
+    function fmtRest(fact, plan) {
+        const r = plan - fact;
+        return r > 0 ? '-' + formatFull(r) : '✓';
+    }
+
+    // --- ДАНІ КАРТОК ---
+    let currentData = [];
+
+    async function loadData() {
+        try {
+            const response = await fetch('sales-data.json?t=' + Date.now());
+            currentData = await response.json();
+            renderCards(currentData);
+        } catch (error) { console.error("Помилка завантаження даних:", error); }
+    }
+
+    function formatNumber(num) {
+        if (num >= 1000000) return (num / 1000000).toFixed(2) + 'М';
+        if (num >= 1000)    return (num / 1000).toFixed(1) + 'К';
+        return num;
+    }
+    function formatFull(num) {
+        if (!num && num !== 0) return '0';
+        return Math.round(num).toLocaleString('uk-UA');
+    }
+
+    function renderCards(data) {
+        const container = document.getElementById('sales-cards');
+        container.innerHTML = '';
+
+        const carouselContainer = document.createElement('div');
+        carouselContainer.className = 'carousel-container';
+        const carouselWrapper = document.createElement('div');
+        carouselWrapper.className = 'carousel-wrapper';
+
+        const createBanner = (title, subtitle, icon, colorClass, href, isBlank = false) => {
+            const banner = document.createElement('a');
+            banner.className = `banner-card banner-${colorClass}`;
+            banner.href = href;
+            if (isBlank) banner.target = '_blank';
+            banner.innerHTML = `
+                <div>
+                    <div class="banner-icon" style="background: ${icon.bg}">${icon.img}</div>
+                    <div class="banner-content"><h2>${title}</h2><p>${subtitle}</p></div>
+                </div>
+                <div class="banner-footer"><div class="banner-cta">Переглянути →</div></div>`;
+            return banner;
         };
 
+        carouselWrapper.appendChild(createBanner('Щоденні продажі', 'Аналітика по днях',        {bg:'var(--color-accent)', img:'📊'}, 'special',     'daily.html'));
+        carouselWrapper.appendChild(createBanner('Графік виходу',   'Google Sheets',             {bg:'#ff9500',            img:'📅'}, 'chart',       'https://docs.google.com/spreadsheets/d/1-sUZg6C6w3-lImTpIv2ezkW-mKtK8zXZ_zf4bCK83R8/edit#gid=973370496', true));
+        carouselWrapper.appendChild(createBanner('МІСЯЦЬ план/факт','Аналітика виконання',       {bg:'#34c759',            img:'📈'}, 'plan-fact',   'plan-fact.html'));
+        carouselWrapper.appendChild(createBanner('Вечірній звіт',   'Розширена аналітика',       {bg:'#af52de',            img:'📊'}, 'plan-fact-2', 'plan-fact-2.html'));
+        carouselWrapper.appendChild(createBanner('Акційний бюлетень','АБ та постійні акції',     {bg:'#007aff',            img:'📄'}, 'documents',   'document-viewer.html'));
 
-        // --- GOOGLE SHEETS ТАБЛИЦЯ ---
-        const GSHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTd9BXXff9qHAx0Hp0MEgb-rzsHOgsnBUoqus8vf5zSCzmDfNbe0Js9pcY_2YMkZT6lLZp7vmTEbwM6/pub?output=csv';
+        carouselContainer.appendChild(carouselWrapper);
+        container.appendChild(carouselContainer);
 
-        function toggleGSheet() {
-            const block = document.getElementById('gsheet-block');
-            const label = document.getElementById('gsheet-expand-label');
-            const isCollapsed = block.classList.contains('collapsed');
-            if (isCollapsed) {
-                block.classList.remove('collapsed');
-                label.textContent = 'Згорнути';
-            } else {
-                block.classList.add('collapsed');
-                label.textContent = 'Розгорнути';
-            }
-        }
+        const sectionTitle = document.createElement('div');
+        sectionTitle.className = 'section-title';
+        sectionTitle.textContent = 'Команда продавців';
+        container.appendChild(sectionTitle);
 
-        async function loadGSheet() {
-            const content = document.getElementById('gsheet-content');
-            content.innerHTML = `<div class="gsheet-loading"><div class="gsheet-loading-spinner"></div>Завантаження...</div>`;
-            try {
-                const res = await fetch(GSHEET_CSV_URL + '&t=' + Date.now());
-                if (!res.ok) throw new Error('fail');
-                renderGSheetTable(await res.text());
-            } catch(e) {
-                content.innerHTML = `<div class="gsheet-error">⚠️ Помилка завантаження</div>`;
-            }
-        }
+        const cardsGrid = document.createElement('div');
+        cardsGrid.className = 'cards-grid';
 
-        function parseCSV(text) {
-            const rows = []; let cells = [], cur = '', inQ = false;
-            for (let i = 0; i < text.length; i++) {
-                const ch = text[i];
-                if (ch === '"') { if (inQ && text[i+1] === '"') { cur += '"'; i++; } else inQ = !inQ; }
-                else if (ch === ',' && !inQ) { cells.push(cur); cur = ''; }
-                else if ((ch === '\n' || ch === '\r') && !inQ) {
-                    if (ch === '\r' && text[i+1] === '\n') i++;
-                    cells.push(cur); cur = ''; rows.push(cells); cells = [];
-                } else cur += ch;
-            }
-            if (cur || cells.length) { cells.push(cur); rows.push(cells); }
-            return rows.filter(r => r.some(c => c.trim()));
-        }
+        data.forEach(person => {
+            const to       = person.metrics['ТО']          || {value: 0, unit: 'грн'};
+            const acc      = person.metrics['% Доля ACC']  || {value: 0, unit: '%'};
+            const services = person.metrics['Доля Послуг'] || {value: 0, unit: '%'};
 
-        function rowClass(val) {
-            const v = (val || '').trim().toLowerCase();
-            if (v.startsWith('асс') || v === 'acc') return 'gsheet-row-acc';
-            if (v.startsWith('ав') || v === 'av') return 'gsheet-row-av';
-            if (v.startsWith('діг') || v.startsWith('dig')) return 'gsheet-row-dig';
-            if (v.startsWith('іт') || v === 'it') return 'gsheet-row-it';
-            if (v.startsWith('кбт') || v === 'kbt') return 'gsheet-row-kbt';
-            if (v.startsWith('мбт') || v === 'mbt') return 'gsheet-row-mbt';
-            if (v.includes('кредит')) return 'gsheet-row-credit';
-            if (v.includes('знижк') || v.includes('інет')) return 'gsheet-row-discount';
-            if (v.includes('обмеж')) return 'gsheet-row-limit';
-            return 'gsheet-row-other';
-        }
-
-        function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-        function renderGSheetTable(csv) {
-            const el = document.getElementById('gsheet-content');
-            const rows = parseCSV(csv);
-            if (!rows.length) { el.innerHTML = `<div class="gsheet-error">Порожня таблиця</div>`; return; }
-            const headers = rows[0];
-
-            // Визначаємо індекс колонки "Продавець" та колонки-групи
-            const sellerIdx = headers.findIndex(h => /продав|seller|прод\./i.test(h));
-
-            // Генеруємо colgroup — фіксовані пропорції під мобільний
-            // Колонки: [Група, Продавець, Ліміт у мене, На одиничні позиції, На одиничні товари, Від чек]
-            // Ширини в %: 8, 18, 22, 22, 16, 14
-            const colWidths = [8, 24, 18, 18, 18, 14];
-            const total = headers.length;
-            let colgroup = '<colgroup>';
-            headers.forEach((h, i) => {
-                const w = colWidths[i] !== undefined ? colWidths[i] : Math.floor(60 / Math.max(total - 2, 1));
-                colgroup += `<col style="width:${w}%">`;
-            });
-            colgroup += '</colgroup>';
-
-            let html = `<div class="gsheet-table-wrapper"><table class="gsheet-table">${colgroup}<thead><tr>`;
-            headers.forEach((h, i) => {
-                const wrap = (i === 0 || i === sellerIdx) ? ' style="white-space:normal"' : '';
-                html += `<th${wrap}>${esc(h)}</th>`;
-            });
-            html += `</tr></thead><tbody>`;
-            rows.slice(1).forEach(row => {
-                const cls = rowClass(row[0]);
-                // Перевіряємо чи є дані після 2-ї колонки
-                const hasExtraCols = row.slice(2).some(c => (c || '').trim() !== '');
-                html += `<tr class="${cls}">`;
-                if (!hasExtraCols && headers.length > 2) {
-                    // Перша колонка — назва групи, решта — colspan
-                    html += `<td>${esc(row[0])}</td>`;
-                    html += `<td colspan="${headers.length - 1}" style="white-space:normal;word-break:break-word">${esc(row[1] || '')}</td>`;
-                } else {
-                    headers.forEach((_, i) => {
-                        html += `<td>${esc(row[i])}</td>`;
-                    });
-                }
-                html += `</tr>`;
-            });
-            html += `</tbody></table></div>`;
-            el.innerHTML = html;
-        }
-
-
-        // --- PLAN DATA ---
-        const PLAN_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTOUXHhUpCkh6tgvNpJzY-w5tVrhPkvEeC0W0ZWuy2YxPayuO3pvahfeKYmMZ1DwHnILTpsJFNtXLsH/pub?output=csv';
-        let planData = {};
-        async function loadPlanData() {
-            try {
-                const res = await fetch(PLAN_CSV_URL + '&t=' + Date.now());
-                const text = await res.text();
-                const rows = parseCSV(text);
-                if (!rows.length) return;
-                const hdr = rows[0].map(h => h.trim());
-                const iTO = hdr.findIndex(h => h === 'ТО план');
-                const iACC = hdr.findIndex(h => h === 'АСС план');
-                const iServ = hdr.findIndex(h => h === 'ПОСЛУГИ план');
-                rows.slice(1).forEach(row => {
-                    const name = (row[0] || '').trim();
-                    if (!name) return;
-                    const num = s => parseFloat((s||'0').replace(/[\s\u00a0]/g,'').replace(',','.')) || 0;
-                    planData[name] = { to: num(row[iTO]), acc: num(row[iACC]), serv: num(row[iServ]) };
-                    if (/тотал|total|загалом/i.test(name)) {
-                        planData['Показники магазину'] = planData[name];
-                    }
-                });
-                console.log('Plan loaded:', Object.keys(planData).length);
-            } catch(e) { console.warn('Plan error:', e); }
-        }
-        function getPlan(name) {
-            if (planData[name]) return planData[name];
-            const key = Object.keys(planData).find(k =>
-                k.toLowerCase().includes(name.toLowerCase()) ||
-                name.toLowerCase().includes(k.toLowerCase())
-            );
-            return key ? planData[key] : null;
-        }
-        function pctCls(p) { return p >= 100 ? 'pct-good' : p >= 70 ? 'pct-mid' : 'pct-bad'; }
-        function fmtPct(fact, plan) {
-            if (!plan) return '';
-            const p = Math.round(fact / plan * 100);
-            return '<span class="plan-pct ' + pctCls(p) + '">' + p + '%</span>';
-        }
-        function fmtRest(fact, plan) {
-            const r = plan - fact;
-            return r > 0 ? '-' + formatFull(r) : '✓';
-        }
-
-        // --- ЛОГІКА ДАНИХ ТА ВІДОБРАЖЕННЯ ---
-        let currentData = [];
-
-        async function loadData() {
-            try {
-                const response = await fetch('sales-data.json?t=' + Date.now());
-                currentData = await response.json();
-                renderCards(currentData);
-            } catch (error) { 
-                console.error("Помилка завантаження даних:", error); 
-            }
-        }
-
-        function formatNumber(num) {
-            if (num >= 1000000) return (num / 1000000).toFixed(2) + 'М';
-            if (num >= 1000) return (num / 1000).toFixed(1) + 'К';
-            return num;
-        }
-        function formatFull(num) {
-            if (!num && num !== 0) return '0';
-            return Math.round(num).toLocaleString('uk-UA');
-        }
-
-        function renderCards(data) {
-            const container = document.getElementById('sales-cards');
-            container.innerHTML = '';
-
-            // Створення каруселі банерів
-            const carouselContainer = document.createElement('div');
-            carouselContainer.className = 'carousel-container';
-            
-            const carouselWrapper = document.createElement('div');
-            carouselWrapper.className = 'carousel-wrapper';
-
-            const createBanner = (title, subtitle, icon, colorClass, href, isBlank = false) => {
-                const banner = document.createElement('a');
-                banner.className = `banner-card banner-${colorClass}`;
-                banner.href = href;
-                if(isBlank) banner.target = '_blank';
-                banner.innerHTML = `
-                    <div>
-                        <div class="banner-icon" style="background: ${icon.bg}">${icon.img}</div>
-                        <div class="banner-content">
-                            <h2>${title}</h2>
-                            <p>${subtitle}</p>
-                        </div>
-                    </div>
-                    <div class="banner-footer">
-                        <div class="banner-cta">Переглянути →</div>
-                    </div>
-                `;
-                return banner;
-            };
-
-            carouselWrapper.appendChild(createBanner('Щоденні продажі', 'Аналітика по днях', {bg:'var(--color-accent)', img:'📊'}, 'special', 'daily.html'));
-            carouselWrapper.appendChild(createBanner('Графік виходу', 'Google Sheets', {bg:'#ff9500', img:'📅'}, 'chart', 'https://docs.google.com/spreadsheets/d/1-sUZg6C6w3-lImTpIv2ezkW-mKtK8zXZ_zf4bCK83R8/edit#gid=973370496', true));
-            carouselWrapper.appendChild(createBanner('МІСЯЦЬ план/факт', 'Аналітика виконання', {bg:'#34c759', img:'📈'}, 'plan-fact', 'plan-fact.html'));
-            carouselWrapper.appendChild(createBanner('Вечірній звіт', 'Розширена аналітика', {bg:'#af52de', img:'📊'}, 'plan-fact-2', 'plan-fact-2.html'));
-            carouselWrapper.appendChild(createBanner('Акційний бюлетень', 'АБ та постійні акції', {bg:'#007aff', img:'📄'}, 'documents', 'document-viewer.html'));
-
-            carouselContainer.appendChild(carouselWrapper);
-            container.appendChild(carouselContainer);
-
-            const sectionTitle = document.createElement('div');
-            sectionTitle.className = 'section-title';
-            sectionTitle.textContent = 'Команда продавців';
-            container.appendChild(sectionTitle);
-
-            const cardsGrid = document.createElement('div');
-            cardsGrid.className = 'cards-grid';
-
-            data.forEach(person => {
-                const to = person.metrics['ТО'] || {value: 0, unit: 'грн'};
-                const acc = person.metrics['% Доля ACC'] || {value: 0, unit: '%'};
-                const services = person.metrics['Доля Послуг'] || {value: 0, unit: '%'};
-
-                const card = document.createElement('div');
-                card.className = 'card';
-                card.onclick = () => showDetail(person.id);
-                card.innerHTML = `
-                    <div class="card-header">
-                        <div class="avatar" style="background: ${person.gradient}">${person.initials}</div>
-                        <div class="card-title"><h2>${person.name}</h2><p>${person.position}</p></div>
-                    </div>
-                    <div class="main-metric">
-                        <div class="main-metric-label">Товарообіг</div>
-                        <div class="main-metric-value">${formatNumber(to.value)} <span style="font-size:14px">${to.unit}</span></div>
-                    </div>
-                    <div class="secondary-metrics">
-                        <div><div class="metric-mini-label">Доля ACC</div><div class="metric-mini-value">${acc.value}%</div></div>
-                        <div><div class="metric-mini-label">Послуги</div><div class="metric-mini-value">${services.value}%</div></div>
-                    </div>
-                    ${(function(){
-                        const pl = getPlan(person.name);
-                        if (!pl || (!pl.to && !pl.acc && !pl.serv)) return '';
-                        const tF = to.value;
-                        const aF = (person.metrics['ACC']||{value:0}).value;
-                        const sF = (person.metrics['Послуги грн']||{value:0}).value;
-                        return '<div class="plan-metrics">' +
-                            '<div class="plan-metrics-title">План / Факт / Залишок</div>' +
-                            '<div class="plan-row">' +
-                                '<div class="plan-item"><div class="plan-item-label">ТО</div><div class="plan-item-val">' + formatNumber(pl.to) + '</div>' + fmtPct(tF,pl.to) + '<div style="font-size:10px;color:var(--color-text-secondary)">' + fmtRest(tF,pl.to) + '</div></div>' +
-                                '<div class="plan-item"><div class="plan-item-label">АСС</div><div class="plan-item-val">' + formatNumber(pl.acc) + '</div>' + fmtPct(aF,pl.acc) + '<div style="font-size:10px;color:var(--color-text-secondary)">' + fmtRest(aF,pl.acc) + '</div></div>' +
-                                '<div class="plan-item"><div class="plan-item-label">Послуги</div><div class="plan-item-val">' + formatNumber(pl.serv) + '</div>' + fmtPct(sF,pl.serv) + '<div style="font-size:10px;color:var(--color-text-secondary)">' + fmtRest(sF,pl.serv) + '</div></div>' +
-                            '</div>' +
-                        '</div>';
-                    })()}
-                `;
-                cardsGrid.appendChild(card);
-            });
-
-            container.appendChild(cardsGrid);
-        }
-
-        function showDetail(id) {
-            const person = currentData.find(p => p.id === id);
-            if (!person) return;
-            const m = person.metrics;
-            const detailContent = document.getElementById('detail-content');
-            const block = (key) => {
-                const item = m[key] || {value: 0, unit: '-'};
-                return `
-                    <div class="detail-metric-card">
-                        <div style="font-size:11px; color:var(--color-text-secondary); text-transform:uppercase">${key}</div>
-                        <div style="font-size:22px; font-weight:600">
-                            ${item.value.toLocaleString('uk-UA')} <span style="font-size:14px; font-weight:400">${item.unit}</span>
-                        </div>
-                    </div>
-                `;
-            };
-            const _pl = getPlan(person.name);
-            const _tF = (m['ТО']||{value:0}).value;
-            const _aF = (m['ACC']||{value:0}).value;
-            const _sF = (m['Послуги грн']||{value:0}).value;
-            const _planBlock = _pl ? (
-                '<div class="detail-plan-section">' +
-                    '<div style="font-size:13px;font-weight:700;margin-bottom:4px">📊 План / Факт / Залишок</div>' +
-                    '<div class="detail-plan-grid">' +
-                        '<div class="detail-plan-card"><div class="dpc-label">ТО</div><div class="dpc-plan">План: ' + formatFull(_pl.to) + ' грн</div><div class="dpc-fact">' + formatFull(_tF) + ' грн</div><div class="dpc-rest">Вик.: ' + (_pl.to ? Math.round(_tF/_pl.to*100) : 0) + '% &nbsp; Зал.: ' + fmtRest(_tF,_pl.to) + '</div></div>' +
-                        '<div class="detail-plan-card"><div class="dpc-label">АСС</div><div class="dpc-plan">План: ' + formatFull(_pl.acc) + ' грн</div><div class="dpc-fact">' + formatFull(_aF) + ' грн</div><div class="dpc-rest">Вик.: ' + (_pl.acc ? Math.round(_aF/_pl.acc*100) : 0) + '% &nbsp; Зал.: ' + fmtRest(_aF,_pl.acc) + '</div></div>' +
-                        '<div class="detail-plan-card"><div class="dpc-label">Послуги</div><div class="dpc-plan">План: ' + formatFull(_pl.serv) + ' грн</div><div class="dpc-fact">' + formatFull(_sF) + ' грн</div><div class="dpc-rest">Вик.: ' + (_pl.serv ? Math.round(_sF/_pl.serv*100) : 0) + '% &nbsp; Зал.: ' + fmtRest(_sF,_pl.serv) + '</div></div>' +
-                    '</div>' +
-                '</div>'
-            ) : '';
-            detailContent.innerHTML = `
-                <div style="display:flex; align-items:center; margin-bottom:40px;">
-                    <div class="avatar" style="width:80px; height:80px; font-size:28px; background:${person.gradient}">${person.initials}</div>
-                    <div><h1 style="font-size:32px">${person.name}</h1><p style="color:var(--color-text-secondary)">${person.position}</p></div>
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.onclick = () => showDetail(person.id);
+            card.innerHTML = `
+                <div class="card-header">
+                    <div class="avatar" style="background: ${person.gradient}">${person.initials}</div>
+                    <div class="card-title"><h2>${person.name}</h2><p>${person.position}</p></div>
                 </div>
-                ${_planBlock}
-                <div class="group-title">💰 Продажі та Обіг</div>
-                <div class="metric-group group-sales">${block('ТО')} ${block('ASP')} ${block('Ср. Чек')}</div>
-                <div class="group-title">⚡ Ефективність</div>
-                <div class="metric-group group-eff">${block('Шт.')} ${block('Чеки')} ${block('ПЧ')} ${block('КПЧ')} ${block('Конверсія ПК')}</div>
-                <div class="group-title">🎧 Аксесуари (ACC)</div>
-                <div class="metric-group group-acc">${block('ACC')} ${block('% Доля ACC')}</div>
-                <div class="group-title">🛠 Послуги та УДС</div>
-                <div class="metric-group group-services">${block('Послуги грн')} ${block('Доля Послуг')} ${block('УДС')} ${block('Доля УДС')}</div>
-            `;
-            document.getElementById('detail-page').classList.add('active');
-            document.getElementById('home-page').style.display = 'none';
-            window.scrollTo(0, 0);
-        }
+                <div class="main-metric">
+                    <div class="main-metric-label">Товарообіг</div>
+                    <div class="main-metric-value">${formatNumber(to.value)} <span style="font-size:14px">${to.unit}</span></div>
+                </div>
+                <div class="secondary-metrics">
+                    <div><div class="metric-mini-label">Доля ACC</div><div class="metric-mini-value">${acc.value}%</div></div>
+                    <div><div class="metric-mini-label">Послуги</div><div class="metric-mini-value">${services.value}%</div></div>
+                </div>
+                ${(function(){
+                    const pl = getPlan(person.name);
+                    if (!pl || (!pl.to && !pl.acc && !pl.serv)) return '';
+                    const tF = to.value;
+                    const aF = (person.metrics['ACC']||{value:0}).value;
+                    const sF = (person.metrics['Послуги грн']||{value:0}).value;
+                    return '<div class="plan-metrics">' +
+                        '<div class="plan-metrics-title">План / Факт / Залишок</div>' +
+                        '<div class="plan-row">' +
+                            '<div class="plan-item"><div class="plan-item-label">ТО</div><div class="plan-item-val">' + formatNumber(pl.to) + '</div>' + fmtPct(tF,pl.to) + '<div style="font-size:10px;color:var(--color-text-secondary)">' + fmtRest(tF,pl.to) + '</div></div>' +
+                            '<div class="plan-item"><div class="plan-item-label">АСС</div><div class="plan-item-val">' + formatNumber(pl.acc) + '</div>' + fmtPct(aF,pl.acc) + '<div style="font-size:10px;color:var(--color-text-secondary)">' + fmtRest(aF,pl.acc) + '</div></div>' +
+                            '<div class="plan-item"><div class="plan-item-label">Послуги</div><div class="plan-item-val">' + formatNumber(pl.serv) + '</div>' + fmtPct(sF,pl.serv) + '<div style="font-size:10px;color:var(--color-text-secondary)">' + fmtRest(sF,pl.serv) + '</div></div>' +
+                        '</div>' +
+                    '</div>';
+                })()}`;
+            cardsGrid.appendChild(card);
+        });
 
-        function showHome() {
-            document.getElementById('detail-page').classList.remove('active');
-            document.getElementById('home-page').style.display = 'block';
-            window.scrollTo(0, 0);
-        }
+        container.appendChild(cardsGrid);
+    }
 
-        // Обробка жестів (свайп назад)
-        let touchStartX = 0, touchStartY = 0, isSwiping = false;
-        document.addEventListener('touchstart', e => { 
-            touchStartX = e.changedTouches[0].screenX; 
-            touchStartY = e.changedTouches[0].screenY; 
-            isSwiping = true; 
-        }, { passive: true });
-        
-        document.addEventListener('touchend', e => {
-            const distanceX = e.changedTouches[0].screenX - touchStartX;
-            const distanceY = Math.abs(e.changedTouches[0].screenY - touchStartY);
-            if (isSwiping && distanceX > 120 && distanceY < 50) {
-                if (document.getElementById('detail-page').classList.contains('active')) showHome();
-            }
-            isSwiping = false;
-        }, { passive: true });
-        
-        // Центрування карток на мобільних
-        if (window.innerWidth <= 900) {
-            const carouselWrapper = document.querySelector('.carousel-wrapper');
-            if (carouselWrapper) {
-                // Центруємо першу картку при завантаженні
-                setTimeout(() => {
-                    const firstCard = carouselWrapper.querySelector('.banner-card');
-                    if (firstCard) {
-                        const cardWidth = firstCard.offsetWidth;
-                        const wrapperWidth = carouselWrapper.offsetWidth;
-                        const scrollPosition = -(wrapperWidth / 2 - cardWidth / 2);
-                        carouselWrapper.scrollLeft = Math.max(0, scrollPosition);
-                    }
-                }, 100);
-            }
+    function showDetail(id) {
+        const person = currentData.find(p => p.id === id);
+        if (!person) return;
+        const m = person.metrics;
+        const block = (key) => {
+            const item = m[key] || {value: 0, unit: '-'};
+            return `<div class="detail-metric-card">
+                <div style="font-size:11px;color:var(--color-text-secondary);text-transform:uppercase">${key}</div>
+                <div style="font-size:22px;font-weight:600">${item.value.toLocaleString('uk-UA')} <span style="font-size:14px;font-weight:400">${item.unit}</span></div>
+            </div>`;
+        };
+        const _pl = getPlan(person.name);
+        const _tF = (m['ТО']||{value:0}).value;
+        const _aF = (m['ACC']||{value:0}).value;
+        const _sF = (m['Послуги грн']||{value:0}).value;
+        const _planBlock = _pl ? (
+            '<div class="detail-plan-section">' +
+                '<div style="font-size:13px;font-weight:700;margin-bottom:4px">📊 План / Факт / Залишок</div>' +
+                '<div class="detail-plan-grid">' +
+                    '<div class="detail-plan-card"><div class="dpc-label">ТО</div><div class="dpc-plan">План: ' + formatFull(_pl.to) + ' грн</div><div class="dpc-fact">' + formatFull(_tF) + ' грн</div><div class="dpc-rest">Вик.: ' + (_pl.to ? Math.round(_tF/_pl.to*100) : 0) + '% &nbsp; Зал.: ' + fmtRest(_tF,_pl.to) + '</div></div>' +
+                    '<div class="detail-plan-card"><div class="dpc-label">АСС</div><div class="dpc-plan">План: ' + formatFull(_pl.acc) + ' грн</div><div class="dpc-fact">' + formatFull(_aF) + ' грн</div><div class="dpc-rest">Вик.: ' + (_pl.acc ? Math.round(_aF/_pl.acc*100) : 0) + '% &nbsp; Зал.: ' + fmtRest(_aF,_pl.acc) + '</div></div>' +
+                    '<div class="detail-plan-card"><div class="dpc-label">Послуги</div><div class="dpc-plan">План: ' + formatFull(_pl.serv) + ' грн</div><div class="dpc-fact">' + formatFull(_sF) + ' грн</div><div class="dpc-rest">Вик.: ' + (_pl.serv ? Math.round(_sF/_pl.serv*100) : 0) + '% &nbsp; Зал.: ' + fmtRest(_sF,_pl.serv) + '</div></div>' +
+                '</div>' +
+            '</div>'
+        ) : '';
+        document.getElementById('detail-content').innerHTML = `
+            <div style="display:flex;align-items:center;margin-bottom:40px;">
+                <div class="avatar" style="width:80px;height:80px;font-size:28px;background:${person.gradient}">${person.initials}</div>
+                <div><h1 style="font-size:32px">${person.name}</h1><p style="color:var(--color-text-secondary)">${person.position}</p></div>
+            </div>
+            ${_planBlock}
+            <div class="group-title">💰 Продажі та Обіг</div>
+            <div class="metric-group group-sales">${block('ТО')} ${block('ASP')} ${block('Ср. Чек')}</div>
+            <div class="group-title">⚡ Ефективність</div>
+            <div class="metric-group group-eff">${block('Шт.')} ${block('Чеки')} ${block('ПЧ')} ${block('КПЧ')} ${block('Конверсія ПК')}</div>
+            <div class="group-title">🎧 Аксесуари (ACC)</div>
+            <div class="metric-group group-acc">${block('ACC')} ${block('% Доля ACC')}</div>
+            <div class="group-title">🛠 Послуги та УДС</div>
+            <div class="metric-group group-services">${block('Послуги грн')} ${block('Доля Послуг')} ${block('УДС')} ${block('Доля УДС')}</div>`;
+        document.getElementById('detail-page').classList.add('active');
+        document.getElementById('home-page').style.display = 'none';
+        window.scrollTo(0, 0);
+    }
+
+    function showHome() {
+        document.getElementById('detail-page').classList.remove('active');
+        document.getElementById('home-page').style.display = 'block';
+        window.scrollTo(0, 0);
+    }
+
+    // Свайп назад
+    let touchStartX = 0, touchStartY = 0, isSwiping = false;
+    document.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; touchStartY = e.changedTouches[0].screenY; isSwiping = true; }, { passive: true });
+    document.addEventListener('touchend', e => {
+        const distanceX = e.changedTouches[0].screenX - touchStartX;
+        const distanceY = Math.abs(e.changedTouches[0].screenY - touchStartY);
+        if (isSwiping && distanceX > 120 && distanceY < 50) {
+            if (document.getElementById('detail-page').classList.contains('active')) showHome();
         }
-    </script>
+        isSwiping = false;
+    }, { passive: true });
+
+    if (window.innerWidth <= 900) {
+        setTimeout(() => {
+            const cw = document.querySelector('.carousel-wrapper');
+            if (cw) {
+                const fc = cw.querySelector('.banner-card');
+                if (fc) { cw.scrollLeft = Math.max(0, -(cw.offsetWidth/2 - fc.offsetWidth/2)); }
+            }
+        }, 100);
+    }
+</script>
 </body>
 </html>
