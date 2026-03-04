@@ -94,11 +94,11 @@
         }
 
         /* ===== МОБІЛЬНИЙ =====
-           Ключова ідея:
-           - sticky ПК = NAME_W px
-           - ТО (3 кол): кожна = (100vw - NAME_W) / 3
-           - Послуги/АСС/Чеки (4 кол): кожна = (100vw - NAME_W) / 4
-           При скролі snap клацає на першу колонку кожної групи.
+           sticky ПК = 82px
+           ТО: 3 колонки = (100vw - 82px) / 3 кожна  → рівно вкладаються в екран
+           Послуги/АСС/Чеки: 4 колонки = (100vw - 82px) / 4 кожна
+           Таблиця ширша за екран → горизонтальний скрол
+           Snap: перша колонка кожної групи клацає до лівого краю після sticky
         */
         @media (max-width: 767px) {
             .table-card {
@@ -117,20 +117,35 @@
             }
             th:first-child { z-index: 201 !important; }
 
-            /* ТО — 3 колонки точно в екран */
+            /* ТО — кожна з 3 колонок = рівно 1/3 вільного місця */
             .col-to-plan, .col-to-fact, .col-to-pct {
                 width: calc((100vw - 82px) / 3);
                 min-width: calc((100vw - 82px) / 3);
                 max-width: calc((100vw - 82px) / 3);
             }
 
-            /* Послуги, АСС, Чеки — 4 колонки точно в екран */
+            /* Послуги, АСС, Чеки — кожна з 4 колонок = 1/4 вільного місця */
             .col-serv-plan, .col-serv-fact, .col-serv-share, .col-serv-pct,
             .col-acc-plan,  .col-acc-fact,  .col-acc-share,  .col-acc-pct,
             .col-chk-plan,  .col-chk-fact,  .col-chk-share,  .col-chk-pct {
                 width: calc((100vw - 82px) / 4);
                 min-width: calc((100vw - 82px) / 4);
                 max-width: calc((100vw - 82px) / 4);
+            }
+
+            /* Мінімальна ширина таблиці = sticky + ТО(3) + Посл(4) + АСС(4) + Чеки(3) = 14 колонок
+               Але оскільки колонки задані через vw, таблиця автоматично буде ширшою за екран */
+            table {
+                min-width: calc(82px
+                    + (100vw - 82px) * 3 / 3
+                    + (100vw - 82px) * 4 / 4
+                    + (100vw - 82px) * 4 / 4
+                    + (100vw - 82px) * 3 / 4);
+            }
+
+            /* Snap — перша колонка кожної групи "клацає" до лівого краю (після sticky) */
+            .col-to-plan, .col-serv-plan, .col-acc-plan, .col-chk-plan {
+                scroll-snap-align: start;
             }
 
             td { font-size: 10.5px; padding: 4px 2px; }
