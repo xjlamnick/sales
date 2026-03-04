@@ -6,13 +6,7 @@
     <title>План-Факт — Детальна Аналітика</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
     <style>
-        :root {
-            --bg: #f5f5f7; --text: #1d1d1f; --accent: #0071e3;
-            --mob-name: 82px;
-            /* ТО: 3 колонки на екран; решта груп: 4 колонки */
-            --mob-col-3: calc((100vw - var(--mob-name)) / 3);
-            --mob-col-4: calc((100vw - var(--mob-name)) / 4);
-        }
+        :root { --bg: #f5f5f7; --text: #1d1d1f; --accent: #0071e3; }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -27,12 +21,10 @@
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
             overscroll-behavior-x: contain;
-            scroll-snap-type: x mandatory;
         }
 
         table { width: 100%; border-collapse: collapse; table-layout: fixed; }
 
-        /* ===== ГРУПОВІ ЗАГОЛОВКИ ===== */
         .group-header {
             text-align: center; font-size: 10px; font-weight: 800;
             text-transform: uppercase; letter-spacing: 0.5px;
@@ -56,22 +48,20 @@
 
         td {
             padding: 5px 4px; border-bottom: 1px solid #f2f2f4;
-            font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-            text-align: center;
+            font-size: 12px; white-space: nowrap; overflow: hidden;
+            text-overflow: ellipsis; text-align: center;
         }
 
         .group-start { border-left: 2px solid #d2d2d7 !important; }
 
-        /* ===== STICKY ім'я ===== */
         .name-cell, th:first-child {
             position: sticky; left: 0; background: white; z-index: 100;
-            font-weight: 600; font-size: 11px; white-space: normal;
-            line-height: 1.2; word-break: break-word; text-align: left;
+            font-weight: 600; white-space: normal; line-height: 1.2;
+            word-break: break-word; text-align: left;
             box-shadow: 4px 0 8px -2px rgba(0,0,0,0.10);
         }
         th:first-child { z-index: 101; }
 
-        /* ===== БЕЙДЖІ ===== */
         .cell-badge {
             display: block; border-radius: 6px; font-size: 11px; font-weight: 600;
             text-align: center; padding: 2px 4px; white-space: nowrap;
@@ -82,7 +72,6 @@
         .badge-acc    { background: rgba(255,149,0,0.12);   color: #b85000; }
         .badge-checks { background: rgba(175,82,222,0.12);  color: #6d28d9; }
 
-        /* ===== ПІДСУМКОВИЙ РЯДОК ===== */
         .total-row td           { background: #e8f0fe !important; font-weight: 700 !important; }
         .total-row td.name-cell { background: #e8f0fe !important; color: #1d1d1f !important; }
         .deviation-row td       { font-style: italic; color: #86868b !important; font-size: 11px !important; }
@@ -94,25 +83,32 @@
         /* ===== ДЕСКТОП ===== */
         @media (min-width: 768px) {
             table { min-width: 1200px; }
-            .name-cell, th:first-child { width: 100px; min-width: 100px; max-width: 100px; padding: 6px 6px; }
-            .col-name  { width: 100px; }
+            .name-cell, th:first-child { width: 110px; min-width: 110px; max-width: 110px; padding: 6px 6px; font-size: 11px; }
             .col-plan  { width: 80px; }
-            .col-fact  { width: 90px; }
+            .col-fact  { width: 88px; }
             .col-pct   { width: 72px; }
-            .col-share { width: 72px; }
+            .col-share { width: 68px; }
             td { font-size: 12px; padding: 6px 5px; }
             th { font-size: 10px; padding: 6px 5px; }
             .cell-badge { font-size: 11px; padding: 2px 5px; }
         }
 
-        /* ===== МОБІЛЬНИЙ ===== */
+        /* ===== МОБІЛЬНИЙ =====
+           Ключова ідея:
+           - sticky ПК = NAME_W px
+           - ТО (3 кол): кожна = (100vw - NAME_W) / 3
+           - Послуги/АСС/Чеки (4 кол): кожна = (100vw - NAME_W) / 4
+           При скролі snap клацає на першу колонку кожної групи.
+        */
         @media (max-width: 767px) {
-            .table-card { scroll-padding-left: var(--mob-name); }
+            .table-card {
+                scroll-snap-type: x mandatory;
+                scroll-padding-left: 82px;
+            }
 
-            table { min-width: calc(var(--mob-name) + var(--mob-col-3) * 3 + var(--mob-col-4) * 11); }
-
+            /* sticky */
             .name-cell, th:first-child {
-                width: var(--mob-name); min-width: var(--mob-name); max-width: var(--mob-name);
+                width: 82px; min-width: 82px; max-width: 82px;
                 font-size: 9px; padding: 4px 4px;
                 z-index: 200 !important;
                 background: white; background-clip: padding-box;
@@ -121,15 +117,20 @@
             }
             th:first-child { z-index: 201 !important; }
 
-            /* ТО — 3 колонки на екран */
+            /* ТО — 3 колонки точно в екран */
             .col-to-plan, .col-to-fact, .col-to-pct {
-                width: var(--mob-col-3); min-width: var(--mob-col-3); max-width: var(--mob-col-3);
+                width: calc((100vw - 82px) / 3);
+                min-width: calc((100vw - 82px) / 3);
+                max-width: calc((100vw - 82px) / 3);
             }
-            /* Послуги, АСС, Чеки — 4 колонки на екран */
+
+            /* Послуги, АСС, Чеки — 4 колонки точно в екран */
             .col-serv-plan, .col-serv-fact, .col-serv-share, .col-serv-pct,
             .col-acc-plan,  .col-acc-fact,  .col-acc-share,  .col-acc-pct,
-            .col-chk-plan,  .col-chk-fact,  .col-chk-pct {
-                width: var(--mob-col-4); min-width: var(--mob-col-4); max-width: var(--mob-col-4);
+            .col-chk-plan,  .col-chk-fact,  .col-chk-share,  .col-chk-pct {
+                width: calc((100vw - 82px) / 4);
+                min-width: calc((100vw - 82px) / 4);
+                max-width: calc((100vw - 82px) / 4);
             }
 
             td { font-size: 10.5px; padding: 4px 2px; }
@@ -147,28 +148,28 @@
         <table id="tbl" style="display:none">
             <thead>
                 <tr>
-                    <th rowspan="2" class="name-cell" style="text-align:left">ПК</th>
+                    <th rowspan="2" style="text-align:left">ПК</th>
                     <th colspan="3" class="group-header group-to">Товарообіг</th>
                     <th colspan="4" class="group-header group-serv">Послуги</th>
                     <th colspan="4" class="group-header group-acc">Аксесуари</th>
                     <th colspan="3" class="group-header group-checks">Чеки</th>
                 </tr>
                 <tr>
-                    <th class="group-to   col-to-plan  group-start">План</th>
-                    <th class="group-to   col-to-fact">Факт</th>
-                    <th class="group-to   col-to-pct">%</th>
+                    <th class="group-to    col-to-plan   group-start">План</th>
+                    <th class="group-to    col-to-fact">Факт</th>
+                    <th class="group-to    col-to-pct">%</th>
 
-                    <th class="group-serv col-serv-plan group-start">План</th>
-                    <th class="group-serv col-serv-fact">Факт</th>
-                    <th class="group-serv col-serv-share">Доля</th>
-                    <th class="group-serv col-serv-pct">%</th>
+                    <th class="group-serv  col-serv-plan  group-start">План</th>
+                    <th class="group-serv  col-serv-fact">Факт</th>
+                    <th class="group-serv  col-serv-share">Доля</th>
+                    <th class="group-serv  col-serv-pct">%</th>
 
-                    <th class="group-acc  col-acc-plan  group-start">План</th>
-                    <th class="group-acc  col-acc-fact">Факт</th>
-                    <th class="group-acc  col-acc-share">Доля</th>
-                    <th class="group-acc  col-acc-pct">%</th>
+                    <th class="group-acc   col-acc-plan   group-start">План</th>
+                    <th class="group-acc   col-acc-fact">Факт</th>
+                    <th class="group-acc   col-acc-share">Доля</th>
+                    <th class="group-acc   col-acc-pct">%</th>
 
-                    <th class="group-checks col-chk-plan group-start">План</th>
+                    <th class="group-checks col-chk-plan  group-start">План</th>
                     <th class="group-checks col-chk-fact">Факт</th>
                     <th class="group-checks col-chk-pct">%</th>
                 </tr>
@@ -200,31 +201,60 @@ function fmtInt(v) {
     const n = toNum(v);
     return n ? Math.round(n).toLocaleString('uk-UA') : (v || '0');
 }
-function fmtShare(v) {
-    return toNum(v).toFixed(2);
-}
+function fmtShare(v) { return toNum(v).toFixed(2); }
 function fmtPct(v) {
     let n = toNum(v);
-    if (!v.toString().includes('%') && n > 0 && n < 2) n *= 100;
+    const s = v ? v.toString() : '';
+    if (!s.includes('%') && n > 0 && n < 2) n *= 100;
     return n.toFixed(1) + '%';
-}
-function pctStyle(v) {
-    let n = toNum(v);
-    if (!v.toString().includes('%') && n > 0 && n < 2) n *= 100;
-    if (n <= 0)  return { bg:'rgba(255,59,48,0.13)',  fg:'#c0392b' };
-    if (n < 50)  return { bg:'rgba(255,59,48,0.10)',  fg:'#d63b2a' };
-    if (n < 80)  return { bg:'rgba(255,149,0,0.12)',  fg:'#b86e00' };
-    if (n < 100) return { bg:'rgba(255,204,0,0.13)',  fg:'#8a6800' };
-    if (n < 120) return { bg:'rgba(52,199,89,0.12)',  fg:'#1e7e34' };
-    return             { bg:'rgba(52,199,89,0.20)',  fg:'#155724' };
 }
 
 function badge(text, cls) {
     return `<span class="cell-badge ${cls}">${text}</span>`;
 }
-function pctBadge(val, isSummary) {
-    const { bg, fg } = pctStyle(val);
-    return `<span class="cell-badge" style="background:${bg};color:${isSummary?'#1d1d1f':fg}">${fmtPct(val)}</span>`;
+// % бейдж — нейтральний сірий, колір виставить colorize()
+function pctBadge(val, colClass) {
+    return `<span class="cell-badge badge-plan ${colClass}" data-pct="${toNum(val)}">${fmtPct(val)}</span>`;
+}
+
+// ===== ДИНАМІЧНА ЗАЛИВКА % КОЛОНОК =====
+// Збираємо всі бейджі з однаковим data-pct класом, рахуємо min/max, фарбуємо
+function colorizePct() {
+    // Групуємо бейджі по класу колонки
+    const groups = {};
+    document.querySelectorAll('#tbody tr:not(.total-row):not(.deviation-row) .cell-badge[data-pct]').forEach(el => {
+        // знаходимо клас групи з батьківського td
+        const td = el.parentElement;
+        const cls = [...td.classList].find(c => c.startsWith('col-') && c.endsWith('-pct'));
+        if (!cls) return;
+        if (!groups[cls]) groups[cls] = [];
+        groups[cls].push({ el, val: parseFloat(el.dataset.pct) });
+    });
+
+    Object.values(groups).forEach(cells => {
+        const vals = cells.map(c => c.val);
+        const min = Math.min(...vals), max = Math.max(...vals);
+        const range = max - min || 1;
+        cells.forEach(({ el, val }) => {
+            const ratio = (val - min) / range; // 0=мін червоне, 1=макс зелене
+            const hue  = Math.round(ratio * 120);
+            const lBg  = Math.round(88 - ratio * 10);
+            const lFg  = Math.round(28 + ratio * 10);
+            el.style.background = `hsl(${hue},70%,${lBg}%)`;
+            el.style.color      = `hsl(${hue},60%,${lFg}%)`;
+        });
+    });
+
+    // Підсумковий рядок — стандартна заливка по значенню
+    document.querySelectorAll('#tbody tr.total-row .cell-badge[data-pct]').forEach(el => {
+        const n = parseFloat(el.dataset.pct);
+        let bg, fg;
+        if (n >= 100) { bg='rgba(52,199,89,0.20)'; fg='#155724'; }
+        else if (n >= 80) { bg='rgba(255,204,0,0.15)'; fg='#8a6800'; }
+        else { bg='rgba(255,59,48,0.13)'; fg='#c0392b'; }
+        el.style.background = bg;
+        el.style.color = '#1d1d1f';
+    });
 }
 
 async function load() {
@@ -254,7 +284,7 @@ async function load() {
             if (isDev) {
                 tr.innerHTML = `
                     <td class="name-cell">${name}</td>
-                    <td class="col-to-plan   group-start">${r(1)}</td>
+                    <td class="col-to-plan    group-start">${r(1)}</td>
                     <td class="col-to-fact">${r(2)}</td>
                     <td class="col-to-pct">${r(3)}</td>
                     <td class="col-serv-plan  group-start">${r(4)}</td>
@@ -271,27 +301,29 @@ async function load() {
             } else {
                 tr.innerHTML = `
                     <td class="name-cell">${name}</td>
-                    <td class="col-to-plan   group-start">${badge(fmtInt(r(1)), 'badge-plan')}</td>
-                    <td class="col-to-fact">${badge(fmtInt(r(2)), 'badge-to')}</td>
-                    <td class="col-to-pct">${pctBadge(r(3), isTotal)}</td>
-                    <td class="col-serv-plan  group-start">${badge(fmtInt(r(4)), 'badge-plan')}</td>
-                    <td class="col-serv-fact">${badge(fmtInt(r(5)), 'badge-serv')}</td>
-                    <td class="col-serv-share">${badge(fmtShare(r(6)), 'badge-serv')}</td>
-                    <td class="col-serv-pct">${pctBadge(r(7), isTotal)}</td>
-                    <td class="col-acc-plan   group-start">${badge(fmtInt(r(8)), 'badge-plan')}</td>
-                    <td class="col-acc-fact">${badge(fmtInt(r(9)), 'badge-acc')}</td>
-                    <td class="col-acc-share">${badge(fmtShare(r(10)), 'badge-acc')}</td>
-                    <td class="col-acc-pct">${pctBadge(r(11), isTotal)}</td>
-                    <td class="col-chk-plan   group-start">${badge(fmtInt(r(12)), 'badge-plan')}</td>
-                    <td class="col-chk-fact">${badge(fmtInt(r(13)), 'badge-checks')}</td>
-                    <td class="col-chk-pct">${pctBadge(r(14), isTotal)}</td>`;
+                    <td class="col-to-plan    group-start">${badge(fmtInt(r(1)),'badge-plan')}</td>
+                    <td class="col-to-fact">${badge(fmtInt(r(2)),'badge-to')}</td>
+                    <td class="col-to-pct">${pctBadge(r(3),'col-to-pct')}</td>
+                    <td class="col-serv-plan  group-start">${badge(fmtInt(r(4)),'badge-plan')}</td>
+                    <td class="col-serv-fact">${badge(fmtInt(r(5)),'badge-serv')}</td>
+                    <td class="col-serv-share">${badge(fmtShare(r(6)),'badge-serv')}</td>
+                    <td class="col-serv-pct">${pctBadge(r(7),'col-serv-pct')}</td>
+                    <td class="col-acc-plan   group-start">${badge(fmtInt(r(8)),'badge-plan')}</td>
+                    <td class="col-acc-fact">${badge(fmtInt(r(9)),'badge-acc')}</td>
+                    <td class="col-acc-share">${badge(fmtShare(r(10)),'badge-acc')}</td>
+                    <td class="col-acc-pct">${pctBadge(r(11),'col-acc-pct')}</td>
+                    <td class="col-chk-plan   group-start">${badge(fmtInt(r(12)),'badge-plan')}</td>
+                    <td class="col-chk-fact">${badge(fmtInt(r(13)),'badge-checks')}</td>
+                    <td class="col-chk-pct">${pctBadge(r(14),'col-chk-pct')}</td>`;
             }
             tbody.appendChild(tr);
         });
 
+        colorizePct();
+
         // Scroll snap на першу колонку кожної групи
         if (window.innerWidth < 768) {
-            document.querySelectorAll('.group-start').forEach(el => {
+            document.querySelectorAll('th.group-start, td.group-start').forEach(el => {
                 el.style.scrollSnapAlign = 'start';
             });
         }
