@@ -522,17 +522,23 @@
         });
 
         // Ширини колонок
+        const lastW = 18;
         const firstW = 16;
-        const restW = Math.floor((100 - firstW) / Math.max(numCols - 1, 1));
+        const restW = Math.floor((100 - firstW - lastW) / Math.max(numCols - 2, 1));
         let colgroup = '<colgroup>';
         headers.forEach((_, i) => {
-            colgroup += `<col style="width:${i === 0 ? firstW : restW}%">`;
+            let w = restW;
+            if (i === 0) w = firstW;
+            else if (i === headers.length - 1) w = lastW;
+            colgroup += `<col style="width:${w}%">`;
         });
         colgroup += '</colgroup>';
 
         let html = `<div class="gsheet-table-wrapper"><table class="gsheet-table">${colgroup}<thead><tr>`;
         headers.forEach((h, i) => {
-            html += `<th style="white-space:normal;word-break:break-word;vertical-align:bottom;text-align:center">${esc(h)}</th>`;
+            const isLast4 = i >= headers.length - 4;
+            const fs = isLast4 ? 'font-size:7px;' : '';
+            html += `<th style="white-space:normal;word-break:break-word;vertical-align:bottom;text-align:center;${fs}">${esc(h)}</th>`;
         });
         html += `</tr></thead><tbody>`;
 
