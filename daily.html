@@ -200,7 +200,15 @@
 </head>
 <body>
     <a href="index.html" class="back-link">← Назад</a>
-    <h1>Щоденні звіти</h1>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <h1 style="margin:0">Щоденні звіти</h1>
+        <button id="toggleBtn" onclick="toggleCompact()" style="
+            background:#0071e3;color:white;border:none;border-radius:10px;
+            padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;
+            font-family:inherit;white-space:nowrap;">
+            Компакт
+        </button>
+    </div>
 
     <div class="table-card">
         <div id="loader" class="loading">Завантаження...</div>
@@ -463,6 +471,78 @@ async function load() {
 }
 
 load();
+
+// ===== КОМПАКТНИЙ РЕЖИМ =====
+let isCompact = false;
+
+function toggleCompact() {
+    isCompact = !isCompact;
+    const btn = document.getElementById('toggleBtn');
+    btn.textContent = isCompact ? 'Повний' : 'Компакт';
+    btn.style.background = isCompact ? '#34c759' : '#0071e3';
+    applyCompact();
+}
+
+function applyCompact() {
+    const thead = document.getElementById('thead');
+    const tbody = document.getElementById('tbody');
+    if (!thead || !tbody) return;
+
+    // Збираємо заголовки 2-го рядку thead (підзаголовки колонок)
+    const subHeaders = thead.querySelectorAll('tr:last-child th');
+
+    // Визначаємо які колонки залишити (індекс 0 = name-cell завжди)
+    // Шукаємо по тексту заголовка
+    const keepKeywords = ['факт то', 'факт по', 'факт асс', 'факт акс', 'факт чек', 'чеки'];
+
+    // Будуємо масив: індекс колонки (з 1) → показувати чи ні
+    const show = [true]; // 0 = name завжди видно
+    subHeaders.forEach(th => {
+        const txt = th.textContent.toLowerCase().trim();
+        if (!isCompact) {
+            show.push(true);
+        } else {
+            // Залишаємо якщо це Факт і група TO/serv/acc/checks
+            const isFact = th.classList.contains('g-to')   && !txt.includes('план') && !txt.includes('%') ||
+                           th.classList.contains('g-serv')  && !txt.includes('план') && !txt.includes('%') && !txt.includes('доля') ||
+                           th.classList.contains('g-acc')   && !txt.includes('план') && !txt.includes('%') && !txt.includes('доля') ||
+                           th.classList.contains('g-checks')&& !txt.includes('план') && !txt.includes('%');
+            show.push(isFact);
+        }
+    });
+
+    // Ховаємо/показуємо колонки в thead (обидва рядки)
+    const allHeaderRows = thead.querySelectorAll('tr');
+    // Рядок 1 (групові заголовки) — перераховуємо colspan
+    // Простіше ховати по індексах в tbody/thead рядку 2
+    allHeaderRows[1].querySelectorAll('th').forEach((th, i) => {
+        th.style.display = show[i+1] ? '' : 'none';
+    });
+
+    // Груповий рядок — показуємо тільки якщо хоч одна колонка групи видна
+    // Перебудовуємо colspan для груп
+    const groupThs = allHeaderRows[0].querySelectorAll('th:not(:first-child)');
+    let colIdx = 1;
+    groupThs.forEach(gth => {
+        const span = parseInt(gth.getAttribute('colspan')) || 1;
+        let visible = 0;
+        for (let i = colIdx; i < colIdx + span; i++) {
+            if (show[i]) visible++;
+        }
+        gth.setAttribute('colspan', visible || 1);
+        gth.style.display = visible ? '' : 'none';
+        colIdx += span;
+    });
+
+    // Ховаємо/показуємо td в кожному рядку tbody
+    const rows = tbody.querySelectorAll('tr');
+    rows.forEach(tr => {
+        const tds = tr.querySelectorAll('td');
+        tds.forEach((td, i) => {
+            td.style.display = show[i] ? '' : 'none';
+        });
+    });
+}
 
 // Свайп назад
 let x0=0, y0=0, sw=false;
