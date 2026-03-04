@@ -6,384 +6,312 @@
     <title>План-Факт</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
     <style>
-        :root { --bg: #f5f5f7; --text: #1d1d1f; --accent: #0071e3; --name-w: 82px; }
+        :root { --bg: #f5f5f7; --text: #1d1d1f; --accent: #0071e3; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); padding: 8px 10px; }
         .back-link { color: var(--accent); text-decoration: none; font-weight: 500; display: inline-block; margin-bottom: 8px; font-size: 14px; }
 
-        /* Обгортка всіх груп — горизонтальний скрол з snap */
-        .scroll-wrap {
-            background: white;
-            border-radius: 16px;
+        .table-card {
+            background: white; border-radius: 16px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.06);
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
+            overflow-x: auto; -webkit-overflow-scrolling: touch;
             overscroll-behavior-x: contain;
-            scroll-snap-type: x mandatory;
-            display: flex;
-            flex-direction: column;
         }
 
-        /* Один рядок скролу: sticky-стовпець + горизонтальний контент */
-        .grid-row {
-            display: flex;
-            flex-direction: row;
-            border-bottom: 1px solid #f2f2f4;
-        }
-        .grid-row:last-child { border-bottom: none; }
+        table { border-collapse: collapse; table-layout: fixed; }
 
-        /* Sticky ім'я */
-        .name-col {
-            position: sticky;
-            left: 0;
-            background: white;
-            z-index: 10;
-            flex-shrink: 0;
-            width: var(--name-w);
-            min-width: var(--name-w);
-            padding: 5px 5px;
-            font-size: 11px;
-            font-weight: 600;
-            line-height: 1.2;
-            word-break: break-word;
-            display: flex;
-            align-items: center;
-            box-shadow: 3px 0 8px -2px rgba(0,0,0,0.12);
-            border-right: 1px solid #e8e8ed;
+        th {
+            text-align: center; padding: 5px 3px; color: #86868b;
+            font-size: 10px; font-weight: 600; text-transform: uppercase;
+            border-bottom: 1px solid #d2d2d7; background: white;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
-        .name-col.header {
-            font-size: 10px; font-weight: 700; color: #86868b;
-            text-transform: uppercase; background: white; z-index: 20;
-        }
-        .name-col.total   { background: #e8f0fe !important; font-weight: 700; }
-        .name-col.dev     { font-style: italic; color: #86868b; font-size: 10px; }
-
-        /* Горизонтальний контейнер груп */
-        .groups-row {
-            display: flex;
-            flex-direction: row;
-            flex: 1;
-            min-width: 0;
+        td {
+            padding: 5px 3px; border-bottom: 1px solid #f2f2f4;
+            font-size: 12px; text-align: center;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
 
-        /* Одна група */
-        .group-block {
-            flex-shrink: 0;
-            display: flex;
-            flex-direction: row;
-            border-left: 2px solid #e8e8ed;
+        .group-header {
+            text-align: center; font-size: 10px; font-weight: 800;
+            text-transform: uppercase; padding: 6px 4px;
+            border-bottom: 1px solid #d2d2d7; background: white;
         }
+        .g-to     { color: #0071e3; border-bottom: 3px solid #0071e3 !important; }
+        .g-serv   { color: #34c759; border-bottom: 3px solid #34c759 !important; }
+        .g-acc    { color: #ff9500; border-bottom: 3px solid #ff9500 !important; }
+        .g-checks { color: #af52de; border-bottom: 3px solid #af52de !important; }
 
-        /* Клітинка всередині групи */
-        .cell {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 5px 3px;
-            font-size: 12px;
-            overflow: hidden;
-        }
-        .cell.header {
-            font-size: 9px; font-weight: 700; color: #86868b;
-            text-transform: uppercase; background: white;
-            flex-direction: column; gap: 1px;
-        }
-        .cell.total  { background: #e8f0fe !important; font-weight: 700; }
-        .cell.dev    { font-style: italic; color: #86868b; font-size: 10px; }
+        .grp-start { border-left: 2px solid #d2d2d7 !important; }
 
-        /* Заголовок групи */
-        .group-title-row {
-            display: flex;
-            flex-direction: row;
-            border-bottom: 1px solid #d2d2d7;
+        /* sticky ім'я */
+        .name-cell, th.name-th {
+            position: sticky; left: 0; background: white; z-index: 100;
+            font-weight: 600; white-space: normal; line-height: 1.2;
+            word-break: break-word; text-align: left;
+            box-shadow: 4px 0 8px -2px rgba(0,0,0,0.12);
+            border-right: 1px solid #e0e0e5;
         }
-        .group-title {
-            text-align: center; font-size: 9px; font-weight: 800;
-            text-transform: uppercase; letter-spacing: 0.4px;
-            padding: 6px 4px; background: white; flex: 1;
-            border-left: 2px solid #e8e8ed;
-        }
-        .gt-to     { color: #0071e3; border-bottom: 3px solid #0071e3; }
-        .gt-serv   { color: #34c759; border-bottom: 3px solid #34c759; }
-        .gt-acc    { color: #ff9500; border-bottom: 3px solid #ff9500; }
-        .gt-checks { color: #af52de; border-bottom: 3px solid #af52de; }
+        th.name-th { z-index: 101; font-size: 10px; }
 
-        /* Бейджі */
+        /* бейджі */
         .badge {
             display: block; border-radius: 5px; font-size: 10px; font-weight: 600;
-            text-align: center; padding: 2px 3px; white-space: nowrap; width: 100%;
+            text-align: center; padding: 2px 3px; white-space: nowrap;
         }
-        .b-plan   { background: rgba(134,134,139,0.10); color: #6e6e73; font-weight: 500; font-size: 9px; }
+        .b-plan   { background: rgba(134,134,139,0.10); color: #6e6e73; font-size: 9px; }
         .b-to     { background: rgba(0,113,227,0.12);   color: #1a50b8; }
         .b-serv   { background: rgba(52,199,89,0.12);   color: #1a7f37; }
         .b-acc    { background: rgba(255,149,0,0.12);   color: #b85000; }
         .b-checks { background: rgba(175,82,222,0.12);  color: #6d28d9; }
 
-        .loading { padding: 40px; text-align: center; color: #86868b; background: white; border-radius: 16px; }
-        .error   { padding: 40px; text-align: center; color: #ff3b30; background: white; border-radius: 16px; }
+        .total-row td           { background: #e8f0fe !important; font-weight: 700; }
+        .total-row td.name-cell { background: #e8f0fe !important; color: #1d1d1f; }
+        .dev-row td             { font-style: italic; color: #86868b !important; font-size: 10px; }
+        .dev-row td.name-cell   { font-style: italic; color: #86868b !important; }
 
-        /* ===== ДЕСКТОП ===== */
-        @media (min-width: 768px) {
-            :root { --name-w: 110px; }
-            .name-col { font-size: 11px; }
-            .cell { font-size: 12px; padding: 6px 5px; }
-            .badge { font-size: 11px; padding: 2px 5px; }
-        }
+        .loading { padding: 40px; text-align: center; color: #86868b; }
+        .error   { padding: 40px; text-align: center; color: #ff3b30; }
     </style>
 </head>
 <body>
     <a href="index.html" class="back-link">← На головну</a>
-    <div id="loader" class="loading">Завантаження...</div>
-    <div id="wrap" style="display:none"></div>
+    <div class="table-card">
+        <div id="loader" class="loading">Завантаження...</div>
+        <table id="tbl" style="display:none">
+            <thead>
+                <tr id="tr-groups"></tr>
+                <tr id="tr-heads"></tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+        </table>
+    </div>
 
 <script>
+// ======= CONFIG =======
+// Групи: назва, css-клас, [{ label, csvIdx, type, badge }]
+const GROUPS = [
+    { name:'Товарообіг', cls:'g-to', cols:[
+        { label:'План',  idx:1,  type:'plan',  b:'b-plan' },
+        { label:'Факт',  idx:2,  type:'fact',  b:'b-to'   },
+        { label:'%',     idx:3,  type:'pct'                },
+    ]},
+    { name:'Послуги', cls:'g-serv', cols:[
+        { label:'План',  idx:4,  type:'plan',  b:'b-plan' },
+        { label:'Факт',  idx:5,  type:'fact',  b:'b-serv' },
+        { label:'Доля',  idx:6,  type:'share', b:'b-serv' },
+        { label:'%',     idx:7,  type:'pct'                },
+    ]},
+    { name:'Аксесуари', cls:'g-acc', cols:[
+        { label:'План',  idx:8,  type:'plan',  b:'b-plan' },
+        { label:'Факт',  idx:9,  type:'fact',  b:'b-acc'  },
+        { label:'Доля',  idx:10, type:'share', b:'b-acc'  },
+        { label:'%',     idx:11, type:'pct'                },
+    ]},
+    { name:'Чеки', cls:'g-checks', cols:[
+        { label:'План',  idx:12, type:'plan',  b:'b-plan'   },
+        { label:'Факт',  idx:13, type:'fact',  b:'b-checks' },
+        { label:'%',     idx:14, type:'pct'                  },
+    ]},
+];
+
+// ======= HELPERS =======
 function parseCSV(text) {
     const rows = []; let row = [], col = '', inQ = false;
     for (let i = 0; i < text.length; i++) {
         const c = text[i];
-        if (c === '"' && text[i+1] === '"') { col += '"'; i++; }
-        else if (c === '"') inQ = !inQ;
-        else if (c === ',' && !inQ) { row.push(col); col = ''; }
-        else if (c === '\n' && !inQ) { row.push(col); rows.push(row); row = []; col = ''; }
-        else col += c;
+        if (c==='"' && text[i+1]==='"') { col+='"'; i++; }
+        else if (c==='"') inQ=!inQ;
+        else if (c===',' && !inQ) { row.push(col); col=''; }
+        else if (c==='\n' && !inQ) { row.push(col); rows.push(row); row=[]; col=''; }
+        else col+=c;
     }
-    if (col || row.length) { row.push(col); rows.push(row); }
+    if (col||row.length) { row.push(col); rows.push(row); }
     return rows;
 }
-
 function toNum(v) {
-    if (!v) return 0;
-    return parseFloat(v.toString().replace('%','').replace(/\s/g,'').replace(',','.')) || 0;
+    return parseFloat((v||'').toString().replace('%','').replace(/\s/g,'').replace(',','.')) || 0;
 }
-function fmtInt(v) {
-    const n = toNum(v); return n ? Math.round(n).toLocaleString('uk-UA') : (v||'0');
-}
+function fmtInt(v) { const n=toNum(v); return n ? Math.round(n).toLocaleString('uk-UA') : (v||'0'); }
 function fmtShare(v) { return toNum(v).toFixed(2); }
 function fmtPct(v) {
-    let n = toNum(v);
-    if (!v.toString().includes('%') && n > 0 && n < 2) n *= 100;
-    return n.toFixed(1) + '%';
+    let n=toNum(v);
+    if (!(v||'').toString().includes('%') && n>0 && n<2) n*=100;
+    return n.toFixed(1)+'%';
+}
+function pctNum(v) {
+    let n=toNum(v);
+    if (!(v||'').toString().includes('%') && n>0 && n<2) n*=100;
+    return n;
 }
 
-// Групи: назва, css-клас, колонки [індекс CSV, мітка, тип]
-const GROUPS = [
-    { name: 'Товарообіг', cls: 'gt-to', cols: [
-        { i:1, label:'План',  type:'plan',  badge:'b-plan' },
-        { i:2, label:'Факт',  type:'fact',  badge:'b-to'   },
-        { i:3, label:'%',     type:'pct',   badge:'b-pct'  },
-    ]},
-    { name: 'Послуги', cls: 'gt-serv', cols: [
-        { i:4, label:'План',  type:'plan',  badge:'b-plan' },
-        { i:5, label:'Факт',  type:'fact',  badge:'b-serv' },
-        { i:6, label:'Доля',  type:'share', badge:'b-serv' },
-        { i:7, label:'%',     type:'pct',   badge:'b-pct'  },
-    ]},
-    { name: 'Аксесуари', cls: 'gt-acc', cols: [
-        { i:8,  label:'План',  type:'plan',  badge:'b-plan' },
-        { i:9,  label:'Факт',  type:'fact',  badge:'b-acc'  },
-        { i:10, label:'Доля',  type:'share', badge:'b-acc'  },
-        { i:11, label:'%',     type:'pct',   badge:'b-pct'  },
-    ]},
-    { name: 'Чеки', cls: 'gt-checks', cols: [
-        { i:12, label:'План',  type:'plan',  badge:'b-plan'   },
-        { i:13, label:'Факт',  type:'fact',  badge:'b-checks' },
-        { i:14, label:'%',     type:'pct',   badge:'b-pct'    },
-    ]},
-];
+// ======= WIDTHS =======
+// Задаємо ширини в px через JS щоб браузер не міг нічого переробити
+function getWidths() {
+    const mob = window.innerWidth < 768;
+    if (!mob) {
+        return { name: 110, c3: 82, c4: 78 };
+    }
+    const nameW = 82;
+    const avail = window.innerWidth - nameW - 1; // -1 px запас
+    return {
+        name: nameW,
+        c3: Math.floor(avail / 3),   // для груп по 3 колонки
+        c4: Math.floor(avail / 4),   // для груп по 4 колонки
+    };
+}
 
-function buildLayout(dataRows) {
-    const wrap = document.getElementById('wrap');
-    wrap.style.display = '';
+// ======= BUILD TABLE =======
+function buildTable(dataRows) {
+    const W = getWidths();
 
-    const isMob = window.innerWidth < 768;
-    const nameW = isMob ? 82 : 110;
-    const avail = window.innerWidth - nameW;
+    const tbl = document.getElementById('tbl');
+    tbl.style.display = '';
 
-    // Ширина клітинки групи: рівно вписати N колонок в avail
-    function colW(n) { return Math.floor(avail / n); }
+    // Загальна ширина таблиці
+    // ТО: 3*c3, Посл: 4*c4, АСС: 4*c4, Чеки: 3*c4
+    const totalW = W.name + 3*W.c3 + 4*W.c4 + 4*W.c4 + 3*W.c4;
+    tbl.style.width = totalW + 'px';
 
-    // Збираємо % значення для динамічної заливки
-    const pctCollect = {}; // groupIdx -> [{ el, val }]
-    GROUPS.forEach((_, gi) => pctCollect[gi] = []);
-
-    const scrollWrap = document.createElement('div');
-    scrollWrap.className = 'scroll-wrap';
-
-    // ---- РЯДОК ЗАГОЛОВКІВ ГРУП ----
-    const titleRow = document.createElement('div');
-    titleRow.style.cssText = 'display:flex;flex-direction:row;border-bottom:1px solid #d2d2d7;background:white;position:sticky;top:0;z-index:30;';
-
-    // sticky corner
-    const corner = document.createElement('div');
-    corner.className = 'name-col header';
-    corner.style.cssText = `width:${nameW}px;min-width:${nameW}px;z-index:40;`;
-    corner.textContent = 'ПК';
-    titleRow.appendChild(corner);
-
-    const titleGroups = document.createElement('div');
-    titleGroups.style.cssText = 'display:flex;flex-direction:row;';
+    // Colgroup
+    const cg = document.createElement('colgroup');
+    function addCol(w) {
+        const c = document.createElement('col');
+        c.style.width = w + 'px';
+        cg.appendChild(c);
+    }
+    addCol(W.name);
     GROUPS.forEach(g => {
-        const n = g.cols.length;
-        const w = colW(n) * n;
-        const gt = document.createElement('div');
-        gt.className = 'group-title ' + g.cls;
-        gt.style.cssText = `width:${w}px;min-width:${w}px;flex:none;`;
-        gt.textContent = g.name;
-        titleGroups.appendChild(gt);
+        const cw = g.cols.length === 3 ? W.c3 : W.c4;
+        g.cols.forEach(() => addCol(cw));
     });
-    titleRow.appendChild(titleGroups);
-    scrollWrap.appendChild(titleRow);
+    tbl.prepend(cg);
 
-    // ---- РЯДОК ПІДЗАГОЛОВКІВ ----
-    const subRow = document.createElement('div');
-    subRow.style.cssText = 'display:flex;flex-direction:row;border-bottom:1px solid #d2d2d7;background:white;position:sticky;top:28px;z-index:30;';
+    // Рядок групових заголовків
+    const trG = document.getElementById('tr-groups');
+    // corner
+    const corner = document.createElement('th');
+    corner.rowSpan = 2;
+    corner.className = 'name-th';
+    corner.style.width = W.name + 'px';
+    corner.textContent = 'ПК';
+    trG.appendChild(corner);
 
-    const subCorner = document.createElement('div');
-    subCorner.className = 'name-col header';
-    subCorner.style.cssText = `width:${nameW}px;min-width:${nameW}px;z-index:40;`;
-    subRow.appendChild(subCorner);
-
-    const subGroups = document.createElement('div');
-    subGroups.style.cssText = 'display:flex;flex-direction:row;';
     GROUPS.forEach(g => {
-        const n = g.cols.length;
-        const cw = colW(n);
+        const th = document.createElement('th');
+        th.colSpan = g.cols.length;
+        th.className = 'group-header ' + g.cls + ' grp-start';
+        th.textContent = g.name;
+        trG.appendChild(th);
+    });
+
+    // Рядок підзаголовків
+    const trH = document.getElementById('tr-heads');
+    GROUPS.forEach(g => {
         g.cols.forEach((col, ci) => {
-            const th = document.createElement('div');
-            th.className = 'cell header';
-            th.style.cssText = `width:${cw}px;min-width:${cw}px;flex:none;${ci===0?'border-left:2px solid #d2d2d7;':''}`;
+            const th = document.createElement('th');
+            th.className = g.cls + (ci===0 ? ' grp-start' : '');
             th.textContent = col.label;
-            subGroups.appendChild(th);
+            trH.appendChild(th);
         });
     });
-    subRow.appendChild(subGroups);
-    scrollWrap.appendChild(subRow);
 
-    // ---- РЯДКИ ДАНИХ ----
+    // Збираємо % spans для colorize
+    const pctSpans = GROUPS.map(() => []);
+
+    // Рядки даних
+    const tbody = document.getElementById('tbody');
     dataRows.forEach(row => {
-        if (!row[0] || !row[0].trim()) return;
+        if (!row[0]||!row[0].trim()) return;
         const name = row[0].trim();
-        const nameLC = name.toLowerCase();
-        const isTotal = ['разом','сума','total','тотал','підсумок','всього','итого'].some(k => nameLC.includes(k));
-        const isDev   = nameLC.includes('відставання') || nameLC.includes('відхилення');
+        const nl = name.toLowerCase();
+        const isTotal = ['разом','сума','total','тотал','підсумок','всього','итого'].some(k=>nl.includes(k));
+        const isDev   = nl.includes('відставання')||nl.includes('відхилення');
 
-        const dr = document.createElement('div');
-        dr.className = 'grid-row';
+        const tr = document.createElement('tr');
+        if (isTotal) tr.className = 'total-row';
+        if (isDev)   tr.className = 'dev-row';
 
-        // ім'я
-        const nc = document.createElement('div');
-        nc.className = 'name-col' + (isTotal?' total':isDev?' dev':'');
-        nc.style.cssText = `width:${nameW}px;min-width:${nameW}px;`;
+        // name cell
+        const nc = document.createElement('td');
+        nc.className = 'name-cell';
+        nc.style.width = W.name + 'px';
         nc.textContent = name;
-        dr.appendChild(nc);
-
-        // групи
-        const gr = document.createElement('div');
-        gr.style.cssText = 'display:flex;flex-direction:row;';
+        tr.appendChild(nc);
 
         GROUPS.forEach((g, gi) => {
-            const n = g.cols.length;
-            const cw = colW(n);
+            const cw = g.cols.length===3 ? W.c3 : W.c4;
             g.cols.forEach((col, ci) => {
-                const val = (row[col.i] || '').trim();
-                const cell = document.createElement('div');
-                cell.className = 'cell' + (isTotal?' total':isDev?' dev':'');
-                cell.style.cssText = `width:${cw}px;min-width:${cw}px;flex:none;${ci===0?'border-left:2px solid #d2d2d7;':''}`;
+                const val = (row[col.idx]||'').trim();
+                const td = document.createElement('td');
+                td.style.width = cw + 'px';
+                if (ci===0) td.classList.add('grp-start');
 
-                if (!isDev) {
-                    let inner;
-                    if (col.type === 'plan') {
-                        inner = `<span class="badge b-plan">${fmtInt(val)}</span>`;
-                    } else if (col.type === 'share') {
-                        inner = `<span class="badge ${col.badge}">${fmtShare(val)}</span>`;
-                    } else if (col.type === 'pct') {
-                        // збираємо для colorize
-                        const span = document.createElement('span');
-                        span.className = 'badge b-plan';
-                        span.textContent = fmtPct(val);
-                        span.dataset.val = toNum(val) < 2 ? toNum(val)*100 : toNum(val);
-                        if (!isTotal) pctCollect[gi].push(span);
-                        cell.appendChild(span);
-                        gr.appendChild(cell);
-                        return;
-                    } else {
-                        inner = `<span class="badge ${col.badge}">${fmtInt(val)}</span>`;
-                    }
-                    cell.innerHTML = inner;
-                } else {
-                    cell.textContent = val;
+                if (isDev) {
+                    td.textContent = val;
+                } else if (col.type==='plan') {
+                    td.innerHTML = `<span class="badge b-plan">${fmtInt(val)}</span>`;
+                } else if (col.type==='share') {
+                    td.innerHTML = `<span class="badge ${col.b}">${fmtShare(val)}</span>`;
+                } else if (col.type==='fact') {
+                    td.innerHTML = `<span class="badge ${col.b}">${fmtInt(val)}</span>`;
+                } else if (col.type==='pct') {
+                    const span = document.createElement('span');
+                    span.className = 'badge b-plan';
+                    span.textContent = fmtPct(val);
+                    span.dataset.pct = pctNum(val);
+                    td.appendChild(span);
+                    if (!isTotal) pctSpans[gi].push(span);
                 }
-                gr.appendChild(cell);
+                tr.appendChild(td);
             });
         });
 
-        dr.appendChild(gr);
-        scrollWrap.appendChild(dr);
+        tbody.appendChild(tr);
     });
 
-    wrap.appendChild(scrollWrap);
-
-    // ---- ДИНАМІЧНА ЗАЛИВКА % ----
-    GROUPS.forEach((_, gi) => {
-        const spans = pctCollect[gi];
+    // Динамічна заливка %
+    pctSpans.forEach(spans => {
         if (!spans.length) return;
-        const vals = spans.map(s => parseFloat(s.dataset.val));
-        const min = Math.min(...vals), max = Math.max(...vals);
-        const range = max - min || 1;
+        const vals = spans.map(s => +s.dataset.pct);
+        const min = Math.min(...vals), max = Math.max(...vals), range = max-min||1;
         spans.forEach(s => {
-            const ratio = (parseFloat(s.dataset.val) - min) / range;
-            const hue = Math.round(ratio * 120);
-            s.style.background = `hsl(${hue},70%,${Math.round(88-ratio*10)}%)`;
-            s.style.color      = `hsl(${hue},60%,${Math.round(28+ratio*10)}%)`;
-        });
-        // total рядок — звичайна заливка по значенню
-        document.querySelectorAll('.cell.total .badge').forEach(s => {
-            if (!s.dataset.val) return;
-            const n = parseFloat(s.dataset.val);
-            s.style.background = n>=100?'rgba(52,199,89,0.20)':n>=80?'rgba(255,204,0,0.15)':'rgba(255,59,48,0.13)';
-            s.style.color = '#1d1d1f';
+            const ratio = (+s.dataset.pct - min) / range;
+            const h = Math.round(ratio*120);
+            s.style.background = `hsl(${h},70%,${Math.round(88-ratio*10)}%)`;
+            s.style.color      = `hsl(${h},60%,${Math.round(28+ratio*10)}%)`;
         });
     });
+    // total рядок % — по значенню
+    tbody.querySelectorAll('.total-row .badge[data-pct]').forEach(s => {
+        const n = +s.dataset.pct;
+        s.style.background = n>=100?'rgba(52,199,89,0.20)':n>=80?'rgba(255,204,0,0.15)':'rgba(255,59,48,0.13)';
+        s.style.color = '#1d1d1f';
+    });
 
-    // ---- SCROLL SNAP ----
-    // Snap point = позиція першої колонки кожної групи від лівого краю scrollWrap
-    // Реалізуємо через scrollLeft на click/touch — нативний snap не працює з flex+sticky
-    if (isMob) {
-        // Рахуємо snap позиції
-        const snapPositions = [];
+    // Scroll snap через JS (touchend)
+    if (window.innerWidth < 768) {
+        const card = document.querySelector('.table-card');
+        // Позиції snap = початок кожної групи
+        const snaps = [];
         let x = 0;
         GROUPS.forEach(g => {
-            snapPositions.push(x);
-            x += colW(g.cols.length) * g.cols.length;
+            snaps.push(x);
+            x += (g.cols.length===3 ? W.c3 : W.c4) * g.cols.length;
         });
 
-        let startX = 0, startScroll = 0, isDragging = false;
-        scrollWrap.addEventListener('touchstart', e => {
-            startX = e.touches[0].clientX;
-            startScroll = scrollWrap.scrollLeft;
-            isDragging = true;
-        }, { passive: true });
-
-        scrollWrap.addEventListener('touchend', e => {
-            if (!isDragging) return;
-            isDragging = false;
-            const dx = startX - e.changedTouches[0].clientX;
-            const current = scrollWrap.scrollLeft;
-
-            // Знаходимо найближчу snap позицію в напрямку свайпу
-            let target = snapPositions.reduce((best, pos) => {
-                return Math.abs(pos - current) < Math.abs(best - current) ? pos : best;
-            }, snapPositions[0]);
-
-            // Якщо свайп > 40px — переходимо до наступної/попередньої
-            if (Math.abs(dx) > 40) {
-                const idx = snapPositions.indexOf(target);
-                if (dx > 0 && idx < snapPositions.length - 1) target = snapPositions[idx + 1];
-                if (dx < 0 && idx > 0) target = snapPositions[idx - 1];
-            }
-
-            scrollWrap.scrollTo({ left: target, behavior: 'smooth' });
-        }, { passive: true });
+        let t0x = 0;
+        card.addEventListener('touchstart', e => { t0x = e.touches[0].clientX; }, { passive:true });
+        card.addEventListener('touchend', e => {
+            const dx = t0x - e.changedTouches[0].clientX;
+            const cur = card.scrollLeft;
+            // найближча позиція
+            let best = snaps.reduce((a,b) => Math.abs(b-cur)<Math.abs(a-cur)?b:a, snaps[0]);
+            let idx = snaps.indexOf(best);
+            if (dx > 40 && idx < snaps.length-1) best = snaps[idx+1];
+            if (dx < -40 && idx > 0) best = snaps[idx-1];
+            card.scrollTo({ left: best, behavior: 'smooth' });
+        }, { passive:true });
     }
 }
 
@@ -393,20 +321,21 @@ async function load() {
         const res = await fetch(URL + '&t=' + Date.now());
         const rows = parseCSV(await res.text()).slice(1);
         document.getElementById('loader').style.display = 'none';
-        buildLayout(rows);
+        buildTable(rows);
     } catch(e) {
-        document.getElementById('loader').className = 'error';
-        document.getElementById('loader').textContent = '❌ ' + e.message;
+        const el = document.getElementById('loader');
+        el.className = 'error';
+        el.textContent = '❌ ' + e.message;
     }
 }
 load();
 
 // Свайп назад
-let x0=0, y0=0, sw=false;
-document.addEventListener('touchstart', e=>{x0=e.changedTouches[0].screenX; y0=e.changedTouches[0].screenY; sw=true;},{passive:true});
-document.addEventListener('touchmove',  e=>{if(Math.abs(e.changedTouches[0].screenY-y0)>25) sw=false;},{passive:true});
-document.addEventListener('touchend',   e=>{
-    if(sw && e.changedTouches[0].screenX-x0>120 && Math.abs(e.changedTouches[0].screenY-y0)<50)
+let x0=0,y0=0,sw=false;
+document.addEventListener('touchstart',e=>{x0=e.changedTouches[0].screenX;y0=e.changedTouches[0].screenY;sw=true;},{passive:true});
+document.addEventListener('touchmove', e=>{if(Math.abs(e.changedTouches[0].screenY-y0)>25)sw=false;},{passive:true});
+document.addEventListener('touchend',  e=>{
+    if(sw&&e.changedTouches[0].screenX-x0>120&&Math.abs(e.changedTouches[0].screenY-y0)<50)
         window.location.href='index.html';
     sw=false;
 },{passive:true});
