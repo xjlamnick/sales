@@ -575,9 +575,10 @@
                 const numVal = parseFloat(val.replace(/\s/g,'').replace(',','.'));
                 // Числові значення — сірий бейдж БЕЗ округлення
                 if (!isNaN(numVal) && val !== '') {
-                    const bg = isTotal ? 'rgba(0,113,227,0.10)' : 'rgba(134,134,139,0.08)';
+                    const bg = isTotal ? 'rgba(0,113,227,0.10)' : isAS ? 'rgba(100,100,120,0.12)' : 'rgba(134,134,139,0.08)';
                     const fg = isTotal ? '#1a50b8' : '#3d3d3f';
-                    html += `<td><span class="cell-badge" style="background:${bg};color:${fg}">${esc(val)}</span></td>`;
+                    const fw = isAS ? 'font-weight:700;font-size:11px;' : '';
+                    html += `<td><span class="cell-badge" style="background:${bg};color:${fg};${fw}">${esc(val)}</span></td>`;
                     return;
                 }
 
