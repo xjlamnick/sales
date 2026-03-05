@@ -532,10 +532,11 @@ function renderChips() {
     const years = [...selectedYears].sort((a,b) => a-b);
     const metrics = [...selectedMetrics];
     // Генеруємо чипи для кожної комбінації метрика × рік
+    const YEAR_STEP_C = Math.max(1, Math.floor(CHART_COLORS.length / Math.max(years.length, 1)));
     years.forEach((y, yi) => {
         metrics.forEach((metric, mi) => {
-            const seriesIdx = yi * metrics.length + mi;
-            const color = CHART_COLORS[seriesIdx % CHART_COLORS.length];
+            const colorIdx = (yi * YEAR_STEP_C + mi) % CHART_COLORS.length;
+            const color = CHART_COLORS[colorIdx];
             const chip = document.createElement('div');
             chip.className = 'chip';
             chip.style.cssText = `background:${color}22;color:${color};border:1.5px solid ${color}55;`;
@@ -579,18 +580,18 @@ function renderChart() {
     const months = [...monthsSet].sort((a,b) => a-b);
     const labels = months.map(m => MONTHS_UK[m-1]?.slice(0,3) || m);
 
-    // Будуємо datasets — кожна пара (метрика × рік) має унікальний колір
+    // Будуємо datasets — колір залежить від (yearIdx, metricIdx)
+    // Роки розносяться максимально далеко по палітрі, метрики — зміщення
     const datasets = [];
-    // Розраховуємо загальну кількість серій для рівномірного розподілу кольорів
-    const totalSeries = years.length * metrics.length;
-    let seriesIdx = 0;
+    const YEAR_STEP = Math.max(1, Math.floor(CHART_COLORS.length / Math.max(years.length, 1)));
 
     years.forEach((y, yi) => {
         metrics.forEach((metric, mi) => {
             const mv = parsedByYear[y]?.[metric] || {};
-            // Кожна серія — свій колір з палітри, рівномірно розподілені
-            const color = CHART_COLORS[seriesIdx % CHART_COLORS.length];
-            seriesIdx++;
+            // yi*YEAR_STEP — великий крок між роками (напр. 0, 5, 10...)
+            // mi — маленький зсув між метриками одного року
+            const colorIdx = (yi * YEAR_STEP + mi) % CHART_COLORS.length;
+            const color = CHART_COLORS[colorIdx];
             const label = years.length > 1 ? `${metric} (${y})` : metric;
             datasets.push({
                 label,
