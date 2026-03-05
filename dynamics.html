@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <title>Динаміка показників</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <style>
+        :root {
+            --bg: #f5f5f7;
+            --text: #1d1d1f;
+            --text-sec: #6e6e73;
+            --accent: #0071e3;
+            --border: #d2d2d7;
+            --card: #ffffff;
+            --shadow: 0 4px 20px rgba(0,0,0,0.06);
+
+            --c-to:     #0071e3;
+            --c-serv:   #34c759;
+            --c-acc:    #ff9500;
+            --c-checks: #af52de;
+            --c-other:  #86868b;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); padding: 8px 10px 40px; min-height: 100vh; }
+
+        /* ── NAV ── */
+        .top-bar {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 14px; gap: 10px; flex-wrap: wrap;
+        }
+        .back-link { color: var(--accent); text-decoration: none; font-weight: 600; font-size: 14px; white-space: nowrap; }
+        .page-title { font-size: 20px; font-weight: 700; }
+
+        /* ── VIEW TOGGLE ── */
+        .view-toggle {
+            display: flex; gap: 4px;
+            background: #e5e5ea; border-radius: 10px; padding: 3px;
+        }
+        .view-btn {
+            border: none; background: transparent; padding: 5px 12px;
+            border-radius: 8px; font-size: 12px; font-weight: 600;
+            cursor: pointer; color: var(--text-sec); font-family: inherit; transition: all 0.2s;
+        }
+        .view-btn.active { background: white; color: var(--text); box-shadow: 0 1px 4px rgba(0,0,0,0.12); }
+
+        /* ── YEAR TABS ── */
+        .year-tabs { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+        .year-tab {
+            border: 1.5px solid var(--border); background: white; padding: 5px 16px;
+            border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer;
+            font-family: inherit; color: var(--text-sec); transition: all 0.18s;
+        }
+        .year-tab.active { background: var(--accent); border-color: var(--accent); color: white; }
+
+        /* ── TABLE ── */
+        .table-card {
+            background: var(--card); border-radius: 16px;
+            box-shadow: var(--shadow); overflow-x: auto;
+            -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain;
+            margin-bottom: 14px;
+        }
+        table { border-collapse: collapse; table-layout: fixed; width: 100%; }
+        th {
+            text-align: center; padding: 6px 4px; color: var(--text-sec);
+            font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px;
+            border-bottom: 1px solid var(--border); background: white;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; position: sticky; top: 0; z-index: 10;
+        }
+        td {
+            padding: 4px 4px; border-bottom: 1px solid #f2f2f4;
+            font-size: 11px; text-align: center;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer;
+        }
+        tr:last-child td { border-bottom: none; }
+
+        /* Sticky перший стовпець */
+        th.col-metric, td.col-metric {
+            position: sticky; left: 0; background: white; z-index: 5;
+            text-align: left; font-weight: 600; padding-left: 10px;
+            box-shadow: 4px 0 8px -2px rgba(0,0,0,0.1);
+            border-right: 1px solid #e0e0e5;
+            white-space: normal; word-break: break-word; line-height: 1.25;
+            min-width: 110px; max-width: 110px; width: 110px;
+            font-size: 10px; font-style: normal; color: var(--text);
+        }
+        th.col-metric { z-index: 11; font-size: 9px; }
+
+        /* Група-заголовок */
+        .group-row th {
+            font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;
+            padding: 5px 4px; border-bottom: 2px solid currentColor;
+        }
+        .g-to     { color: var(--c-to); }
+        .g-serv   { color: var(--c-serv); }
+        .g-acc    { color: var(--c-acc); }
+        .g-checks { color: var(--c-checks); }
+        .g-other  { color: var(--c-other); }
+
+        /* Заголовки місяців */
+        .month-header-row th { background: #fafafa; }
+
+        /* Рядки метрик */
+        tr.metric-row { transition: background 0.15s; }
+        tr.metric-row:hover td { background: #f0f4ff !important; }
+        tr.metric-row.selected td { background: #e8f0fe !important; }
+        tr.metric-row.selected td.col-metric { color: var(--accent); font-weight: 700; }
+
+        .badge {
+            display: inline-block; border-radius: 6px; font-size: 10px; font-weight: 600;
+            padding: 2px 5px; white-space: nowrap;
+        }
+        .badge-to     { background: rgba(0,113,227,0.12);   color: #1a50b8; }
+        .badge-serv   { background: rgba(52,199,89,0.12);   color: #1a7f37; }
+        .badge-acc    { background: rgba(255,149,0,0.12);   color: #b85000; }
+        .badge-checks { background: rgba(175,82,222,0.12);  color: #6d28d9; }
+        .badge-pct    { background: rgba(134,134,139,0.10); color: #6e6e73; }
+        .badge-other  { background: rgba(134,134,139,0.08); color: #555; }
+
+        /* Підказка-рядок зверху таблиці */
+        .table-hint {
+            font-size: 11px; color: var(--text-sec); padding: 8px 12px;
+            border-bottom: 1px solid #f2f2f4; background: #fafafa;
+            border-radius: 16px 16px 0 0;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .table-hint span { color: var(--accent); font-weight: 600; }
+
+        /* ── CHART PANEL ── */
+        .chart-panel {
+            background: var(--card); border-radius: 16px;
+            box-shadow: var(--shadow); padding: 16px;
+            display: none;
+        }
+        .chart-panel.visible { display: block; }
+
+        .chart-top {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 12px; flex-wrap: wrap; gap: 8px;
+        }
+        .chart-title { font-size: 15px; font-weight: 700; }
+        .chart-subtitle { font-size: 11px; color: var(--text-sec); margin-top: 2px; }
+
+        .selected-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+        .chip {
+            display: flex; align-items: center; gap: 5px;
+            padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600;
+            cursor: pointer; transition: opacity 0.15s; user-select: none;
+        }
+        .chip .chip-x { opacity: 0.6; font-size: 13px; line-height: 1; }
+        .chip:hover .chip-x { opacity: 1; }
+
+        .chart-wrap { position: relative; height: 280px; }
+        @media (max-width: 600px) { .chart-wrap { height: 220px; } }
+
+        .empty-chart {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            height: 200px; color: var(--text-sec); gap: 8px;
+        }
+        .empty-chart-icon { font-size: 36px; opacity: 0.4; }
+        .empty-chart-text { font-size: 13px; font-weight: 500; }
+
+        /* ── SKELETON ── */
+        @keyframes shimmer {
+            0%   { background-position: -600px 0; }
+            100% { background-position:  600px 0; }
+        }
+        .skel {
+            background: linear-gradient(90deg, #e8e8ed 25%, #f5f5f7 50%, #e8e8ed 75%);
+            background-size: 600px 100%; animation: shimmer 1.4s ease-in-out infinite;
+            border-radius: 6px;
+        }
+
+        /* ── LOADING / ERROR ── */
+        .status-box { padding: 40px; text-align: center; color: var(--text-sec); font-size: 14px; }
+        .status-box.error { color: #ff3b30; }
+    </style>
+</head>
+<body>
+
+<div class="top-bar">
+    <div style="display:flex;align-items:center;gap:14px">
+        <a href="index.html" class="back-link">← Назад</a>
+        <div>
+            <div class="page-title">Динаміка показників</div>
+        </div>
+    </div>
+    <div class="view-toggle">
+        <button class="view-btn active" id="btnTable" onclick="setView('table')">📋 Таблиця</button>
+        <button class="view-btn" id="btnChart" onclick="setView('chart')">📈 Графік</button>
+    </div>
+</div>
+
+<!-- Вибір року -->
+<div class="year-tabs" id="yearTabs"></div>
+
+<!-- Таблиця -->
+<div id="tableSection">
+    <div class="table-card" id="tableCard">
+        <div id="tableLoader" class="status-box">Завантаження…</div>
+    </div>
+</div>
+
+<!-- Графік -->
+<div class="chart-panel" id="chartPanel">
+    <div class="chart-top">
+        <div>
+            <div class="chart-title">Динаміка по місяцях</div>
+            <div class="chart-subtitle" id="chartSubtitle">Оберіть показники у таблиці</div>
+        </div>
+        <div class="selected-chips" id="selectedChips"></div>
+    </div>
+    <div id="chartBody">
+        <div class="empty-chart">
+            <div class="empty-chart-icon">📊</div>
+            <div class="empty-chart-text">Натисніть на рядок у таблиці, щоб додати показник</div>
+        </div>
+    </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════════════════════
+const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRXRKnTXILsjtEbTNQTCQI-Voi0H0mCOshu55mIbU6CZmtaCQWwVyNUrtPdvccCtuNyej6UJszLmZPV/pub?output=csv';
+
+const MONTHS_UK = ['Січень','Лютий','Березень','Квітень','Травень','Червень',
+                   'Липень','Серпень','Вересень','Жовтень','Листопад','Грудень'];
+
+// Кольори для показників у графіку (циклічно)
+const CHART_COLORS = [
+    '#0071e3','#34c759','#ff9500','#af52de',
+    '#ff3b30','#5856d6','#32ade6','#ff6b35','#30b0c7','#a2845e'
+];
+
+// Групи для визначення badge-кольору рядка
+// Якщо перша колонка (назва) містить ключові слова — призначаємо клас
+const GROUP_HINTS = [
+    { kw: ['товарообіг','то ','то,','план то','факт то'], cls: 'badge-to' },
+    { kw: ['послуг','serv'], cls: 'badge-serv' },
+    { kw: ['аксес','acc','акс'], cls: 'badge-acc' },
+    { kw: ['чек','конвер','кпч','asp','шт'], cls: 'badge-checks' },
+];
+
+// ═══════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════
+let rawData = [];          // [{year, month(1-12), metric, value}]
+let allYears = [];
+let allMetrics = [];
+let selectedYear = null;
+let selectedMetrics = new Set(); // Set of metric names
+let viewMode = 'table';    // 'table' | 'chart'
+let chartInstance = null;
+
+// Структура: parsedByYear[year][metric][month] = value
+let parsedByYear = {};
+
+// ═══════════════════════════════════════════════════════════
+// CSV PARSE
+// ═══════════════════════════════════════════════════════════
+function parseCSV(text) {
+    const rows = []; let row = [], col = '', inQ = false;
+    for (let i = 0; i < text.length; i++) {
+        const c = text[i];
+        if (c==='"' && text[i+1]==='"') { col+='"'; i++; }
+        else if (c==='"') inQ = !inQ;
+        else if (c===',' && !inQ) { row.push(col.trim()); col = ''; }
+        else if ((c==='\n'||c==='\r') && !inQ) {
+            if (c==='\r' && text[i+1]==='\n') i++;
+            row.push(col.trim()); rows.push(row); row = []; col = '';
+        } else col += c;
+    }
+    if (col||row.length) { row.push(col.trim()); rows.push(row); }
+    return rows.filter(r => r.some(c => c));
+}
+
+function toNum(v) {
+    if (!v && v !== 0) return null;
+    const s = String(v).replace(/\s|\u00a0/g,'').replace('%','').replace(',','.');
+    const n = parseFloat(s);
+    return isNaN(n) ? null : n;
+}
+
+function fmtVal(v) {
+    if (v === null || v === undefined) return '—';
+    const n = Number(v);
+    if (isNaN(n)) return String(v);
+    if (Math.abs(n) >= 1000000) return (n/1000000).toFixed(2) + 'М';
+    if (Math.abs(n) >= 1000)    return (n/1000).toFixed(1) + 'К';
+    if (n % 1 !== 0)            return n.toFixed(2);
+    return n.toLocaleString('uk-UA');
+}
+
+// ═══════════════════════════════════════════════════════════
+// DETECT STRUCTURE
+// CSV може бути різної структури. Підтримуємо два формати:
+//
+// Формат A (широкий): рядки = показники, стовпці = місяці/роки
+//   | Показник | 2024-01 | 2024-02 | ... |
+//   | ТО       | 100000  | 120000  | ... |
+//
+// Формат B (вузький): рядки = (рік, місяць, показник, значення)
+//   | Рік | Місяць | Показник | Значення |
+// ═══════════════════════════════════════════════════════════
+function detectAndParse(rows) {
+    if (!rows.length) return;
+    const header = rows[0];
+
+    // Перевіряємо чи є стовпець з роком/датою
+    const h0 = (header[0] || '').toLowerCase();
+    const h1 = (header[1] || '').toLowerCase();
+
+    // Спробуємо Формат B (перший або другий стовпець - рік)
+    const isYearCol = (h) => /рік|year|дата|date/.test(h) || /^\d{4}$/.test(h.trim());
+    if (isYearCol(h0) || isYearCol(h1)) {
+        parseFormatB(rows);
+        return;
+    }
+
+    // Формат A: заголовок містить дати типу "2024-01", "Січ 2024", "01.2024"
+    const datePattern = /(\d{4})[-./\s](\d{1,2})|(\d{1,2})[-./\s](\d{4})|(січ|лют|бер|кві|тра|чер|лип|сер|вер|жов|лис|гру)/i;
+    const hasDateCols = header.slice(1).some(h => datePattern.test(h));
+    if (hasDateCols) {
+        parseFormatA(rows);
+        return;
+    }
+
+    // Формат C: стовпці - місяці (числа 1-12 або назви), рядки - показники, перша колонка - рік або назва
+    // Визначаємо рік з першого не-порожнього рядка даних або з заголовку
+    parseFormatC(rows);
+}
+
+function extractYearMonth(str) {
+    str = String(str).trim();
+    // 2024-01 або 2024/01
+    let m = str.match(/^(\d{4})[-./](\d{1,2})$/);
+    if (m) return { year: +m[1], month: +m[2] };
+    // 01-2024
+    m = str.match(/^(\d{1,2})[-./](\d{4})$/);
+    if (m) return { year: +m[2], month: +m[1] };
+    // "Січень 2024" або "Січ 2024"
+    const ukM = ['січ','лют','бер','кві','тра','чер','лип','сер','вер','жов','лис','гру'];
+    const lo = str.toLowerCase();
+    for (let i = 0; i < ukM.length; i++) {
+        if (lo.startsWith(ukM[i])) {
+            const yr = str.match(/(\d{4})/);
+            return yr ? { year: +yr[1], month: i + 1 } : null;
+        }
+    }
+    return null;
+}
+
+function parseFormatA(rows) {
+    const header = rows[0];
+    const colMeta = header.slice(1).map((h, i) => ({ idx: i + 1, ...extractYearMonth(h) })).filter(c => c && c.year);
+
+    rows.slice(1).forEach(row => {
+        const metric = (row[0] || '').trim();
+        if (!metric) return;
+        colMeta.forEach(c => {
+            const val = toNum(row[c.idx]);
+            if (val === null) return;
+            if (!parsedByYear[c.year]) parsedByYear[c.year] = {};
+            if (!parsedByYear[c.year][metric]) parsedByYear[c.year][metric] = {};
+            parsedByYear[c.year][metric][c.month] = val;
+        });
+    });
+    finalizeParsed();
+}
+
+function parseFormatB(rows) {
+    const header = rows[0].map(h => h.toLowerCase());
+    const iYear   = header.findIndex(h => /рік|year/.test(h));
+    const iMonth  = header.findIndex(h => /міс|month/.test(h));
+    const iMetric = header.findIndex(h => /показ|metric|назв/.test(h));
+    const iValue  = header.findIndex(h => /знач|value|факт/.test(h));
+
+    if (iYear < 0 || iMonth < 0 || iValue < 0) { parseFormatC(rows); return; }
+
+    rows.slice(1).forEach(row => {
+        const year   = +row[iYear];
+        const month  = +row[iMonth];
+        const metric = iMetric >= 0 ? (row[iMetric]||'').trim() : 'Значення';
+        const val    = toNum(row[iValue]);
+        if (!year || !month || val === null) return;
+        if (!parsedByYear[year]) parsedByYear[year] = {};
+        if (!parsedByYear[year][metric]) parsedByYear[year][metric] = {};
+        parsedByYear[year][metric][month] = val;
+    });
+    finalizeParsed();
+}
+
+// Формат C: рядки = показники, стовпці = місяці (1..12 або назви), рядок може мати рік
+function parseFormatC(rows) {
+    const header = rows[0];
+
+    // Знаходимо стовпці-місяці
+    const ukMonths = ['січ','лют','бер','кві','тра','чер','лип','сер','вер','жов','лис','гру'];
+    const colMap = {}; // colIdx -> monthNum
+
+    header.forEach((h, i) => {
+        if (i === 0) return;
+        const n = +h;
+        if (n >= 1 && n <= 12) { colMap[i] = n; return; }
+        const lo = h.toLowerCase().trim();
+        for (let mi = 0; mi < ukMonths.length; mi++) {
+            if (lo.startsWith(ukMonths[mi])) { colMap[i] = mi + 1; return; }
+        }
+    });
+
+    let currentYear = new Date().getFullYear();
+
+    rows.slice(1).forEach(row => {
+        const first = (row[0] || '').trim();
+        if (!first) return;
+
+        // Якщо перша колонка - рік
+        if (/^\d{4}$/.test(first)) { currentYear = +first; return; }
+
+        // Якщо рядок містить рік в дужках або після тире
+        const yrMatch = first.match(/(\d{4})/);
+        if (yrMatch && Object.keys(colMap).length === 0) { currentYear = +yrMatch[1]; return; }
+
+        const metric = first;
+        if (!parsedByYear[currentYear]) parsedByYear[currentYear] = {};
+        if (!parsedByYear[currentYear][metric]) parsedByYear[currentYear][metric] = {};
+
+        Object.entries(colMap).forEach(([ci, month]) => {
+            const val = toNum(row[+ci]);
+            if (val !== null) parsedByYear[currentYear][metric][month] = val;
+        });
+    });
+    finalizeParsed();
+}
+
+function finalizeParsed() {
+    allYears   = Object.keys(parsedByYear).map(Number).sort((a,b) => b - a);
+    allMetrics = [];
+    const seen = new Set();
+    allYears.forEach(y => {
+        Object.keys(parsedByYear[y] || {}).forEach(m => {
+            if (!seen.has(m)) { seen.add(m); allMetrics.push(m); }
+        });
+    });
+    selectedYear = allYears[0] || new Date().getFullYear();
+}
+
+// ═══════════════════════════════════════════════════════════
+// BADGE COLOR by metric name
+// ═══════════════════════════════════════════════════════════
+function badgeClass(name) {
+    const lo = name.toLowerCase();
+    for (const g of GROUP_HINTS) {
+        if (g.kw.some(k => lo.includes(k))) return g.cls;
+    }
+    if (lo.includes('%') || lo.includes('доля') || lo.includes('конвер')) return 'badge-pct';
+    return 'badge-other';
+}
+
+// ═══════════════════════════════════════════════════════════
+// RENDER TABLE
+// ═══════════════════════════════════════════════════════════
+function renderTable() {
+    const card = document.getElementById('tableCard');
+    card.innerHTML = '';
+
+    const yearData = parsedByYear[selectedYear] || {};
+    // Місяці які є хоча б в одному показнику
+    const monthsPresent = new Set();
+    Object.values(yearData).forEach(mv => Object.keys(mv).forEach(m => monthsPresent.add(+m)));
+    const months = [...monthsPresent].sort((a,b) => a-b);
+
+    if (!months.length) {
+        card.innerHTML = '<div class="status-box">Немає даних за обраний рік</div>';
+        return;
+    }
+
+    // Hint
+    const hint = document.createElement('div');
+    hint.className = 'table-hint';
+    hint.innerHTML = `<span>💡</span> Натисніть на рядок щоб додати показник на <span>графік</span>. Можна обрати декілька.`;
+    card.appendChild(hint);
+
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'overflow-x:auto;-webkit-overflow-scrolling:touch;';
+    card.appendChild(wrap);
+
+    const tbl = document.createElement('table');
+    const colW = Math.max(52, Math.floor((window.innerWidth - 130) / months.length));
+    const totalW = 110 + colW * months.length;
+    tbl.style.width = Math.max(totalW, wrap.offsetWidth || 320) + 'px';
+
+    // Colgroup
+    const cg = document.createElement('colgroup');
+    const c0 = document.createElement('col'); c0.style.width = '110px'; cg.appendChild(c0);
+    months.forEach(() => { const c = document.createElement('col'); c.style.width = colW+'px'; cg.appendChild(c); });
+    tbl.appendChild(cg);
+
+    // Header
+    const thead = document.createElement('thead');
+    const trH = document.createElement('tr');
+    const thN = document.createElement('th');
+    thN.className = 'col-metric'; thN.textContent = 'Показник';
+    trH.appendChild(thN);
+    months.forEach(m => {
+        const th = document.createElement('th');
+        th.textContent = MONTHS_UK[m-1] || m;
+        trH.appendChild(th);
+    });
+    thead.appendChild(trH);
+    tbl.appendChild(thead);
+
+    // Body
+    const tbody = document.createElement('tbody');
+    allMetrics.forEach(metric => {
+        const mv = yearData[metric];
+        if (!mv) return; // метрика відсутня в цьому році
+
+        const tr = document.createElement('tr');
+        tr.className = 'metric-row';
+        tr.dataset.metric = metric;
+        if (selectedMetrics.has(metric)) tr.classList.add('selected');
+
+        // Name cell
+        const tdN = document.createElement('td');
+        tdN.className = 'col-metric';
+        tdN.textContent = metric;
+        tr.appendChild(tdN);
+
+        // Value cells
+        const bc = badgeClass(metric);
+        months.forEach(m => {
+            const val = mv[m];
+            const td = document.createElement('td');
+            if (val !== undefined && val !== null) {
+                const sp = document.createElement('span');
+                sp.className = 'badge ' + (selectedMetrics.has(metric) ? bc : 'badge-other');
+                sp.textContent = fmtVal(val);
+                td.appendChild(sp);
+            } else {
+                td.textContent = '—';
+                td.style.color = '#ccc';
+            }
+            tr.appendChild(td);
+        });
+
+        tr.addEventListener('click', () => toggleMetric(metric));
+        tbody.appendChild(tr);
+    });
+    tbl.appendChild(tbody);
+    wrap.appendChild(tbl);
+}
+
+// ═══════════════════════════════════════════════════════════
+// TOGGLE METRIC SELECTION
+// ═══════════════════════════════════════════════════════════
+function toggleMetric(metric) {
+    if (selectedMetrics.has(metric)) {
+        selectedMetrics.delete(metric);
+    } else {
+        selectedMetrics.add(metric);
+    }
+    // Оновлюємо вигляд рядка без перерендеру таблиці
+    document.querySelectorAll('tr.metric-row').forEach(tr => {
+        const m = tr.dataset.metric;
+        const isSelected = selectedMetrics.has(m);
+        tr.classList.toggle('selected', isSelected);
+        const bc = badgeClass(m);
+        tr.querySelectorAll('.badge').forEach(sp => {
+            sp.className = 'badge ' + (isSelected ? bc : 'badge-other');
+        });
+    });
+
+    renderChips();
+    renderChart();
+
+    // Якщо ми в таблиці і обрали перший показник — підказуємо переключитись
+    if (selectedMetrics.size === 1 && viewMode === 'table') {
+        // м'яко підсвітити кнопку графіку
+        document.getElementById('btnChart').style.background = '#e8f0fe';
+        document.getElementById('btnChart').style.color = 'var(--accent)';
+        setTimeout(() => {
+            document.getElementById('btnChart').style.background = '';
+            document.getElementById('btnChart').style.color = '';
+        }, 1500);
+    }
+}
+
+// ═══════════════════════════════════════════════════════════
+// CHIPS (обрані показники)
+// ═══════════════════════════════════════════════════════════
+function renderChips() {
+    const cont = document.getElementById('selectedChips');
+    cont.innerHTML = '';
+    let ci = 0;
+    selectedMetrics.forEach(metric => {
+        const color = CHART_COLORS[ci % CHART_COLORS.length];
+        ci++;
+        const chip = document.createElement('div');
+        chip.className = 'chip';
+        chip.style.cssText = `background:${color}22;color:${color};border:1.5px solid ${color}55;`;
+        chip.innerHTML = `<span>${metric}</span><span class="chip-x">✕</span>`;
+        chip.addEventListener('click', () => toggleMetric(metric));
+        cont.appendChild(chip);
+    });
+
+    const sub = document.getElementById('chartSubtitle');
+    sub.textContent = selectedMetrics.size
+        ? `Обрано: ${selectedMetrics.size} показник${selectedMetrics.size > 1 ? 'и' : ''} • ${selectedYear} рік`
+        : 'Оберіть показники у таблиці';
+}
+
+// ═══════════════════════════════════════════════════════════
+// CHART
+// ═══════════════════════════════════════════════════════════
+function renderChart() {
+    const body = document.getElementById('chartBody');
+
+    if (!selectedMetrics.size) {
+        if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
+        body.innerHTML = `
+            <div class="empty-chart">
+                <div class="empty-chart-icon">📊</div>
+                <div class="empty-chart-text">Натисніть на рядок у таблиці, щоб додати показник</div>
+            </div>`;
+        return;
+    }
+
+    const yearData = parsedByYear[selectedYear] || {};
+    // Місяці які є хоча б в одному обраному показнику
+    const monthsSet = new Set();
+    selectedMetrics.forEach(m => {
+        const mv = yearData[m] || {};
+        Object.keys(mv).forEach(mo => monthsSet.add(+mo));
+    });
+    const months = [...monthsSet].sort((a,b)=>a-b);
+    const labels = months.map(m => MONTHS_UK[m-1] || m);
+
+    const datasets = [];
+    let ci = 0;
+    selectedMetrics.forEach(metric => {
+        const mv = yearData[metric] || {};
+        const color = CHART_COLORS[ci % CHART_COLORS.length];
+        ci++;
+        datasets.push({
+            label: metric,
+            data: months.map(m => mv[m] ?? null),
+            borderColor: color,
+            backgroundColor: color + '22',
+            pointBackgroundColor: color,
+            pointRadius: 4,
+            pointHoverRadius: 6,
+            tension: 0.35,
+            fill: selectedMetrics.size === 1,
+            spanGaps: true,
+        });
+    });
+
+    if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
+    body.innerHTML = '<div class="chart-wrap"><canvas id="dynChart"></canvas></div>';
+
+    const ctx = document.getElementById('dynChart').getContext('2d');
+    chartInstance = new Chart(ctx, {
+        type: 'line',
+        data: { labels, datasets },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+                legend: {
+                    display: datasets.length > 1,
+                    position: 'top',
+                    labels: { font: { family: 'Inter', size: 11 }, boxWidth: 12, padding: 12 }
+                },
+                tooltip: {
+                    backgroundColor: '#1d1d1f',
+                    titleFont: { family: 'Inter', size: 12 },
+                    bodyFont:  { family: 'Inter', size: 11 },
+                    padding: 10,
+                    callbacks: {
+                        label: ctx => ` ${ctx.dataset.label}: ${fmtVal(ctx.raw)}`
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    grid: { color: '#f0f0f0' },
+                    ticks: { font: { family: 'Inter', size: 10 }, color: '#86868b' }
+                },
+                y: {
+                    grid: { color: '#f0f0f0' },
+                    ticks: {
+                        font: { family: 'Inter', size: 10 }, color: '#86868b',
+                        callback: v => fmtVal(v)
+                    }
+                }
+            }
+        }
+    });
+}
+
+// ═══════════════════════════════════════════════════════════
+// VIEW MODE
+// ═══════════════════════════════════════════════════════════
+function setView(mode) {
+    viewMode = mode;
+    document.getElementById('btnTable').classList.toggle('active', mode === 'table');
+    document.getElementById('btnChart').classList.toggle('active', mode === 'chart');
+    document.getElementById('tableSection').style.display = mode === 'table' ? '' : 'none';
+    document.getElementById('chartPanel').classList.toggle('visible', mode === 'chart');
+    if (mode === 'chart') renderChart();
+}
+
+// ═══════════════════════════════════════════════════════════
+// YEAR TABS
+// ═══════════════════════════════════════════════════════════
+function renderYearTabs() {
+    const cont = document.getElementById('yearTabs');
+    cont.innerHTML = '';
+    allYears.forEach(y => {
+        const btn = document.createElement('button');
+        btn.className = 'year-tab' + (y === selectedYear ? ' active' : '');
+        btn.textContent = y;
+        btn.onclick = () => {
+            selectedYear = y;
+            document.querySelectorAll('.year-tab').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderTable();
+            renderChips();
+            if (viewMode === 'chart') renderChart();
+        };
+        cont.appendChild(btn);
+    });
+}
+
+// ═══════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════
+async function init() {
+    try {
+        const res = await fetch(CSV_URL + '&t=' + Date.now());
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const text = await res.text();
+        const rows = parseCSV(text);
+        if (!rows.length) throw new Error('Порожній файл');
+
+        detectAndParse(rows);
+
+        if (!allYears.length) throw new Error('Не вдалось розпізнати структуру даних');
+
+        renderYearTabs();
+        renderTable();
+        setView('table');
+
+    } catch (e) {
+        document.getElementById('tableCard').innerHTML =
+            `<div class="status-box error">❌ Помилка завантаження: ${e.message}</div>`;
+        console.error(e);
+    }
+}
+
+init();
+</script>
+</body>
+</html>
