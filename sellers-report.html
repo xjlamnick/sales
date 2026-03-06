@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <title>Звіт по продавцях</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <style>
+        :root{--bg:#f5f5f7;--text:#1d1d1f;--text-sec:#6e6e73;--accent:#0071e3;--border:#d2d2d7;--card:#fff;--shadow:0 4px 20px rgba(0,0,0,.06)}
+        *{box-sizing:border-box;margin:0;padding:0}
+        body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);padding:8px 10px 60px}
+
+        .top-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:10px;flex-wrap:wrap}
+        .back-link{color:var(--accent);text-decoration:none;font-weight:600;font-size:14px}
+        .page-title{font-size:20px;font-weight:700}
+        .view-toggle{display:flex;gap:4px;background:#e5e5ea;border-radius:10px;padding:3px}
+        .view-btn{border:none;background:transparent;padding:5px 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;color:var(--text-sec);font-family:inherit;transition:all .2s}
+        .view-btn.active{background:white;color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.12)}
+
+        /* FILTERS */
+        .filters-wrap{background:var(--card);border-radius:14px;box-shadow:var(--shadow);padding:10px 14px;margin-bottom:12px}
+        .filter-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:4px 0}
+        .filter-row+.filter-row{border-top:1px solid #f2f2f4;margin-top:6px;padding-top:8px}
+        .filter-label{font-size:11px;font-weight:700;color:var(--text-sec);min-width:68px;white-space:nowrap}
+        .pills{display:flex;gap:5px;flex-wrap:wrap}
+        .pill{border:1.5px solid var(--border);background:white;padding:4px 11px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--text-sec);transition:all .15s;white-space:nowrap}
+        .pill.active{background:var(--accent);border-color:var(--accent);color:white}
+
+        /* TABLE */
+        .table-card{background:var(--card);border-radius:16px;box-shadow:var(--shadow);overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:14px}
+        table{border-collapse:collapse;table-layout:fixed}
+        th{text-align:center;padding:5px 3px;color:var(--text-sec);font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.2px;border-bottom:1px solid var(--border);background:white;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;position:sticky;top:0;z-index:10}
+        td{padding:4px 3px;border-bottom:1px solid #f2f2f4;font-size:10px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        tr:last-child td{border-bottom:none}
+        tr.total-row td{background:#e8f0fe!important;font-weight:700}
+        tr.total-row .col-fix{background:#e8f0fe!important}
+        tr:hover td{background:#fafafe}
+        tr.total-row:hover td{background:#dce8fc!important}
+
+        /* Sticky cols */
+        .col-fix{position:sticky;left:0;background:white;z-index:5;text-align:left!important;padding-left:8px!important;box-shadow:4px 0 8px -2px rgba(0,0,0,.09);border-right:1px solid #e8e8ed;white-space:normal;word-break:break-word;line-height:1.25;font-size:9px;font-weight:600;color:var(--text)}
+        th.col-fix{z-index:11;font-size:9px}
+
+        /* Group headers */
+        .gh{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.3px;padding:5px 3px;border-bottom:2px solid currentColor!important}
+        .gh-to    {color:#0071e3}
+        .gh-serv  {color:#34c759}
+        .gh-acc   {color:#ff9500}
+        .gh-eff   {color:#af52de}
+        .gh-cat   {color:#5856d6}
+        .gh-other {color:#86868b}
+        .grp-start{border-left:2px solid #e8e8ed!important}
+
+        .badge{display:inline-block;border-radius:5px;font-size:9px;font-weight:600;padding:1px 4px;white-space:nowrap}
+        .b-to    {background:rgba(0,113,227,.12);color:#1a50b8}
+        .b-serv  {background:rgba(52,199,89,.12);color:#1a7f37}
+        .b-acc   {background:rgba(255,149,0,.12);color:#b85000}
+        .b-eff   {background:rgba(175,82,222,.12);color:#6d28d9}
+        .b-cat   {background:rgba(88,86,214,.12);color:#3634a3}
+        .b-pct   {background:rgba(134,134,139,.10);color:#6e6e73}
+        .b-plain {background:rgba(134,134,139,.07);color:#444}
+
+        .table-hint{font-size:11px;color:var(--text-sec);padding:8px 12px;border-bottom:1px solid #f2f2f4;background:#fafafa;border-radius:16px 16px 0 0}
+
+        /* RATING VIEW */
+        .rating-panel{display:none}
+        .rating-panel.visible{display:block}
+
+        .metric-bar{background:var(--card);border-radius:14px;box-shadow:var(--shadow);padding:12px 14px;margin-bottom:12px}
+        .metric-bar-title{font-size:11px;font-weight:700;color:var(--text-sec);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px}
+        .metric-pills{display:flex;gap:6px;flex-wrap:wrap}
+        .mpill{border:1.5px solid var(--border);background:white;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--text-sec);transition:all .15s;white-space:nowrap}
+        .mpill.active{color:white;border-color:transparent}
+
+        .ranking-grid{display:flex;flex-direction:column;gap:7px}
+        .rank-card{background:var(--card);border-radius:14px;box-shadow:var(--shadow);padding:11px 14px;display:flex;align-items:center;gap:12px;position:relative;overflow:hidden;transition:transform .15s}
+        .rank-card:hover{transform:translateY(-1px)}
+        .rank-bg{position:absolute;left:0;top:0;height:100%;opacity:.07;border-radius:14px;pointer-events:none;transition:width .5s ease}
+        .rank-pos{font-size:18px;font-weight:800;min-width:26px;text-align:center;line-height:1}
+        .rank-pos.gold{color:#f5a623}.rank-pos.silver{color:#9b9b9b}.rank-pos.bronze{color:#c47a3a}.rank-pos.rest{color:#ccc;font-size:14px}
+        .rank-name{flex:1;min-width:0}
+        .rank-name-text{font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+        .rank-sub{font-size:10px;color:var(--text-sec);margin-top:1px}
+        .rank-bar-wrap{flex:2;min-width:50px;max-width:140px}
+        .rank-bar-bg{height:6px;background:#ebebef;border-radius:3px;overflow:hidden}
+        .rank-bar-fill{height:100%;border-radius:3px;transition:width .6s ease}
+        .rank-val{text-align:right;min-width:58px}
+        .rank-val-main{font-size:14px;font-weight:800;line-height:1.2}
+        .rank-val-sub{font-size:10px;color:var(--text-sec)}
+
+        .status-box{padding:40px;text-align:center;color:var(--text-sec);font-size:14px}
+        .status-box.error{color:#ff3b30}
+
+        /* Skeleton */
+        @keyframes shimmer{0%{background-position:-600px 0}100%{background-position:600px 0}}
+        .skel{background:linear-gradient(90deg,#e8e8ed 25%,#f5f5f7 50%,#e8e8ed 75%);background-size:600px 100%;animation:shimmer 1.4s ease-in-out infinite;border-radius:6px}
+    </style>
+</head>
+<body>
+
+<div class="top-bar">
+    <div style="display:flex;align-items:center;gap:14px">
+        <a href="index.html" class="back-link">← Назад</a>
+        <div class="page-title">Звіт по продавцях</div>
+    </div>
+    <div class="view-toggle">
+        <button class="view-btn active" id="btnTable" onclick="setView('table')">📋 Таблиця</button>
+        <button class="view-btn" id="btnRating" onclick="setView('rating')">🏆 Рейтинг</button>
+    </div>
+</div>
+
+<div class="filters-wrap">
+    <div class="filter-row">
+        <span class="filter-label">📅 Рік</span>
+        <div class="pills" id="yearPills"></div>
+    </div>
+    <div class="filter-row">
+        <span class="filter-label">📆 Місяць</span>
+        <div class="pills" id="monthPills"></div>
+    </div>
+    <div class="filter-row">
+        <span class="filter-label">👤 Продавець</span>
+        <div class="pills" id="sellerPills"></div>
+    </div>
+</div>
+
+<!-- TABLE VIEW -->
+<div id="tableSection">
+    <div class="table-card" id="tableCard">
+        <div class="status-box">Завантаження…</div>
+    </div>
+</div>
+
+<!-- RATING VIEW -->
+<div class="rating-panel" id="ratingPanel">
+    <div class="metric-bar">
+        <div class="metric-bar-title">Метрика для рейтингу</div>
+        <div class="metric-pills" id="metricPills"></div>
+    </div>
+    <div class="ranking-grid" id="rankingGrid"></div>
+</div>
+
+<script>
+const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTdFA0KeLd--Xe-bZL6XSZl5jGBu9qGi32Q-Vm8G1wFSjh4rL52f2L2poIUq-mgJ779NCjd-w7o9ago/pub?output=csv';
+
+const MONTHS_UK = ['Січень','Лютий','Березень','Квітень','Травень','Червень','Липень','Серпень','Вересень','Жовтень','Листопад','Грудень'];
+
+// Групи колонок для відображення
+const COL_GROUPS = [
+    { name:'Товарообіг', cls:'gh-to', cols:[
+        { key:'ТО', label:'ТО', badge:'b-to', fmt:'money' },
+        { key:'Шт', label:'Шт', badge:'b-to', fmt:'int' },
+        { key:'Чеки', label:'Чеки', badge:'b-to', fmt:'int' },
+        { key:'Ср. Чек', label:'Ср.Чек', badge:'b-to', fmt:'money' },
+        { key:'ASP', label:'ASP', badge:'b-to', fmt:'money' },
+        { key:'КПЧ', label:'КПЧ', badge:'b-to', fmt:'dec2' },
+    ]},
+    { name:'Послуги', cls:'gh-serv', cols:[
+        { key:'Послуги грн', label:'Послуги', badge:'b-serv', fmt:'money' },
+        { key:'Доля Послуг', label:'Доля%', badge:'b-pct', fmt:'pct' },
+    ]},
+    { name:'Аксесуари', cls:'gh-acc', cols:[
+        { key:'ACC', label:'ACC', badge:'b-acc', fmt:'money' },
+        { key:'% Доля ACC', label:'Доля%', badge:'b-pct', fmt:'pct' },
+    ]},
+    { name:'Ефективність', cls:'gh-eff', cols:[
+        { key:'Конверсія ПК', label:'Конв.', badge:'b-eff', fmt:'pct' },
+        { key:'Конверсія ПК Offline', label:'Оф.Конв', badge:'b-eff', fmt:'pct' },
+        { key:'% УДС', label:'УДС%', badge:'b-pct', fmt:'pct' },
+    ]},
+    { name:'Категорії', cls:'gh-cat', cols:[
+        { key:'AV', label:'AV', badge:'b-cat', fmt:'money' },
+        { key:'DIG', label:'DIG', badge:'b-cat', fmt:'money' },
+        { key:'IT', label:'IT', badge:'b-cat', fmt:'money' },
+        { key:'MDA', label:'MDA', badge:'b-cat', fmt:'money' },
+        { key:'NIP', label:'NIP', badge:'b-cat', fmt:'money' },
+        { key:'SDA', label:'SDA', badge:'b-cat', fmt:'money' },
+    ]},
+];
+
+// Метрики для рейтингу
+const RATING_METRICS = [
+    { key:'ТО', label:'ТО', color:'#0071e3', fmt:'money', higher:true },
+    { key:'ACC', label:'ACC', color:'#ff9500', fmt:'money', higher:true },
+    { key:'% Доля ACC', label:'ACC%', color:'#ff9500', fmt:'pct', higher:true },
+    { key:'Послуги грн', label:'Послуги', color:'#34c759', fmt:'money', higher:true },
+    { key:'Доля Послуг', label:'Посл%', color:'#34c759', fmt:'pct', higher:true },
+    { key:'Конверсія ПК', label:'Конверсія', color:'#af52de', fmt:'pct', higher:true },
+    { key:'Ср. Чек', label:'Ср.Чек', color:'#5856d6', fmt:'money', higher:true },
+    { key:'КПЧ', label:'КПЧ', color:'#00b388', fmt:'dec2', higher:true },
+];
+
+// STATE
+let allData = [];        // [{рік,місяць,продавець, ...поля}]
+let allYears = [], allMonths = [], allSellers = [];
+let selYears = new Set(), selMonths = new Set(), selSellers = new Set();
+let viewMode = 'table';
+let activeMetricKey = 'ТО';
+
+// PARSE
+function parseCSV(text){
+    const rows=[];let row=[],col='',inQ=false;
+    for(let i=0;i<text.length;i++){
+        const c=text[i];
+        if(c==='"'&&text[i+1]==='"'){col+='"';i++;}
+        else if(c==='"')inQ=!inQ;
+        else if(c===','&&!inQ){row.push(col.trim());col='';}
+        else if((c==='\n'||c==='\r')&&!inQ){if(c==='\r'&&text[i+1]==='\n')i++;row.push(col.trim());rows.push(row);row=[];col='';}
+        else col+=c;
+    }
+    if(col||row.length){row.push(col.trim());rows.push(row);}
+    return rows.filter(r=>r.some(c=>c));
+}
+
+const MMAP={'січень':1,'лютий':2,'березень':3,'квітень':4,'травень':5,'червень':6,'липень':7,'серпень':8,'вересень':9,'жовтень':10,'листопад':11,'грудень':12,'січ':1,'лют':2,'бер':3,'кві':4,'тра':5,'чер':6,'лип':7,'сер':8,'вер':9,'жов':10,'лис':11,'гру':12};
+function mNum(s){const lo=(s||'').toLowerCase().trim();for(const[k,v]of Object.entries(MMAP))if(lo===k||lo.startsWith(k))return v;return null;}
+
+function toN(v){
+    if(!v&&v!==0)return null;
+    const s=String(v).replace(/\s|\u00a0/g,'').replace('%','').replace(',','.');
+    if(['#div/0!','#value!','#ref!','#n/a','#name?'].includes(s.toLowerCase()))return null;
+    const n=parseFloat(s);return isNaN(n)?null:n;
+}
+
+function parseFull(rows){
+    if(!rows.length)return;
+    const header=rows[0].map(h=>(h||'').trim());
+    const idx={};
+    header.forEach((h,i)=>{ idx[h]=i; });
+
+    // Визначаємо індекси ключових колонок
+    const iYear   = findIdx(header,['рік','year']);
+    const iMonth  = findIdx(header,['місяць','month','міс']);
+    const iSeller = findIdx(header,['продавець','seller','пк','ім\'я']);
+
+    if(iYear<0||iMonth<0||iSeller<0){
+        // Fallback: колонки 0,1,2
+        console.warn('Не знайдено стандартні колонки, спробую 0,1,2');
+    }
+
+    const ySet=new Set(),mSet=new Set(),sSet=new Set();
+
+    rows.slice(1).forEach(row=>{
+        const yr = toN(row[iYear>=0?iYear:0]);
+        const mo = mNum(row[iMonth>=0?iMonth:1]);
+        const seller=(row[iSeller>=0?iSeller:2]||'').trim();
+        if(!yr||!mo||!seller)return;
+        // Ігноруємо підсумкові рядки
+        if(/загальний|підсумок|разом|total|сума/i.test(seller))return;
+
+        ySet.add(yr);mSet.add(mo);sSet.add(seller);
+
+        const rec={рік:yr,місяць:mo,продавець:seller};
+        header.forEach((h,hi)=>{
+            if(hi<=Math.max(iYear,iMonth,iSeller,2))return;
+            const v=toN(row[hi]);
+            if(v!==null)rec[h]=v;
+        });
+        allData.push(rec);
+    });
+
+    allYears=[...ySet].sort((a,b)=>b-a);
+    allMonths=[...mSet].sort((a,b)=>a-b);
+    allSellers=[...sSet].sort();
+
+    selYears.add(allYears[0]);
+    // всі місяці і продавці за замовчуванням
+}
+
+function findIdx(header,keys){
+    for(const k of keys){
+        const i=header.findIndex(h=>h.toLowerCase().includes(k));
+        if(i>=0)return i;
+    }
+    return -1;
+}
+
+// FORMAT
+function fmtV(v,type){
+    if(v===null||v===undefined)return'—';
+    const n=Number(v);if(isNaN(n))return String(v);
+    switch(type){
+        case'money':
+            if(Math.abs(n)>=1000000)return(n/1000000).toFixed(2)+'М';
+            if(Math.abs(n)>=1000)return(n/1000).toFixed(0)+'К';
+            return Math.round(n).toLocaleString('uk-UA');
+        case'int':   return Math.round(n).toLocaleString('uk-UA');
+        case'pct':   return n.toFixed(2)+'%';
+        case'dec2':  return n.toFixed(2);
+        default:     return n%1!==0?n.toFixed(2):n.toLocaleString('uk-UA');
+    }
+}
+
+// FILTER
+function filteredData(){
+    return allData.filter(r=>{
+        if(selYears.size&&!selYears.has(r.рік))return false;
+        if(selMonths.size&&!selMonths.has(r.місяць))return false;
+        if(selSellers.size&&!selSellers.has(r.продавець))return false;
+        return true;
+    });
+}
+
+// Агрегація: підсумовуємо числові поля, середнє для %-них і ефективностних
+const PCT_KEYS  = new Set(['% Доля ACC','Доля Послуг','Конверсія ПК','Конверсія ПК Offline','% УДС','КПЧ','ASP','Ср. Чек']);
+function aggregate(rows){
+    if(!rows.length)return null;
+    const res={};
+    const counts={};
+    rows.forEach(row=>{
+        Object.entries(row).forEach(([k,v])=>{
+            if(typeof v!=='number')return;
+            if(!res[k]){res[k]=0;counts[k]=0;}
+            res[k]+=v;counts[k]++;
+        });
+    });
+    // Середнє для % колонок
+    PCT_KEYS.forEach(k=>{if(res[k]!==undefined)res[k]=res[k]/counts[k];});
+    return res;
+}
+
+// ── FILTERS RENDER ──
+function renderFilters(){
+    // Роки
+    const yp=document.getElementById('yearPills');yp.innerHTML='';
+    mkPillAll(yp,'Всі',selYears.size===allYears.length,()=>{allYears.forEach(y=>selYears.add(y));refresh();});
+    allYears.forEach(y=>{
+        mkPill(yp,y,selYears.has(y),()=>{
+            selYears.has(y)?(selYears.size>1&&selYears.delete(y)):selYears.add(y);refresh();
+        },'data-year',y);
+    });
+    // Місяці
+    const mp=document.getElementById('monthPills');mp.innerHTML='';
+    mkPillAll(mp,'Всі',selMonths.size===0,()=>{selMonths.clear();refresh();});
+    allMonths.forEach(m=>{
+        mkPill(mp,MONTHS_UK[m-1].slice(0,3),selMonths.size===0||selMonths.has(m),()=>{
+            if(selMonths.size===0){selMonths.add(m);}
+            else if(selMonths.has(m)){selMonths.delete(m);}
+            else{selMonths.add(m);}
+            refresh();
+        },'data-month',m);
+    });
+    // Продавці
+    const sp=document.getElementById('sellerPills');sp.innerHTML='';
+    mkPillAll(sp,'Всі',selSellers.size===0,()=>{selSellers.clear();refresh();});
+    allSellers.forEach(s=>{
+        mkPill(sp,s.split(' ').slice(0,2).join(' '),selSellers.size===0||selSellers.has(s),()=>{
+            if(selSellers.size===0){selSellers.add(s);}
+            else if(selSellers.has(s)){selSellers.delete(s);}
+            else{selSellers.add(s);}
+            refresh();
+        },'data-seller',s);
+    });
+}
+function mkPillAll(container,text,active,onclick){
+    const b=document.createElement('button');b.className='pill'+(active?' active':'');b.textContent=text;b.onclick=onclick;container.appendChild(b);
+}
+function mkPill(container,text,active,onclick,attr,val){
+    const b=document.createElement('button');b.className='pill'+(active?' active':'');b.textContent=text;if(attr)b.setAttribute(attr,val);b.onclick=onclick;container.appendChild(b);
+}
+function updFilters(){
+    document.querySelectorAll('#yearPills .pill[data-year]').forEach(b=>{b.className='pill'+(selYears.has(+b.dataset.year)?' active':'');});
+    document.querySelector('#yearPills .pill:not([data-year])')?.classList.toggle('active',selYears.size===allYears.length);
+    document.querySelectorAll('#monthPills .pill[data-month]').forEach(b=>{b.className='pill'+((selMonths.size===0||selMonths.has(+b.dataset.month))?' active':'');});
+    document.querySelector('#monthPills .pill:not([data-month])')?.classList.toggle('active',selMonths.size===0);
+    document.querySelectorAll('#sellerPills .pill[data-seller]').forEach(b=>{b.className='pill'+((selSellers.size===0||selSellers.has(b.dataset.seller))?' active':'');});
+    document.querySelector('#sellerPills .pill:not([data-seller])')?.classList.toggle('active',selSellers.size===0);
+}
+function refresh(){updFilters();if(viewMode==='table')renderTable();else renderRating();}
+
+// ── TABLE ──
+function renderTable(){
+    const card=document.getElementById('tableCard');card.innerHTML='';
+    const data=filteredData();
+
+    // Групуємо по продавцю (якщо кілька місяців — підсумовуємо)
+    const byS={};
+    data.forEach(r=>{
+        const k=r.продавець;
+        if(!byS[k])byS[k]=[];
+        byS[k].push(r);
+    });
+
+    const sellers=Object.keys(byS).sort();
+    if(!sellers.length){card.innerHTML='<div class="status-box">Немає даних за обраний фільтр</div>';return;}
+
+    const hint=document.createElement('div');hint.className='table-hint';
+    const months=selMonths.size===0?allMonths:[...selMonths].sort((a,b)=>a-b);
+    const yrs=[...selYears].sort((a,b)=>a-b).join(', ');
+    const monStr=selMonths.size===0?'всі місяці':months.map(m=>MONTHS_UK[m-1].slice(0,3)).join(', ');
+    hint.innerHTML=`📊 <b style="color:var(--accent)">${sellers.length} продавців</b> · ${yrs} · ${monStr}`;
+    card.appendChild(hint);
+
+    const wrap=document.createElement('div');wrap.style.cssText='overflow-x:auto;-webkit-overflow-scrolling:touch;';card.appendChild(wrap);
+
+    // Визначаємо ширини
+    const totalCols=COL_GROUPS.reduce((s,g)=>s+g.cols.length,0);
+    const nameW=100,colW=Math.max(46,Math.floor((window.innerWidth-nameW-1)/Math.min(totalCols,8)));
+    const tblW=nameW+totalCols*colW;
+
+    const tbl=document.createElement('table');tbl.style.width=tblW+'px';
+
+    // Colgroup
+    const cg=document.createElement('colgroup');
+    const c0=document.createElement('col');c0.style.width=nameW+'px';cg.appendChild(c0);
+    COL_GROUPS.forEach(g=>g.cols.forEach(()=>{const c=document.createElement('col');c.style.width=colW+'px';cg.appendChild(c);}));
+    tbl.appendChild(cg);
+
+    // Thead row1: groups
+    const thead=document.createElement('thead');
+    const tr1=document.createElement('tr');
+    const thCorner=document.createElement('th');thCorner.className='col-fix';thCorner.rowSpan=2;thCorner.textContent='Продавець';tr1.appendChild(thCorner);
+    COL_GROUPS.forEach((g,gi)=>{
+        const th=document.createElement('th');th.colSpan=g.cols.length;th.textContent=g.name;
+        th.className='gh '+g.cls+(gi>0?' grp-start':'');tr1.appendChild(th);
+    });
+    thead.appendChild(tr1);
+    // Thead row2: col names
+    const tr2=document.createElement('tr');
+    COL_GROUPS.forEach((g,gi)=>{
+        g.cols.forEach((col,ci)=>{
+            const th=document.createElement('th');th.textContent=col.label;
+            th.className=g.cls+(ci===0&&gi>0?' grp-start':'');tr2.appendChild(th);
+        });
+    });
+    thead.appendChild(tr2);
+    tbl.appendChild(thead);
+
+    // Body
+    const tbody=document.createElement('tbody');
+    const allRows=[];
+
+    sellers.forEach(seller=>{
+        const agg=aggregate(byS[seller]);
+        if(!agg)return;
+        allRows.push({seller,agg});
+        const tr=document.createElement('tr');
+        const tdN=document.createElement('td');tdN.className='col-fix';tdN.textContent=seller;tr.appendChild(tdN);
+        COL_GROUPS.forEach((g,gi)=>{
+            g.cols.forEach((col,ci)=>{
+                const td=document.createElement('td');
+                if(ci===0&&gi>0)td.classList.add('grp-start');
+                const v=agg[col.key];
+                if(v!==undefined&&v!==null){
+                    const sp=document.createElement('span');sp.className='badge '+col.badge;
+                    sp.textContent=fmtV(v,col.fmt);td.appendChild(sp);
+                } else{td.textContent='—';td.style.color='#ccc';}
+                tr.appendChild(td);
+            });
+        });
+        tbody.appendChild(tr);
+    });
+
+    // Підсумковий рядок
+    if(sellers.length>1){
+        const allAgg=aggregate(data);
+        if(allAgg){
+            const tr=document.createElement('tr');tr.className='total-row';
+            const tdN=document.createElement('td');tdN.className='col-fix';tdN.textContent='∑ Разом';tr.appendChild(tdN);
+            COL_GROUPS.forEach((g,gi)=>{
+                g.cols.forEach((col,ci)=>{
+                    const td=document.createElement('td');
+                    if(ci===0&&gi>0)td.classList.add('grp-start');
+                    const v=allAgg[col.key];
+                    if(v!==undefined&&v!==null){
+                        const sp=document.createElement('span');sp.className='badge '+col.badge;
+                        sp.textContent=fmtV(v,col.fmt);td.appendChild(sp);
+                    } else{td.textContent='—';td.style.color='#ccc';}
+                    tr.appendChild(td);
+                });
+            });
+            tbody.appendChild(tr);
+        }
+    }
+
+    tbl.appendChild(tbody);wrap.appendChild(tbl);
+}
+
+// ── RATING ──
+function renderMetricPills(){
+    const cont=document.getElementById('metricPills');cont.innerHTML='';
+    RATING_METRICS.forEach(m=>{
+        const b=document.createElement('button');
+        b.className='mpill'+(m.key===activeMetricKey?' active':'');
+        b.textContent=m.label;
+        if(m.key===activeMetricKey){b.style.background=m.color;}
+        b.onclick=()=>{activeMetricKey=m.key;renderMetricPills();renderRating();};
+        cont.appendChild(b);
+    });
+}
+
+function renderRating(){
+    renderMetricPills();
+    const data=filteredData();
+    const grid=document.getElementById('rankingGrid');grid.innerHTML='';
+    if(!data.length){grid.innerHTML='<div class="status-box">Немає даних</div>';return;}
+
+    const m=RATING_METRICS.find(x=>x.key===activeMetricKey)||RATING_METRICS[0];
+    const byS={};
+    data.forEach(r=>{if(!byS[r.продавець])byS[r.продавець]=[];byS[r.продавець].push(r);});
+
+    const scored=Object.entries(byS).map(([seller,rows])=>{
+        const agg=aggregate(rows);
+        const val=agg?agg[m.key]:null;
+        return{seller,val};
+    }).filter(x=>x.val!==null);
+
+    scored.sort((a,b)=>m.higher?b.val-a.val:a.val-b.val);
+    const maxVal=scored[0]?.val||1;
+
+    scored.forEach((item,i)=>{
+        const card=document.createElement('div');card.className='rank-card';
+
+        // фон-прогрес
+        const bg=document.createElement('div');bg.className='rank-bg';
+        bg.style.cssText=`background:${m.color};width:${(item.val/maxVal*100).toFixed(1)}%`;
+        card.appendChild(bg);
+
+        // Позиція
+        const pos=document.createElement('div');
+        pos.className='rank-pos '+(i===0?'gold':i===1?'silver':i===2?'bronze':'rest');
+        pos.textContent=i===0?'🥇':i===1?'🥈':i===2?'🥉':`${i+1}`;
+        card.appendChild(pos);
+
+        // Ім'я
+        const nameDiv=document.createElement('div');nameDiv.className='rank-name';
+        const nameText=document.createElement('div');nameText.className='rank-name-text';nameText.textContent=item.seller;
+        nameDiv.appendChild(nameText);
+        // Підзаголовок: доля від лідера
+        if(i>0){
+            const sub=document.createElement('div');sub.className='rank-sub';
+            const pct=(item.val/scored[0].val*100).toFixed(1);
+            sub.textContent=`${pct}% від лідера`;nameDiv.appendChild(sub);
+        }
+        card.appendChild(nameDiv);
+
+        // Прогрес-бар
+        const barWrap=document.createElement('div');barWrap.className='rank-bar-wrap';
+        const barBg=document.createElement('div');barBg.className='rank-bar-bg';
+        const barFill=document.createElement('div');barFill.className='rank-bar-fill';
+        barFill.style.cssText=`background:${m.color};width:${(item.val/maxVal*100).toFixed(1)}%`;
+        barBg.appendChild(barFill);barWrap.appendChild(barBg);card.appendChild(barWrap);
+
+        // Значення
+        const valDiv=document.createElement('div');valDiv.className='rank-val';
+        const valMain=document.createElement('div');valMain.className='rank-val-main';valMain.style.color=m.color;
+        valMain.textContent=fmtV(item.val,m.fmt);
+        valDiv.appendChild(valMain);
+        card.appendChild(valDiv);
+
+        grid.appendChild(card);
+    });
+}
+
+// ── VIEW ──
+function setView(mode){
+    viewMode=mode;
+    document.getElementById('btnTable').classList.toggle('active',mode==='table');
+    document.getElementById('btnRating').classList.toggle('active',mode==='rating');
+    document.getElementById('tableSection').style.display=mode==='table'?'':'none';
+    document.getElementById('ratingPanel').classList.toggle('visible',mode==='rating');
+    if(mode==='rating')renderRating();else renderTable();
+}
+
+// ── INIT ──
+async function init(){
+    try{
+        const res=await fetch(CSV_URL+'&t='+Date.now());
+        if(!res.ok)throw new Error('HTTP '+res.status);
+        const text=await res.text();
+        const rows=parseCSV(text);
+        if(!rows.length)throw new Error('Порожній файл');
+        parseFull(rows);
+        if(!allData.length)throw new Error('Не вдалось розпізнати дані');
+        renderFilters();
+        renderTable();
+    }catch(e){
+        document.getElementById('tableCard').innerHTML=`<div class="status-box error">❌ ${e.message}</div>`;
+        console.error(e);
+    }
+}
+init();
+</script>
+</body>
+</html>
