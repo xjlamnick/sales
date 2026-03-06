@@ -417,10 +417,12 @@ function renderRankingCards() {
     const grid = document.getElementById('rankingGrid');
     grid.innerHTML = '';
 
-    // Filter out total/dev rows
+    // Filter out total/dev rows — broad exclusion
     const sellers = allRatingRows.filter(r => {
-        const nl = (r[0]||'').toLowerCase();
-        return nl && !['разом','сума','total','підсумок','всього','відставання','відхилення'].some(k=>nl.includes(k));
+        const nl = (r[0]||'').toLowerCase().trim();
+        if (!nl) return false;
+        const excluded = ['разом','сума','total','тотал','підсумок','всього','итого','відставання','відхилення','магазин','store','shop'];
+        return !excluded.some(k=>nl.includes(k));
     });
 
     const withVals = sellers.map(r => ({
@@ -428,7 +430,7 @@ function renderRankingCards() {
         val: toNum(r[m.idx]||'0'),
         plan: m.planIdx ? toNum(r[m.planIdx]||'0') : null,
         pct: m.pctIdx ? toNum(r[m.pctIdx]||'0') : null,
-    })).filter(x=>x.name);
+    })).filter(x=>x.name && x.val > 0);
 
     withVals.sort((a,b) => b.val - a.val);
     const maxVal = withVals.length ? withVals[0].val : 1;

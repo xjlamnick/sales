@@ -271,9 +271,73 @@ function toN(v){
     const n=parseFloat(s);return isNaN(n)?null:n;
 }
 
+// Маппінг можливих назв колонок CSV → канонічний ключ COL_GROUPS
+const COL_NAME_MAP = {
+    // Товарообіг
+    'то':                     'ТО',
+    'товарообіг':             'ТО',
+    'товарооборот':           'ТО',
+    'turnover':               'ТО',
+    'шт':                     'Шт',
+    'штуки':                  'Шт',
+    'qty':                    'Шт',
+    'чеки':                   'Чеки',
+    'checks':                 'Чеки',
+    'ср. чек':                'Ср. Чек',
+    'середній чек':           'Ср. Чек',
+    'ср.чек':                 'Ср. Чек',
+    'avg check':              'Ср. Чек',
+    'asp':                    'ASP',
+    'кпч':                    'КПЧ',
+    // Послуги
+    'послуги грн':            'Послуги грн',
+    'послуги, грн':           'Послуги грн',
+    'послуги':                'Послуги грн',
+    'services':               'Послуги грн',
+    'доля послуг':            'Доля Послуг',
+    'частка послуг':          'Доля Послуг',
+    '% послуг':               'Доля Послуг',
+    // ACC
+    'acc':                    'ACC',
+    'аксесуари':              'ACC',
+    'аксесуари грн':          'ACC',
+    '% доля acc':             '% Доля ACC',
+    'доля acc':               '% Доля ACC',
+    'частка acc':             '% Доля ACC',
+    '% acc':                  '% Доля ACC',
+    // Ефективність
+    'конверсія пк':           'Конверсія ПК',
+    'конверсія':              'Конверсія ПК',
+    'conversion':             'Конверсія ПК',
+    'конверсія пк offline':   'Конверсія ПК Offline',
+    'конверсія offline':      'Конверсія ПК Offline',
+    'оф.конв':                'Конверсія ПК Offline',
+    'офлайн конверсія':       'Конверсія ПК Offline',
+    '% удс':                  '% УДС',
+    'удс':                    '% УДС',
+    'уds':                    '% УДС',
+    // Категорії
+    'av':                     'AV',
+    'dig':                    'DIG',
+    'it':                     'IT',
+    'mda':                    'MDA',
+    'nip':                    'NIP',
+    'sda':                    'SDA',
+};
+
+function normalizeHeader(h){
+    return (h||'').toLowerCase().trim().replace(/\s+/g,' ');
+}
+function canonicalKey(h){
+    const n=normalizeHeader(h);
+    return COL_NAME_MAP[n] || h;
+}
+
 function parseFull(rows){
     if(!rows.length)return;
-    const header=rows[0].map(h=>(h||'').trim());
+    const rawHeader=rows[0].map(h=>(h||'').trim());
+    // Нормалізуємо заголовки — кожен raw header → канонічний ключ
+    const header=rawHeader.map(h=>canonicalKey(h));
     const idx={};
     header.forEach((h,i)=>{ idx[h]=i; });
 
