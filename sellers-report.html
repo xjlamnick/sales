@@ -204,7 +204,7 @@ const COL_GROUPS = [
     { name:'Ефективність', cls:'gh-eff', cols:[
         { key:'Конверсія ПК', label:'Конв.', badge:'b-eff', fmt:'pct' },
         { key:'Конверсія ПК Offline', label:'Оф.Конв', badge:'b-eff', fmt:'pct' },
-        { key:'% УДС', label:'УДС%', badge:'b-pct', fmt:'pct' },
+        { key:'% УДС', label:'УДС', badge:'b-plain', fmt:'money' },
     ]},
     { name:'Категорії', cls:'gh-cat', cols:[
         { key:'AV', label:'AV', badge:'b-cat', fmt:'money' },
@@ -431,7 +431,7 @@ function filteredData(){
 }
 
 // Агрегація: підсумовуємо числові поля, середнє для %-них і ефективностних
-const PCT_KEYS  = new Set(['% Доля ACC','Доля Послуг','Конверсія ПК','Конверсія ПК Offline','% УДС','КПЧ','ASP','Ср. Чек']);
+const PCT_KEYS  = new Set(['% Доля ACC','Доля Послуг','Конверсія ПК','Конверсія ПК Offline','КПЧ','ASP','Ср. Чек']);
 function aggregate(rows){
     if(!rows.length)return null;
     const res={};
