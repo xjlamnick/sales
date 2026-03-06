@@ -300,8 +300,10 @@ function parseFull(rows){
         ySet.add(yr);mSet.add(mo);sSet.add(seller);
 
         const rec={рік:yr,місяць:mo,продавець:seller};
+        const skipIdx=new Set([iYear>=0?iYear:0, iMonth>=0?iMonth:1, iSeller>=0?iSeller:2]);
         header.forEach((h,hi)=>{
-            if(hi<=Math.max(iYear,iMonth,iSeller,2))return;
+            if(skipIdx.has(hi))return;
+            if(!h)return;
             const v=toN(row[hi]);
             if(v!==null)rec[h]=v;
         });

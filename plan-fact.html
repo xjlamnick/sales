@@ -71,11 +71,47 @@
 
         .loading { padding: 40px; text-align: center; color: #86868b; }
         .error   { padding: 40px; text-align: center; color: #ff3b30; }
+
+        /* TOP BAR */
+        .top-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:10px;flex-wrap:wrap}
+        .view-toggle{display:flex;gap:4px;background:#e5e5ea;border-radius:10px;padding:3px}
+        .view-btn{border:none;background:transparent;padding:5px 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;color:#6e6e73;font-family:inherit;transition:all .2s}
+        .view-btn.active{background:white;color:#1d1d1f;box-shadow:0 1px 4px rgba(0,0,0,.12)}
+
+        /* RATING VIEW */
+        .rating-panel{display:none}
+        .rating-panel.visible{display:block}
+        .metric-bar{background:white;border-radius:14px;box-shadow:0 4px 20px rgba(0,0,0,.06);padding:12px 14px;margin-bottom:12px}
+        .metric-bar-title{font-size:11px;font-weight:700;color:#6e6e73;text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px}
+        .metric-pills{display:flex;gap:6px;flex-wrap:wrap}
+        .mpill{border:1.5px solid #d2d2d7;background:white;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;color:#6e6e73;transition:all .15s;white-space:nowrap}
+        .mpill.active{color:white;border-color:transparent}
+        .ranking-grid{display:flex;flex-direction:column;gap:7px}
+        .rank-card{background:white;border-radius:14px;box-shadow:0 4px 20px rgba(0,0,0,.06);padding:11px 14px;display:flex;align-items:center;gap:12px;position:relative;overflow:hidden;transition:transform .15s}
+        .rank-card:hover{transform:translateY(-1px)}
+        .rank-bg{position:absolute;left:0;top:0;height:100%;opacity:.07;border-radius:14px;pointer-events:none;transition:width .5s ease}
+        .rank-pos{font-size:18px;font-weight:800;min-width:26px;text-align:center;line-height:1}
+        .rank-pos.gold{color:#f5a623}.rank-pos.silver{color:#9b9b9b}.rank-pos.bronze{color:#c47a3a}.rank-pos.rest{color:#ccc;font-size:14px}
+        .rank-name{flex:1;min-width:0}
+        .rank-name-text{font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+        .rank-sub{font-size:10px;color:#6e6e73;margin-top:1px}
+        .rank-bar-wrap{flex:2;min-width:50px;max-width:140px}
+        .rank-bar-bg{height:6px;background:#ebebef;border-radius:3px;overflow:hidden}
+        .rank-bar-fill{height:100%;border-radius:3px;transition:width .6s ease}
+        .rank-val{text-align:right;min-width:58px}
+        .rank-val-main{font-size:14px;font-weight:800;line-height:1.2}
+        .rank-val-sub{font-size:10px;color:#6e6e73}
     </style>
 </head>
 <body>
-    <a href="index.html" class="back-link">← На головну</a>
-    <div class="table-card">
+    <div class="top-bar">
+        <a href="index.html" class="back-link">← На головну</a>
+        <div class="view-toggle">
+            <button class="view-btn active" id="btnTable" onclick="setView('table')">📋 Таблиця</button>
+            <button class="view-btn" id="btnRating" onclick="setView('rating')">🏆 Рейтинг</button>
+        </div>
+    </div>
+    <div class="table-card" id="tableCard">
         <div id="loader" class="loading">Завантаження...</div>
         <table id="tbl" style="display:none">
             <thead>
@@ -84,6 +120,15 @@
             </thead>
             <tbody id="tbody"></tbody>
         </table>
+    </div>
+
+    <!-- RATING VIEW -->
+    <div class="rating-panel" id="ratingPanel">
+        <div class="metric-bar">
+            <div class="metric-bar-title">Метрика для рейтингу</div>
+            <div class="metric-pills" id="metricPills"></div>
+        </div>
+        <div class="ranking-grid" id="rankingGrid"></div>
     </div>
 
 <script>
@@ -113,6 +158,19 @@ const GROUPS = [
         { label:'%',     idx:14, type:'pct'                  },
     ]},
 ];
+
+// Метрики для рейтингу (факт-значення)
+const RATING_METRICS = [
+    { key:'to_fact',   label:'ТО',        idx:2,  color:'#0071e3', planIdx:1,  pctIdx:3,  fmt:'int' },
+    { key:'serv_fact', label:'Послуги',   idx:5,  color:'#34c759', planIdx:4,  pctIdx:7,  fmt:'int' },
+    { key:'acc_fact',  label:'ACC',       idx:9,  color:'#ff9500', planIdx:8,  pctIdx:11, fmt:'int' },
+    { key:'chk_fact',  label:'Чеки',      idx:13, color:'#af52de', planIdx:12, pctIdx:14, fmt:'int' },
+    { key:'serv_shr',  label:'Частка посл.', idx:6, color:'#34c759', fmt:'share' },
+    { key:'acc_shr',   label:'Частка ACC', idx:10, color:'#ff9500', fmt:'share' },
+];
+
+let allRatingRows = [];
+let activeMetricKey = 'to_fact';
 
 // ======= HELPERS =======
 function parseCSV(text) {
@@ -314,11 +372,115 @@ function buildTable(dataRows) {
     }
 }
 
+// ======= VIEW TOGGLE =======
+function setView(mode) {
+    const tableCard = document.getElementById('tableCard');
+    const ratingPanel = document.getElementById('ratingPanel');
+    document.getElementById('btnTable').classList.toggle('active', mode==='table');
+    document.getElementById('btnRating').classList.toggle('active', mode==='rating');
+    tableCard.style.display = mode==='table' ? '' : 'none';
+    if (mode==='rating') {
+        ratingPanel.classList.add('visible');
+        renderRating();
+    } else {
+        ratingPanel.classList.remove('visible');
+    }
+}
+
+// ======= RATING =======
+function fmtRatingVal(v, fmt) {
+    if (v===null||v===undefined) return '—';
+    const n = Number(v);
+    if (isNaN(n)) return '—';
+    if (fmt==='share') return n.toFixed(2)+'%';
+    if (fmt==='pct') return n.toFixed(1)+'%';
+    if (Math.abs(n)>=1000000) return (n/1000000).toFixed(2)+'М';
+    if (Math.abs(n)>=1000) return (n/1000).toFixed(0)+'К';
+    return Math.round(n).toLocaleString('uk-UA');
+}
+
+function buildMetricPills() {
+    const container = document.getElementById('metricPills');
+    container.innerHTML = '';
+    RATING_METRICS.forEach(m => {
+        const btn = document.createElement('button');
+        btn.className = 'mpill' + (m.key===activeMetricKey?' active':'');
+        btn.textContent = m.label;
+        if (m.key===activeMetricKey) btn.style.background = m.color;
+        btn.onclick = () => { activeMetricKey = m.key; buildMetricPills(); renderRankingCards(); };
+        container.appendChild(btn);
+    });
+}
+
+function renderRankingCards() {
+    const m = RATING_METRICS.find(x=>x.key===activeMetricKey) || RATING_METRICS[0];
+    const grid = document.getElementById('rankingGrid');
+    grid.innerHTML = '';
+
+    // Filter out total/dev rows
+    const sellers = allRatingRows.filter(r => {
+        const nl = (r[0]||'').toLowerCase();
+        return nl && !['разом','сума','total','підсумок','всього','відставання','відхилення'].some(k=>nl.includes(k));
+    });
+
+    const withVals = sellers.map(r => ({
+        name: (r[0]||'').trim(),
+        val: toNum(r[m.idx]||'0'),
+        plan: m.planIdx ? toNum(r[m.planIdx]||'0') : null,
+        pct: m.pctIdx ? toNum(r[m.pctIdx]||'0') : null,
+    })).filter(x=>x.name);
+
+    withVals.sort((a,b) => b.val - a.val);
+    const maxVal = withVals.length ? withVals[0].val : 1;
+
+    withVals.forEach((item, i) => {
+        const pos = i+1;
+        const posClass = pos===1?'gold':pos===2?'silver':pos===3?'bronze':'rest';
+        const barPct = maxVal>0 ? Math.round((item.val/maxVal)*100) : 0;
+
+        const pctStr = item.pct!=null ? (() => {
+            let n = item.pct;
+            if (!(String(item.pct)).includes('%') && n>0 && n<2) n*=100;
+            return n.toFixed(1)+'%';
+        })() : null;
+
+        const card = document.createElement('div');
+        card.className = 'rank-card';
+        card.innerHTML = `
+            <div class="rank-bg" style="background:${m.color};width:${barPct}%"></div>
+            <div class="rank-pos ${posClass}">${pos<=3?['🥇','🥈','🥉'][pos-1]:pos}</div>
+            <div class="rank-name">
+                <div class="rank-name-text">${item.name}</div>
+                ${pctStr?`<div class="rank-sub">Виконання: ${pctStr}</div>`:''}
+            </div>
+            <div class="rank-bar-wrap">
+                <div class="rank-bar-bg">
+                    <div class="rank-bar-fill" style="width:${barPct}%;background:${m.color}"></div>
+                </div>
+            </div>
+            <div class="rank-val">
+                <div class="rank-val-main" style="color:${m.color}">${fmtRatingVal(item.val, m.fmt)}</div>
+                ${item.plan?`<div class="rank-val-sub">план: ${fmtRatingVal(item.plan, m.fmt)}</div>`:''}
+            </div>`;
+        grid.appendChild(card);
+    });
+
+    if (!withVals.length) {
+        grid.innerHTML = '<div style="padding:40px;text-align:center;color:#86868b">Немає даних</div>';
+    }
+}
+
+function renderRating() {
+    buildMetricPills();
+    renderRankingCards();
+}
+
 async function load() {
     const URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTOUXHhUpCkh6tgvNpJzY-w5tVrhPkvEeC0W0ZWuy2YxPayuO3pvahfeKYmMZ1DwHnILTpsJFNtXLsH/pub?output=csv";
     try {
         const res = await fetch(URL + '&t=' + Date.now());
         const rows = parseCSV(await res.text()).slice(1);
+        allRatingRows = rows;
         document.getElementById('loader').style.display = 'none';
         buildTable(rows);
     } catch(e) {
