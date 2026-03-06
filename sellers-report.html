@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
     <title>Звіт по продавцях</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
     <style>
         :root{--bg:#f5f5f7;--text:#1d1d1f;--text-sec:#6e6e73;--accent:#0071e3;--border:#d2d2d7;--card:#fff;--shadow:0 4px 20px rgba(0,0,0,.06)}
         *{box-sizing:border-box;margin:0;padding:0}
@@ -88,6 +89,22 @@
         .rank-val-main{font-size:14px;font-weight:800;line-height:1.2}
         .rank-val-sub{font-size:10px;color:var(--text-sec)}
 
+        /* DYNAMICS */
+        .dyn-panel{display:none}
+        .dyn-panel.visible{display:block}
+        .dyn-controls{background:var(--card);border-radius:14px;box-shadow:var(--shadow);padding:12px 14px;margin-bottom:12px}
+        .dyn-ctrl-title{font-size:11px;font-weight:700;color:var(--text-sec);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px}
+        .dyn-chart-card{background:var(--card);border-radius:16px;box-shadow:var(--shadow);padding:16px;margin-bottom:12px}
+        .dyn-chart-wrap{position:relative;height:300px}
+        @media(max-width:600px){.dyn-chart-wrap{height:220px}}
+        .dyn-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:200px;color:var(--text-sec);gap:8px;font-size:13px;font-weight:500}
+        .dyn-metric-pills{display:flex;gap:6px;flex-wrap:wrap}
+        .dmpill{border:1.5px solid var(--border);background:white;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--text-sec);transition:all .15s;white-space:nowrap}
+        .dmpill.active{color:white;border-color:transparent}
+        .seller-selector{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}
+        .spill{border:1.5px solid var(--border);background:white;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--text-sec);transition:all .15s;white-space:nowrap}
+        .spill.active{color:white;border-color:transparent}
+
         .status-box{padding:40px;text-align:center;color:var(--text-sec);font-size:14px}
         .status-box.error{color:#ff3b30}
 
@@ -106,6 +123,7 @@
     <div class="view-toggle">
         <button class="view-btn active" id="btnTable" onclick="setView('table')">📋 Таблиця</button>
         <button class="view-btn" id="btnRating" onclick="setView('rating')">🏆 Рейтинг</button>
+        <button class="view-btn" id="btnDyn" onclick="setView('dyn')">📈 Динаміка</button>
     </div>
 </div>
 
@@ -128,6 +146,19 @@
 <div id="tableSection">
     <div class="table-card" id="tableCard">
         <div class="status-box">Завантаження…</div>
+    </div>
+</div>
+
+<!-- DYNAMICS VIEW -->
+<div class="dyn-panel" id="dynPanel">
+    <div class="dyn-controls">
+        <div class="dyn-ctrl-title">Показник</div>
+        <div class="dyn-metric-pills" id="dynMetricPills"></div>
+        <div class="dyn-ctrl-title" style="margin-top:10px">Продавці на графіку</div>
+        <div class="seller-selector" id="dynSellerPills"></div>
+    </div>
+    <div class="dyn-chart-card">
+        <div id="dynChartBody"><div class="dyn-empty">📊 Оберіть показник і продавця</div></div>
     </div>
 </div>
 
@@ -180,14 +211,29 @@ const COL_GROUPS = [
 
 // Метрики для рейтингу
 const RATING_METRICS = [
-    { key:'ТО', label:'ТО', color:'#0071e3', fmt:'money', higher:true },
-    { key:'ACC', label:'ACC', color:'#ff9500', fmt:'money', higher:true },
-    { key:'% Доля ACC', label:'ACC%', color:'#ff9500', fmt:'pct', higher:true },
-    { key:'Послуги грн', label:'Послуги', color:'#34c759', fmt:'money', higher:true },
-    { key:'Доля Послуг', label:'Посл%', color:'#34c759', fmt:'pct', higher:true },
-    { key:'Конверсія ПК', label:'Конверсія', color:'#af52de', fmt:'pct', higher:true },
-    { key:'Ср. Чек', label:'Ср.Чек', color:'#5856d6', fmt:'money', higher:true },
-    { key:'КПЧ', label:'КПЧ', color:'#00b388', fmt:'dec2', higher:true },
+    { key:'ТО',           label:'ТО',        color:'#0071e3', fmt:'money', higher:true, group:'main' },
+    { key:'ACC',          label:'ACC',        color:'#ff9500', fmt:'money', higher:true, group:'main' },
+    { key:'% Доля ACC',   label:'ACC%',       color:'#ff9500', fmt:'pct',   higher:true, group:'main' },
+    { key:'Послуги грн',  label:'Послуги',    color:'#34c759', fmt:'money', higher:true, group:'main' },
+    { key:'Доля Послуг',  label:'Посл%',      color:'#34c759', fmt:'pct',   higher:true, group:'main' },
+    { key:'Конверсія ПК', label:'Конверсія',  color:'#af52de', fmt:'pct',   higher:true, group:'main' },
+    { key:'Ср. Чек',      label:'Ср.Чек',     color:'#5856d6', fmt:'money', higher:true, group:'main' },
+    { key:'КПЧ',          label:'КПЧ',        color:'#00b388', fmt:'dec2',  higher:true, group:'main' },
+    // Категорії
+    { key:'AV',  label:'AV',  color:'#c8392b', fmt:'money', higher:true, group:'cat' },
+    { key:'DIG', label:'DIG', color:'#e67e22', fmt:'money', higher:true, group:'cat' },
+    { key:'IT',  label:'IT',  color:'#8e44ad', fmt:'money', higher:true, group:'cat' },
+    { key:'MDA', label:'MDA', color:'#2980b9', fmt:'money', higher:true, group:'cat' },
+    { key:'NIP', label:'NIP', color:'#27ae60', fmt:'money', higher:true, group:'cat' },
+    { key:'SDA', label:'SDA', color:'#d35400', fmt:'money', higher:true, group:'cat' },
+];
+
+// Всі метрики для динаміки (ті самі + кілька доп.)
+const DYN_METRICS = [
+    ...RATING_METRICS,
+    { key:'Шт',   label:'Шт',    color:'#0071e3', fmt:'int',   group:'main' },
+    { key:'Чеки', label:'Чеки',  color:'#5856d6', fmt:'int',   group:'main' },
+    { key:'ASP',  label:'ASP',   color:'#2c3e50', fmt:'money', group:'main' },
 ];
 
 // STATE
@@ -196,6 +242,9 @@ let allYears = [], allMonths = [], allSellers = [];
 let selYears = new Set(), selMonths = new Set(), selSellers = new Set();
 let viewMode = 'table';
 let activeMetricKey = 'ТО';
+let dynMetricKey = 'ТО';
+let dynSellerSet = new Set(); // продавці обрані на графік динаміки
+let dynChartInstance = null;
 
 // PARSE
 function parseCSV(text){
@@ -479,13 +528,151 @@ function renderTable(){
 // ── RATING ──
 function renderMetricPills(){
     const cont=document.getElementById('metricPills');cont.innerHTML='';
+    // Група "Основні"
+    const g1=document.createElement('div');g1.style.cssText='display:flex;flex-wrap:wrap;gap:5px;margin-bottom:5px';
+    const g2=document.createElement('div');g2.style.cssText='display:flex;flex-wrap:wrap;gap:5px;padding-top:6px;border-top:1px solid #f2f2f4';
+    const g2lbl=document.createElement('div');g2lbl.style.cssText='width:100%;font-size:9px;font-weight:700;color:#86868b;text-transform:uppercase;letter-spacing:.3px;margin-bottom:3px';g2lbl.textContent='Категорії';g2.appendChild(g2lbl);
     RATING_METRICS.forEach(m=>{
         const b=document.createElement('button');
         b.className='mpill'+(m.key===activeMetricKey?' active':'');
         b.textContent=m.label;
-        if(m.key===activeMetricKey){b.style.background=m.color;}
+        if(m.key===activeMetricKey){b.style.background=m.color;b.style.borderColor=m.color;}
         b.onclick=()=>{activeMetricKey=m.key;renderMetricPills();renderRating();};
-        cont.appendChild(b);
+        (m.group==='cat'?g2:g1).appendChild(b);
+    });
+    cont.appendChild(g1);cont.appendChild(g2);
+}
+
+// ── DYNAMICS ──
+const DYN_COLORS=['#0071e3','#ff3b30','#34c759','#ff9500','#af52de','#5856d6','#00b388','#ff6b35','#c8392b','#1abc9c'];
+
+function renderDynControls(){
+    // Метрики
+    const mp=document.getElementById('dynMetricPills');mp.innerHTML='';
+    const g1=document.createElement('div');g1.style.cssText='display:flex;flex-wrap:wrap;gap:5px;margin-bottom:4px';
+    const g2=document.createElement('div');g2.style.cssText='display:flex;flex-wrap:wrap;gap:5px;padding-top:5px;border-top:1px solid #f2f2f4';
+    const g2lbl=document.createElement('div');g2lbl.style.cssText='width:100%;font-size:9px;font-weight:700;color:#86868b;text-transform:uppercase;margin-bottom:3px';g2lbl.textContent='Категорії';g2.appendChild(g2lbl);
+    DYN_METRICS.forEach(m=>{
+        const b=document.createElement('button');b.className='dmpill'+(m.key===dynMetricKey?' active':'');b.textContent=m.label;
+        if(m.key===dynMetricKey){b.style.background=m.color;b.style.borderColor=m.color;}
+        b.onclick=()=>{dynMetricKey=m.key;renderDynControls();renderDynChart();};
+        (m.group==='cat'?g2:g1).appendChild(b);
+    });
+    mp.appendChild(g1);mp.appendChild(g2);
+
+    // Продавці
+    const sp=document.getElementById('dynSellerPills');sp.innerHTML='';
+    // Які продавці є в поточному фільтрі
+    const visibleSellers=[...new Set(filteredData().map(r=>r.продавець))].sort();
+    if(!visibleSellers.length){sp.innerHTML='<span style="font-size:11px;color:#86868b">Немає даних</span>';return;}
+
+    // Якщо dynSellerSet порожній — обираємо першого за замовчуванням
+    if(dynSellerSet.size===0&&visibleSellers.length)dynSellerSet.add(visibleSellers[0]);
+
+    visibleSellers.forEach((s,si)=>{
+        const color=DYN_COLORS[si%DYN_COLORS.length];
+        const b=document.createElement('button');b.className='spill'+(dynSellerSet.has(s)?' active':'');b.textContent=s.split(' ').slice(0,2).join(' ');
+        if(dynSellerSet.has(s)){b.style.background=color;b.style.borderColor=color;}
+        b.onclick=()=>{
+            if(dynSellerSet.has(s)){if(dynSellerSet.size>1)dynSellerSet.delete(s);}else dynSellerSet.add(s);
+            renderDynControls();renderDynChart();
+        };
+        sp.appendChild(b);
+    });
+}
+
+function renderDynChart(){
+    const body=document.getElementById('dynChartBody');
+    if(dynSellerSet.size===0){
+        if(dynChartInstance){dynChartInstance.destroy();dynChartInstance=null;}
+        body.innerHTML='<div class="dyn-empty">📊 Оберіть продавця</div>';return;
+    }
+    // Збираємо місяці і роки з фільтрів
+    const years=[...selYears].sort((a,b)=>a-b);
+    const allM=[...new Set(filteredData().map(r=>r.місяць))].sort((a,b)=>a-b);
+    if(!allM.length){body.innerHTML='<div class="dyn-empty">Немає даних</div>';return;}
+
+    // Labels: якщо кілька років — "Міс РРРР", якщо один — "Міс"
+    const timePoints=[];
+    years.forEach(y=>{allM.forEach(m=>{
+        const exists=allData.some(r=>r.рік===y&&r.місяць===m&&(selMonths.size===0||selMonths.has(m)));
+        if(exists)timePoints.push({y,m,label:years.length>1?MONTHS_UK[m-1].slice(0,3)+' '+y:MONTHS_UK[m-1].slice(0,3)});
+    });});
+    if(!timePoints.length){body.innerHTML='<div class="dyn-empty">Немає даних</div>';return;}
+
+    const metricMeta=DYN_METRICS.find(x=>x.key===dynMetricKey)||{key:dynMetricKey,label:dynMetricKey,color:'#0071e3',fmt:'money'};
+    const isPct=PCT_KEYS.has(dynMetricKey);
+
+    const sellers=[...dynSellerSet];
+    const datasets=sellers.map((seller,si)=>{
+        const color=DYN_COLORS[si%DYN_COLORS.length];
+        const data=timePoints.map(tp=>{
+            const rows=allData.filter(r=>r.рік===tp.y&&r.місяць===tp.m&&r.продавець===seller&&(selMonths.size===0||selMonths.has(r.місяць)));
+            if(!rows.length)return null;
+            const vals=rows.map(r=>r[dynMetricKey]).filter(v=>v!=null);
+            if(!vals.length)return null;
+            return isPct?vals.reduce((a,b)=>a+b,0)/vals.length:vals.reduce((a,b)=>a+b,0);
+        });
+        return{label:seller,data,borderColor:color,backgroundColor:color+'18',pointBackgroundColor:color,pointBorderColor:'#fff',pointBorderWidth:1.5,pointRadius:4,pointHoverRadius:7,tension:0.35,fill:false,spanGaps:true};
+    });
+
+    if(dynChartInstance){dynChartInstance.destroy();dynChartInstance=null;}
+    body.innerHTML='<div class="dyn-chart-wrap"><canvas id="dynCanvas"></canvas></div>';
+
+    // Smart labels plugin
+    const smartLabels={
+        id:'sl',
+        afterDatasetsDraw(chart){
+            const ctx=chart.ctx;ctx.save();
+            const FS=9,PX=3,PY=2,LH=FS+PY*2+2,GAP=3;
+            ctx.font=`600 ${FS}px Inter,sans-serif`;
+            const pts=[];
+            chart.data.datasets.forEach((ds,di)=>{
+                const meta=chart.getDatasetMeta(di);if(meta.hidden)return;
+                ds.data.forEach((val,pi)=>{
+                    if(val===null||val===undefined)return;
+                    const el=meta.data[pi];if(!el)return;
+                    const text=fmtV(val,metricMeta.fmt);
+                    pts.push({x:el.x,y:el.y,text,color:ds.borderColor,tw:ctx.measureText(text).width});
+                });
+            });
+            const byX={};pts.forEach(p=>{const k=Math.round(p.x);if(!byX[k])byX[k]=[];byX[k].push(p);});
+            Object.values(byX).forEach(grp=>{
+                grp.sort((a,b)=>a.y-b.y);
+                grp.forEach(p=>{p.ly=p.y-LH/2-5;});
+                for(let it=0;it<20;it++){let ch=false;for(let i=1;i<grp.length;i++){const pr=grp[i-1],cu=grp[i],df=(pr.ly+LH+GAP)-cu.ly;if(df>0){pr.ly-=df/2;cu.ly+=df/2;ch=true;}}if(!ch)break;}
+                grp.forEach(p=>{
+                    const bw=p.tw+PX*2,bh=FS+PY*2,bx=p.x-bw/2,by=p.ly-bh/2;
+                    ctx.shadowColor='rgba(0,0,0,0.13)';ctx.shadowBlur=3;ctx.shadowOffsetY=1;
+                    ctx.fillStyle='#fff';ctx.beginPath();ctx.roundRect(bx,by,bw,bh,3);ctx.fill();
+                    ctx.shadowColor='transparent';ctx.shadowBlur=0;ctx.shadowOffsetY=0;
+                    ctx.strokeStyle=p.color;ctx.lineWidth=1;ctx.beginPath();ctx.roundRect(bx,by,bw,bh,3);ctx.stroke();
+                    ctx.fillStyle=p.color;ctx.font=`700 ${FS}px Inter,sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';
+                    ctx.fillText(p.text,p.x,by+bh/2);ctx.textAlign='left';ctx.textBaseline='alphabetic';
+                    const lsy=by+bh;if(p.y-lsy>5){ctx.strokeStyle=p.color+'55';ctx.lineWidth=1;ctx.setLineDash([2,2]);ctx.beginPath();ctx.moveTo(p.x,lsy);ctx.lineTo(p.x,p.y-4);ctx.stroke();ctx.setLineDash([]);}
+                });
+            });
+            ctx.restore();
+        }
+    };
+
+    const ctx2=document.getElementById('dynCanvas').getContext('2d');
+    dynChartInstance=new Chart(ctx2,{
+        type:'line',data:{labels:timePoints.map(tp=>tp.label),datasets},plugins:[smartLabels],
+        options:{
+            responsive:true,maintainAspectRatio:false,
+            interaction:{mode:'index',intersect:false},
+            layout:{padding:{top:28,left:6,right:6}},
+            plugins:{
+                legend:{display:sellers.length>1,position:'top',labels:{font:{family:'Inter',size:10},boxWidth:16,padding:10}},
+                tooltip:{backgroundColor:'#1d1d1f',titleFont:{family:'Inter',size:11},bodyFont:{family:'Inter',size:10},padding:9,
+                    callbacks:{label:c=>` ${c.dataset.label}: ${fmtV(c.raw,metricMeta.fmt)}`}}
+            },
+            scales:{
+                x:{grid:{color:'#f0f0f0'},ticks:{font:{family:'Inter',size:9},color:'#86868b',maxRotation:45}},
+                y:{grid:{color:'#f0f0f0'},ticks:{font:{family:'Inter',size:9},color:'#86868b',callback:v=>fmtV(v,metricMeta.fmt)}}
+            }
+        }
     });
 }
 
@@ -557,9 +744,13 @@ function setView(mode){
     viewMode=mode;
     document.getElementById('btnTable').classList.toggle('active',mode==='table');
     document.getElementById('btnRating').classList.toggle('active',mode==='rating');
+    document.getElementById('btnDyn').classList.toggle('active',mode==='dyn');
     document.getElementById('tableSection').style.display=mode==='table'?'':'none';
     document.getElementById('ratingPanel').classList.toggle('visible',mode==='rating');
-    if(mode==='rating')renderRating();else renderTable();
+    document.getElementById('dynPanel').classList.toggle('visible',mode==='dyn');
+    if(mode==='rating')renderRating();
+    else if(mode==='dyn'){renderDynControls();renderDynChart();}
+    else renderTable();
 }
 
 // ── INIT ──
