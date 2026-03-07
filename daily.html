@@ -107,11 +107,28 @@
     /* ── RATING VIEW ── */
     .rating-panel{display:none;margin-top:8px}
     .rating-panel.visible{display:block}
-    .metric-bar{background:white;border-radius:14px;box-shadow:0 4px 20px rgba(0,0,0,.06);padding:10px 14px;margin-bottom:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-    .metric-bar-title{font-size:10px;font-weight:700;color:#6e6e73;text-transform:uppercase;letter-spacing:.4px;white-space:nowrap}
-    .metric-pills{display:flex;gap:4px;flex-wrap:wrap;flex:1}
-    .mpill{border:none;background:#f2f2f7;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;color:#6e6e73;transition:all .15s;white-space:nowrap}
-    .mpill:hover{background:#e5e5ea}
+    .metric-bar{
+        background:white;border-radius:14px;box-shadow:0 4px 20px rgba(0,0,0,.06);
+        padding:0;margin-bottom:10px;overflow:hidden;
+        display:flex;align-items:stretch;flex-wrap:wrap;
+        border:1px solid rgba(0,0,0,0.06);
+    }
+    .metric-bar-title{
+        font-size:10px;font-weight:700;color:#a0a0ab;
+        text-transform:uppercase;letter-spacing:.06em;
+        white-space:nowrap;user-select:none;
+        display:flex;align-items:center;padding:8px 14px;
+        border-right:1px solid #f0f0f2;
+    }
+    .metric-pills{display:flex;gap:3px;align-items:center;flex-wrap:wrap;padding:6px 10px;flex:1}
+    .mpill{
+        border:none;background:transparent;
+        padding:4px 9px;border-radius:7px;
+        font-size:11px;font-weight:600;cursor:pointer;
+        font-family:inherit;color:#6e6e73;
+        transition:all .15s;white-space:nowrap;line-height:1.4;
+    }
+    .mpill:hover{background:#f2f2f7;color:#1d1d1f}
     .mpill.active{color:white;border-color:transparent}
     .ranking-grid{display:flex;flex-direction:column;gap:7px}
     .rank-card{background:white;border-radius:14px;box-shadow:0 4px 20px rgba(0,0,0,.06);padding:10px 14px;display:flex;flex-direction:column;gap:5px;position:relative;overflow:hidden;transition:transform .15s}
@@ -156,7 +173,7 @@
     <div class="metric-bar">
         <span class="metric-bar-title">Метрика</span>
         <div class="metric-pills" id="metricPills"></div>
-        <button onclick="setView('table')" style="border:none;background:#e5e5ea;border-radius:8px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;color:#1d1d1f;white-space:nowrap">✕ Закрити</button>
+        <button onclick="setView('table')" style="border:none;background:transparent;padding:8px 12px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;color:#a0a0ab;white-space:nowrap;border-left:1px solid #f0f0f2;transition:color .15s" onmouseover="this.style.color='#1d1d1f'" onmouseout="this.style.color='#a0a0ab'">✕</button>
     </div>
     <div class="ranking-grid" id="rankingGrid"></div>
 </div>

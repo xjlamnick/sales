@@ -106,46 +106,42 @@
         @media (max-width: 900px) { .carousel-wrapper::-webkit-scrollbar { display: none; } }
 
         .banner-card {
-            flex: 0 0 240px; height: 200px; border-radius: 20px; padding: 20px 22px;
+            flex: 0 0 210px; height: 190px; border-radius: 20px; padding: 18px 20px;
             border: none; cursor: pointer;
-            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex; flex-direction: column; justify-content: space-between;
             text-decoration: none; color: inherit;
             scroll-snap-align: start; scroll-snap-stop: always;
             position: relative; overflow: hidden;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            box-shadow: 0 2px 14px rgba(0,0,0,0.07);
         }
-        .banner-card::before {
-            content: ''; position: absolute; inset: 0;
-            background: inherit; border-radius: inherit;
-            transition: opacity 0.3s;
-        }
-        @media (min-width: 1200px) { .banner-card { padding: 18px 20px; height: 190px; flex: 1 1 calc(14.28% - 13px); min-width: 180px; max-width: 240px; } }
-        .banner-card:hover { transform: translateY(-4px); box-shadow: 0 16px 40px rgba(0,0,0,0.13); }
+        @media (min-width: 1200px) { .banner-card { padding: 18px 20px; height: 185px; flex: 1 1 calc(14.28% - 13px); min-width: 175px; max-width: 235px; } }
+        .banner-card:hover { transform: translateY(-4px); box-shadow: 0 14px 36px rgba(0,0,0,0.12); }
 
         /* М'які пастельні фони без рамки */
-        .banner-special     { background: linear-gradient(145deg, #f0f4ff 0%, #e8eeff 100%); }
-        .banner-chart       { background: linear-gradient(145deg, #fff8f0 0%, #fff0e0 100%); }
-        .banner-plan-fact   { background: linear-gradient(145deg, #f0faf4 0%, #e4f7ec 100%); }
-        .banner-plan-fact-2 { background: linear-gradient(145deg, #faf0ff 0%, #f2e4ff 100%); }
-        .banner-documents   { background: linear-gradient(145deg, #f0f6ff 0%, #e2eeff 100%); }
-        .banner-sellers     { background: linear-gradient(145deg, #fff6f0 0%, #ffede0 100%); }
-        .banner-dynamics    { background: linear-gradient(145deg, #f2f0ff 0%, #e8e4ff 100%); }
+        .banner-special     { background: linear-gradient(145deg, #eef2ff 0%, #e3eaff 100%); }
+        .banner-chart       { background: linear-gradient(145deg, #fff7ed 0%, #ffecd6 100%); }
+        .banner-plan-fact   { background: linear-gradient(145deg, #edfaf3 0%, #d9f5e7 100%); }
+        .banner-plan-fact-2 { background: linear-gradient(145deg, #f8eeff 0%, #f0deff 100%); }
+        .banner-documents   { background: linear-gradient(145deg, #edf4ff 0%, #d9e9ff 100%); }
+        .banner-sellers     { background: linear-gradient(145deg, #fff4ee 0%, #ffe8d9 100%); }
+        .banner-dynamics    { background: linear-gradient(145deg, #f0eeff 0%, #e4deff 100%); }
 
+        .banner-top { display: flex; align-items: flex-start; gap: 12px; }
         .banner-icon {
-            width: 44px; height: 44px; border-radius: 14px;
+            width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0;
             display: flex; align-items: center; justify-content: center;
-            font-size: 22px; margin-bottom: 10px;
-            background: rgba(255,255,255,0.7);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            font-size: 20px;
+            background: rgba(255,255,255,0.75);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
         }
-        .banner-content h2 { font-size: 16px; font-weight: 600; margin-bottom: 4px; line-height: 1.25; color: #1d1d1f; }
-        .banner-content p  { font-size: 12px; color: var(--color-text-secondary); line-height: 1.35; }
-        .banner-footer { margin-top: auto; padding-top: 10px; }
+        .banner-content { flex: 1; min-width: 0; }
+        .banner-content h2 { font-size: 14px; font-weight: 700; margin-bottom: 3px; line-height: 1.3; color: #1d1d1f; }
+        .banner-content p  { font-size: 11px; color: #6e6e73; line-height: 1.35; }
+        .banner-footer { }
         .banner-cta {
-            font-size: 12px; font-weight: 600;
-            display: inline-flex; align-items: center; gap: 4px;
-            color: #555; opacity: 0.7;
+            font-size: 11px; font-weight: 600;
+            color: #555; opacity: 0.6;
             transition: opacity 0.2s;
         }
         .banner-card:hover .banner-cta { opacity: 1; }
@@ -153,10 +149,10 @@
         .section-title { font-size: 24px; font-weight: 600; margin-bottom: 20px; color: var(--color-text); }
 
         @media (max-width: 600px) {
-            .banner-card { flex: 0 0 210px; height: 175px; padding: 16px 18px; }
-            .banner-icon { width: 38px; height: 38px; font-size: 19px; }
-            .banner-content h2 { font-size: 14px; }
-            .banner-content p { font-size: 11px; }
+            .banner-card { flex: 0 0 185px; height: 165px; padding: 14px 16px; }
+            .banner-icon { width: 34px; height: 34px; font-size: 17px; border-radius: 10px; }
+            .banner-content h2 { font-size: 12px; }
+            .banner-content p { font-size: 10px; }
         }
 
         /* --- SKELETON LOADING --- */
@@ -919,8 +915,8 @@
             banner.href = href;
             if (isBlank) banner.target = '_blank';
             banner.innerHTML = `
-                <div>
-                    <div class="banner-icon" style="background: ${icon.bg}">${icon.img}</div>
+                <div class="banner-top">
+                    <div class="banner-icon">${icon.img}</div>
                     <div class="banner-content"><h2>${title}</h2><p>${subtitle}</p></div>
                 </div>
                 <div class="banner-footer"><div class="banner-cta">Переглянути →</div></div>`;

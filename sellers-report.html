@@ -21,15 +21,36 @@
     .view-btn.active{background:white;color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.12)}
 
     /* FILTERS */
-    .filters-wrap{background:var(--card);border-radius:14px;box-shadow:var(--shadow);padding:8px 12px;margin-bottom:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-    .filter-group{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-    .filter-group+.filter-group{border-left:1px solid #e8e8ed;padding-left:10px}
+    /* BI FILTERS */
+    .filters-wrap{
+        background:var(--card);border-radius:14px;box-shadow:var(--shadow);
+        padding:0;margin-bottom:12px;overflow:hidden;
+        display:flex;align-items:stretch;flex-wrap:wrap;
+        border:1px solid rgba(0,0,0,0.06);
+    }
+    .filter-group{
+        display:flex;align-items:center;
+        padding:8px 14px;
+        border-right:1px solid #f0f0f2;
+        flex-shrink:0;
+    }
+    .filter-group:last-child{border-right:none}
     .filter-row{display:contents}
-    .filter-label{font-size:10px;font-weight:700;color:var(--text-sec);white-space:nowrap}
-    .pills{display:flex;gap:4px;flex-wrap:wrap}
-    .pill{border:none;background:#f2f2f7;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--text-sec);transition:all .15s;white-space:nowrap}
-    .pill:hover{background:#e5e5ea}
-    .pill.active{background:var(--accent);color:white}
+    .filter-label{
+        font-size:10px;font-weight:700;color:#a0a0ab;
+        text-transform:uppercase;letter-spacing:.06em;
+        white-space:nowrap;margin-right:8px;user-select:none;
+    }
+    .pills{display:flex;gap:3px;align-items:center;flex-wrap:wrap;max-width:300px}
+    .pill{
+        border:none;background:transparent;
+        padding:4px 9px;border-radius:7px;
+        font-size:11px;font-weight:600;cursor:pointer;
+        font-family:inherit;color:#6e6e73;
+        transition:all .15s;white-space:nowrap;line-height:1.4;
+    }
+    .pill:hover{background:#f2f2f7;color:#1d1d1f}
+    .pill.active{background:#1d1d1f;color:#fff}
 
     /* TABLE */
     .table-card{background:var(--card);border-radius:16px;box-shadow:var(--shadow);overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:14px}
@@ -71,11 +92,28 @@
     .rating-panel{display:none}
     .rating-panel.visible{display:block}
 
-    .metric-bar{background:var(--card);border-radius:14px;box-shadow:var(--shadow);padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-    .metric-bar-title{font-size:10px;font-weight:700;color:var(--text-sec);text-transform:uppercase;letter-spacing:.4px;white-space:nowrap}
-    .metric-pills{display:flex;gap:4px;flex-wrap:wrap;flex:1}
-    .mpill{border:none;background:#f2f2f7;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--text-sec);transition:all .15s;white-space:nowrap}
-    .mpill:hover{background:#e5e5ea}
+    .metric-bar{
+        background:var(--card);border-radius:14px;box-shadow:var(--shadow);
+        padding:0;margin-bottom:12px;overflow:hidden;
+        display:flex;align-items:stretch;flex-wrap:wrap;
+        border:1px solid rgba(0,0,0,0.06);
+    }
+    .metric-bar-title{
+        font-size:10px;font-weight:700;color:#a0a0ab;
+        text-transform:uppercase;letter-spacing:.06em;
+        white-space:nowrap;margin-right:8px;user-select:none;
+        display:flex;align-items:center;padding:8px 14px;
+        border-right:1px solid #f0f0f2;
+    }
+    .metric-pills{display:flex;gap:3px;align-items:center;flex-wrap:wrap;padding:6px 10px}
+    .mpill{
+        border:none;background:transparent;
+        padding:4px 9px;border-radius:7px;
+        font-size:11px;font-weight:600;cursor:pointer;
+        font-family:inherit;color:#6e6e73;
+        transition:all .15s;white-space:nowrap;line-height:1.4;
+    }
+    .mpill:hover{background:#f2f2f7;color:#1d1d1f}
     .mpill.active{color:white;border-color:transparent}
 
     .ranking-grid{display:flex;flex-direction:column;gap:7px}
@@ -97,19 +135,42 @@
     /* DYNAMICS */
     .dyn-panel{display:none}
     .dyn-panel.visible{display:block}
-    .dyn-controls{background:var(--card);border-radius:14px;box-shadow:var(--shadow);padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-    .dyn-ctrl-title{font-size:10px;font-weight:700;color:var(--text-sec);text-transform:uppercase;letter-spacing:.4px;white-space:nowrap}
+    .dyn-controls{
+        background:var(--card);border-radius:14px;box-shadow:var(--shadow);
+        padding:0;margin-bottom:12px;overflow:hidden;
+        display:flex;align-items:stretch;flex-wrap:wrap;
+        border:1px solid rgba(0,0,0,0.06);
+    }
+    .dyn-ctrl-title{
+        font-size:10px;font-weight:700;color:#a0a0ab;
+        text-transform:uppercase;letter-spacing:.06em;
+        white-space:nowrap;user-select:none;
+        display:flex;align-items:center;padding:8px 14px;
+        border-right:1px solid #f0f0f2;
+    }
     .dyn-chart-card{background:var(--card);border-radius:16px;box-shadow:var(--shadow);padding:16px;margin-bottom:12px}
     .dyn-chart-wrap{position:relative;height:300px}
     @media(max-width:600px){.dyn-chart-wrap{height:220px}}
     .dyn-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:200px;color:var(--text-sec);gap:8px;font-size:13px;font-weight:500}
-    .dyn-metric-pills{display:flex;gap:4px;flex-wrap:wrap;flex:1}
-    .dmpill{border:none;background:#f2f2f7;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--text-sec);transition:all .15s;white-space:nowrap}
-    .dmpill:hover{background:#e5e5ea}
+    .dyn-metric-pills{display:flex;gap:3px;align-items:center;flex-wrap:wrap;padding:6px 10px;border-right:1px solid #f0f0f2}
+    .dmpill{
+        border:none;background:transparent;
+        padding:4px 9px;border-radius:7px;
+        font-size:11px;font-weight:600;cursor:pointer;
+        font-family:inherit;color:#6e6e73;
+        transition:all .15s;white-space:nowrap;line-height:1.4;
+    }
+    .dmpill:hover{background:#f2f2f7;color:#1d1d1f}
     .dmpill.active{color:white;border-color:transparent}
-    .seller-selector{display:flex;gap:4px;flex-wrap:wrap}
-    .spill{border:none;background:#f2f2f7;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--text-sec);transition:all .15s;white-space:nowrap}
-    .spill:hover{background:#e5e5ea}
+    .seller-selector{display:flex;gap:3px;flex-wrap:wrap;align-items:center;padding:6px 10px}
+    .spill{
+        border:none;background:transparent;
+        padding:4px 9px;border-radius:7px;
+        font-size:11px;font-weight:600;cursor:pointer;
+        font-family:inherit;color:#6e6e73;
+        transition:all .15s;white-space:nowrap;line-height:1.4;
+    }
+    .spill:hover{background:#f2f2f7;color:#1d1d1f}
     .spill.active{color:white;border-color:transparent}
 
     .status-box{padding:40px;text-align:center;color:var(--text-sec);font-size:14px}
@@ -165,7 +226,7 @@
     <div class="dyn-controls">
         <span class="dyn-ctrl-title">Показник</span>
         <div class="dyn-metric-pills" id="dynMetricPills"></div>
-        <span class="dyn-ctrl-title" style="border-left:1px solid #e8e8ed;padding-left:10px">Продавці</span>
+        <span class="dyn-ctrl-title" style="border-left:1px solid #f0f0f2;padding-left:14px">Продавці</span>
         <div class="seller-selector" id="dynSellerPills"></div>
     </div>
     <div class="dyn-chart-card">
