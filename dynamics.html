@@ -18,15 +18,18 @@
         .view-btn{border:none;background:transparent;padding:5px 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;color:var(--text-sec);font-family:inherit;transition:all .2s}
         .view-btn.active{background:white;color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.12)}
 
-        /* FILTERS */
-        .filters-wrap{background:var(--card);border-radius:14px;box-shadow:var(--shadow);padding:10px 14px;margin-bottom:12px}
-        .filter-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:4px 0}
-        .filter-row+.filter-row{border-top:1px solid #f2f2f4;margin-top:6px;padding-top:8px}
-        .filter-label{font-size:11px;font-weight:700;color:var(--text-sec);min-width:52px;white-space:nowrap}
-        .pills{display:flex;gap:5px;flex-wrap:wrap}
-        .pill{border:1.5px solid var(--border);background:white;padding:4px 11px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--text-sec);transition:all .15s;white-space:nowrap}
-        .pill.active{background:var(--accent);border-color:var(--accent);color:white}
+        /* FILTERS — compact inline */
+        .filters-wrap{background:var(--card);border-radius:14px;box-shadow:var(--shadow);padding:8px 12px;margin-bottom:12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+        .filter-group{display:flex;align-items:center;gap:6px}
+        .filter-group+.filter-group{border-left:1px solid #e8e8ed;padding-left:10px}
+        .filter-label{font-size:10px;font-weight:700;color:var(--text-sec);white-space:nowrap}
+        .pills{display:flex;gap:4px;flex-wrap:wrap}
+        .pill{border:none;background:#f2f2f7;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--text-sec);transition:all .15s;white-space:nowrap}
+        .pill:hover{background:#e5e5ea}
+        .pill.active{background:var(--accent);color:white}
         .pill.year-active{color:white;border-color:transparent}
+        .filter-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+        .filter-row+.filter-row{display:none}/* remove old divider layout */
 
         /* TABLE */
         .table-card{background:var(--card);border-radius:16px;box-shadow:var(--shadow);overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:14px}
@@ -79,6 +82,13 @@
         .summary-row-val{font-size:12px;font-weight:700;color:var(--text);white-space:nowrap}
         .summary-row-val.pct{color:#1a50b8}
         .summary-divider{border:none;border-top:1px solid #ebebef;margin:3px 0}
+        .delta-row{display:flex;align-items:center;justify-content:space-between;margin-top:6px;padding-top:6px;border-top:1px dashed #e0e0e5}
+        .delta-label{font-size:10px;color:var(--text-sec);font-weight:500}
+        .delta-badge{display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap}
+        .delta-up  {background:rgba(52,199,89,.15);color:#1a7f37}
+        .delta-down{background:rgba(255,59,48,.12);color:#c0392b}
+        .delta-flat{background:rgba(134,134,139,.10);color:#6e6e73}
+        .delta-arrow{font-size:12px;line-height:1}
 
         .status-box{padding:40px;text-align:center;color:var(--text-sec);font-size:14px}
         .status-box.error{color:#ff3b30}
@@ -98,11 +108,11 @@
 </div>
 
 <div class="filters-wrap">
-    <div class="filter-row">
+    <div class="filter-group">
         <span class="filter-label">📅 Рік</span>
         <div class="pills" id="yearPills"></div>
     </div>
-    <div class="filter-row">
+    <div class="filter-group">
         <span class="filter-label">📆 Місяці</span>
         <div class="pills" id="monthPills"></div>
     </div>
@@ -465,6 +475,46 @@ function renderChart(){
 }
 
 // SUMMARY
+// Обчислює "базове значення" метрики для порівняння (залежно від правила)
+function calcBase(y, metric, rule, months){
+    const mv=parsedByYear[y]?.[metric]||{};
+    const vals=months.map(m=>mv[m]).filter(v=>v!==undefined&&v!==null);
+    if(!vals.length)return null;
+    if(rule.type==='sum') return vals.reduce((a,b)=>a+b,0);
+    if(rule.type==='avg') return vals.reduce((a,b)=>a+b,0)/vals.length;
+    if(rule.type==='ratio'){
+        const numKey=rule.num,fbKey=rule.fallback;
+        const numMv=parsedByYear[y]?.[numKey]||parsedByYear[y]?.[fbKey]||{};
+        const toMv=parsedByYear[y]?.['ТО']||{};
+        const numSum=months.map(m=>numMv[m]).filter(v=>v!=null).reduce((a,b)=>a+b,0);
+        const toSum=months.map(m=>toMv[m]).filter(v=>v!=null).reduce((a,b)=>a+b,0);
+        return toSum>0?(numSum/toSum*100):null;
+    }
+    return null;
+}
+
+function mkDeltaRow(prevYear, currYear, prevVal, currVal){
+    const row=document.createElement('div');row.className='delta-row';
+    const lbl=document.createElement('div');lbl.className='delta-label';
+    lbl.textContent=`${prevYear}→${currYear}`;
+    row.appendChild(lbl);
+
+    const diff=currVal-prevVal;
+    const pct=prevVal!==0?(diff/Math.abs(prevVal)*100):null;
+
+    const badge=document.createElement('div');
+    let cls, arrow, text;
+    if(pct===null){cls='delta-flat';arrow='→';text='н/д';}
+    else if(Math.abs(pct)<0.05){cls='delta-flat';arrow='→';text='0.00%';}
+    else if(diff>0){cls='delta-up';arrow='▲';text='+'+pct.toFixed(2)+'%';}
+    else{cls='delta-down';arrow='▼';text=pct.toFixed(2)+'%';}
+
+    badge.className='delta-badge '+cls;
+    badge.innerHTML=`<span class="delta-arrow">${arrow}</span>${text}`;
+    row.appendChild(badge);
+    return row;
+}
+
 function renderSummary(){
     const panel=document.getElementById('summaryPanel');
     const grid=document.getElementById('summaryGrid');grid.innerHTML='';
@@ -479,48 +529,55 @@ function renderSummary(){
         const lbl=document.createElement('div');lbl.className='summary-card-label';lbl.title=metric;lbl.textContent=metric;card.appendChild(lbl);
         const rowsEl=document.createElement('div');rowsEl.className='summary-rows';card.appendChild(rowsEl);
 
+        // Зберігаємо базові значення для delta
+        const baseVals={};
+
         years.forEach((y,yi)=>{
             const mv=parsedByYear[y]?.[metric]||{};
             const vals=months.map(m=>mv[m]).filter(v=>v!==undefined&&v!==null);
             if(!vals.length)return;
             const yc=yColor(y);
 
+            if(yi>0){const hr=document.createElement('hr');hr.className='summary-divider';rowsEl.appendChild(hr);}
+            if(years.length>1){
+                const yl=document.createElement('div');
+                yl.style.cssText=`font-size:10px;font-weight:700;color:${yc};margin-bottom:2px;display:flex;align-items:center;gap:4px`;
+                yl.innerHTML=`<span class="year-dot" style="background:${yc}"></span>${y}`;
+                rowsEl.appendChild(yl);
+            }
+
             if(rule.type==='sum'){
                 const sum=vals.reduce((a,b)=>a+b,0);
                 const avg=sum/vals.length;
-                if(yi>0){const hr=document.createElement('hr');hr.className='summary-divider';rowsEl.appendChild(hr);}
-                if(years.length>1){
-                    const yl=document.createElement('div');yl.style.cssText=`font-size:10px;font-weight:700;color:${yc};margin-bottom:2px;display:flex;align-items:center;gap:4px`;
-                    yl.innerHTML=`<span class="year-dot" style="background:${yc}"></span>${y}`;rowsEl.appendChild(yl);
-                }
+                baseVals[y]=sum;
                 rowsEl.appendChild(mkSRow('Сума',fmt(sum)));
                 rowsEl.appendChild(mkSRow('Середнє',fmt(avg)));
             } else if(rule.type==='avg'){
                 const avg=vals.reduce((a,b)=>a+b,0)/vals.length;
-                if(yi>0){const hr=document.createElement('hr');hr.className='summary-divider';rowsEl.appendChild(hr);}
-                if(years.length>1){
-                    const yl=document.createElement('div');yl.style.cssText=`font-size:10px;font-weight:700;color:${yc};margin-bottom:2px;display:flex;align-items:center;gap:4px`;
-                    yl.innerHTML=`<span class="year-dot" style="background:${yc}"></span>${y}`;rowsEl.appendChild(yl);
-                }
+                baseVals[y]=avg;
                 rowsEl.appendChild(mkSRow('Середнє',fmt(avg)));
             } else if(rule.type==='ratio'){
-                // sum(числівник) / sum(ТО) * 100
-                const numKey=rule.num;
-                const fbKey=rule.fallback;
+                const numKey=rule.num,fbKey=rule.fallback;
                 const numMv=parsedByYear[y]?.[numKey]||parsedByYear[y]?.[fbKey]||{};
                 const toMv=parsedByYear[y]?.['ТО']||{};
                 const numSum=months.map(m=>numMv[m]).filter(v=>v!=null).reduce((a,b)=>a+b,0);
                 const toSum=months.map(m=>toMv[m]).filter(v=>v!=null).reduce((a,b)=>a+b,0);
                 const pct=toSum>0?(numSum/toSum*100):null;
                 if(pct===null)return;
-                if(yi>0){const hr=document.createElement('hr');hr.className='summary-divider';rowsEl.appendChild(hr);}
-                if(years.length>1){
-                    const yl=document.createElement('div');yl.style.cssText=`font-size:10px;font-weight:700;color:${yc};margin-bottom:2px;display:flex;align-items:center;gap:4px`;
-                    yl.innerHTML=`<span class="year-dot" style="background:${yc}"></span>${y}`;rowsEl.appendChild(yl);
-                }
+                baseVals[y]=pct;
                 rowsEl.appendChild(mkSRow('Частка від ТО',pct.toFixed(2)+'%',true));
             }
         });
+
+        // Delta між послідовними роками
+        if(years.length>=2){
+            for(let i=1;i<years.length;i++){
+                const py=years[i-1],cy=years[i];
+                if(baseVals[py]!=null&&baseVals[cy]!=null){
+                    rowsEl.appendChild(mkDeltaRow(py,cy,baseVals[py],baseVals[cy]));
+                }
+            }
+        }
 
         if(rowsEl.children.length)grid.appendChild(card);
     });

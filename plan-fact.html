@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
@@ -11,97 +12,98 @@
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); padding: 8px 10px; }
         .back-link { color: var(--accent); text-decoration: none; font-weight: 500; display: inline-block; margin-bottom: 8px; font-size: 14px; }
 
-        .table-card {
-            background: white; border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
-            overflow-x: auto; -webkit-overflow-scrolling: touch;
-            overscroll-behavior-x: contain;
-        }
+```
+    .table-card {
+        background: white; border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+        overflow-x: auto; -webkit-overflow-scrolling: touch;
+        overscroll-behavior-x: contain;
+    }
 
-        table { border-collapse: collapse; table-layout: fixed; }
+    table { border-collapse: collapse; table-layout: fixed; }
 
-        th {
-            text-align: center; padding: 5px 3px; color: #86868b;
-            font-size: 10px; font-weight: 600; text-transform: uppercase;
-            border-bottom: 1px solid #d2d2d7; background: white;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-        }
-        td {
-            padding: 3px 3px; border-bottom: 1px solid #f2f2f4;
-            font-size: 12px; text-align: center;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-        }
+    th {
+        text-align: center; padding: 5px 3px; color: #86868b;
+        font-size: 10px; font-weight: 600; text-transform: uppercase;
+        border-bottom: 1px solid #d2d2d7; background: white;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    td {
+        padding: 3px 3px; border-bottom: 1px solid #f2f2f4;
+        font-size: 12px; text-align: center;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
 
-        .group-header {
-            text-align: center; font-size: 10px; font-weight: 800;
-            text-transform: uppercase; padding: 6px 4px;
-            border-bottom: 1px solid #d2d2d7; background: white;
-        }
-        .g-to     { color: #0071e3; border-bottom: 3px solid #0071e3 !important; }
-        .g-serv   { color: #34c759; border-bottom: 3px solid #34c759 !important; }
-        .g-acc    { color: #ff9500; border-bottom: 3px solid #ff9500 !important; }
-        .g-checks { color: #af52de; border-bottom: 3px solid #af52de !important; }
+    .group-header {
+        text-align: center; font-size: 10px; font-weight: 800;
+        text-transform: uppercase; padding: 6px 4px;
+        border-bottom: 1px solid #d2d2d7; background: white;
+    }
+    .g-to     { color: #0071e3; border-bottom: 3px solid #0071e3 !important; }
+    .g-serv   { color: #34c759; border-bottom: 3px solid #34c759 !important; }
+    .g-acc    { color: #ff9500; border-bottom: 3px solid #ff9500 !important; }
+    .g-checks { color: #af52de; border-bottom: 3px solid #af52de !important; }
 
-        .grp-start { border-left: 2px solid #d2d2d7 !important; }
+    .grp-start { border-left: 2px solid #d2d2d7 !important; }
 
-        .name-cell, th.name-th {
-            position: sticky; left: 0; background: white; z-index: 100;
-            font-weight: 600; white-space: normal; line-height: 1.15;
-            word-break: break-word; text-align: left;
-            box-shadow: 4px 0 8px -2px rgba(0,0,0,0.12);
-            border-right: 1px solid #e0e0e5;
-            font-size: 9px;
-        }
-        th.name-th { z-index: 101; font-size: 9px; }
+    .name-cell, th.name-th {
+        position: sticky; left: 0; background: white; z-index: 100;
+        font-weight: 600; white-space: normal; line-height: 1.15;
+        word-break: break-word; text-align: left;
+        box-shadow: 4px 0 8px -2px rgba(0,0,0,0.12);
+        border-right: 1px solid #e0e0e5;
+        font-size: 9px;
+    }
+    th.name-th { z-index: 101; font-size: 9px; }
 
-        .badge {
-            display: block; border-radius: 5px; font-size: 9.5px; font-weight: 600;
-            text-align: center; padding: 1px 2px; white-space: nowrap;
-        }
-        .b-plan   { background: rgba(134,134,139,0.10); color: #6e6e73; font-size: 8.5px; }
-        .b-to     { background: rgba(0,113,227,0.12);   color: #1a50b8; }
-        .b-serv   { background: rgba(52,199,89,0.12);   color: #1a7f37; }
-        .b-acc    { background: rgba(255,149,0,0.12);   color: #b85000; }
-        .b-checks { background: rgba(175,82,222,0.12);  color: #6d28d9; }
+    .badge {
+        display: block; border-radius: 5px; font-size: 9.5px; font-weight: 600;
+        text-align: center; padding: 1px 2px; white-space: nowrap;
+    }
+    .b-plan   { background: rgba(134,134,139,0.10); color: #6e6e73; font-size: 8.5px; }
+    .b-to     { background: rgba(0,113,227,0.12);   color: #1a50b8; }
+    .b-serv   { background: rgba(52,199,89,0.12);   color: #1a7f37; }
+    .b-acc    { background: rgba(255,149,0,0.12);   color: #b85000; }
+    .b-checks { background: rgba(175,82,222,0.12);  color: #6d28d9; }
 
-        .total-row td           { background: #e8f0fe !important; font-weight: 700; }
-        .total-row td.name-cell { background: #e8f0fe !important; color: #1d1d1f; }
-        .dev-row td             { font-style: italic; color: #86868b !important; font-size: 10px; }
-        .dev-row td.name-cell   { font-style: italic; color: #86868b !important; }
+    .total-row td           { background: #e8f0fe !important; font-weight: 700; }
+    .total-row td.name-cell { background: #e8f0fe !important; color: #1d1d1f; }
+    .dev-row td             { font-style: italic; color: #86868b !important; font-size: 10px; }
+    .dev-row td.name-cell   { font-style: italic; color: #86868b !important; }
 
-        .loading { padding: 40px; text-align: center; color: #86868b; }
-        .error   { padding: 40px; text-align: center; color: #ff3b30; }
+    .loading { padding: 40px; text-align: center; color: #86868b; }
+    .error   { padding: 40px; text-align: center; color: #ff3b30; }
+    /* ── RATING VIEW ── */
+    .top-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:8px;flex-wrap:wrap}
+    .view-toggle{display:flex;gap:4px;background:#e5e5ea;border-radius:10px;padding:3px}
+    .view-btn{border:none;background:transparent;padding:5px 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;color:#6e6e73;font-family:inherit;transition:all .2s}
+    .view-btn.active{background:white;color:#1d1d1f;box-shadow:0 1px 4px rgba(0,0,0,.12)}
+    .rating-panel{display:none;margin-top:8px}
+    .rating-panel.visible{display:block}
+    .metric-bar{background:white;border-radius:14px;box-shadow:0 4px 20px rgba(0,0,0,.06);padding:10px 14px;margin-bottom:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+    .metric-bar-title{font-size:10px;font-weight:700;color:#6e6e73;text-transform:uppercase;letter-spacing:.4px;white-space:nowrap}
+    .metric-pills{display:flex;gap:4px;flex-wrap:wrap;flex:1}
+    .mpill{border:none;background:#f2f2f7;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;color:#6e6e73;transition:all .15s;white-space:nowrap}
+    .mpill:hover{background:#e5e5ea}
+    .mpill.active{color:white;border-color:transparent}
+    .ranking-grid{display:flex;flex-direction:column;gap:7px}
+    .rank-card{background:white;border-radius:14px;box-shadow:0 4px 20px rgba(0,0,0,.06);padding:10px 14px;display:flex;flex-direction:column;gap:5px;position:relative;overflow:hidden;transition:transform .15s}
+    .rank-card:hover{transform:translateY(-1px)}
+    .rank-bg{position:absolute;left:0;top:0;height:100%;opacity:.07;border-radius:14px;pointer-events:none;transition:width .5s ease}
+    .rank-top{display:flex;align-items:flex-start;gap:10px}
+    .rank-pos{font-size:17px;font-weight:800;min-width:26px;text-align:center;line-height:1.4;flex-shrink:0}
+    .rank-pos.gold{color:#f5a623}.rank-pos.silver{color:#9b9b9b}.rank-pos.bronze{color:#c47a3a}.rank-pos.rest{color:#ccc;font-size:13px}
+    .rank-name{flex:1;min-width:0}
+    .rank-name-text{font-size:12px;font-weight:700;white-space:normal;word-break:break-word;line-height:1.35}
+    .rank-sub{font-size:10px;color:#6e6e73;margin-top:2px}
+    .rank-val{text-align:right;flex-shrink:0}
+    .rank-val-main{font-size:13px;font-weight:800;line-height:1.2}
+    .rank-val-sub{font-size:10px;color:#6e6e73}
+    .rank-bar-bg{height:5px;background:#ebebef;border-radius:3px;overflow:hidden;margin-left:36px}
+    .rank-bar-fill{height:100%;border-radius:3px;transition:width .6s ease}
+</style>
+```
 
-        /* TOP BAR */
-        .top-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:10px;flex-wrap:wrap}
-        .view-toggle{display:flex;gap:4px;background:#e5e5ea;border-radius:10px;padding:3px}
-        .view-btn{border:none;background:transparent;padding:5px 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;color:#6e6e73;font-family:inherit;transition:all .2s}
-        .view-btn.active{background:white;color:#1d1d1f;box-shadow:0 1px 4px rgba(0,0,0,.12)}
-
-        /* RATING VIEW */
-        .rating-panel{display:none}
-        .rating-panel.visible{display:block}
-        .metric-bar{background:white;border-radius:14px;box-shadow:0 4px 20px rgba(0,0,0,.06);padding:12px 14px;margin-bottom:12px}
-        .metric-bar-title{font-size:11px;font-weight:700;color:#6e6e73;text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px}
-        .metric-pills{display:flex;gap:6px;flex-wrap:wrap}
-        .mpill{border:1.5px solid #d2d2d7;background:white;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;color:#6e6e73;transition:all .15s;white-space:nowrap}
-        .mpill.active{color:white;border-color:transparent}
-        .ranking-grid{display:flex;flex-direction:column;gap:7px}
-        .rank-card{background:white;border-radius:14px;box-shadow:0 4px 20px rgba(0,0,0,.06);padding:11px 14px;display:flex;align-items:center;gap:12px;position:relative;overflow:hidden;transition:transform .15s}
-        .rank-card:hover{transform:translateY(-1px)}
-        .rank-bg{position:absolute;left:0;top:0;height:100%;opacity:.07;border-radius:14px;pointer-events:none;transition:width .5s ease}
-        .rank-pos{font-size:18px;font-weight:800;min-width:26px;text-align:center;line-height:1}
-        .rank-pos.gold{color:#f5a623}.rank-pos.silver{color:#9b9b9b}.rank-pos.bronze{color:#c47a3a}.rank-pos.rest{color:#ccc;font-size:14px}
-        .rank-name{flex:1;min-width:0}
-        .rank-name-text{font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-        .rank-sub{font-size:10px;color:#6e6e73;margin-top:1px}
-        .rank-bar-wrap{flex:2;min-width:50px;max-width:140px}
-        .rank-bar-bg{height:6px;background:#ebebef;border-radius:3px;overflow:hidden}
-        .rank-bar-fill{height:100%;border-radius:3px;transition:width .6s ease}
-        .rank-val{text-align:right;min-width:58px}
-        .rank-val-main{font-size:14px;font-weight:800;line-height:1.2}
-        .rank-val-sub{font-size:10px;color:#6e6e73}
-    </style>
 </head>
 <body>
     <div class="top-bar">
@@ -111,7 +113,8 @@
             <button class="view-btn" id="btnRating" onclick="setView('rating')">🏆 Рейтинг</button>
         </div>
     </div>
-    <div class="table-card" id="tableCard">
+    <div id="tableWrap">
+    <div class="table-card">
         <div id="loader" class="loading">Завантаження...</div>
         <table id="tbl" style="display:none">
             <thead>
@@ -121,11 +124,10 @@
             <tbody id="tbody"></tbody>
         </table>
     </div>
-
-    <!-- RATING VIEW -->
+    </div>
     <div class="rating-panel" id="ratingPanel">
         <div class="metric-bar">
-            <div class="metric-bar-title">Метрика для рейтингу</div>
+            <span class="metric-bar-title">Метрика</span>
             <div class="metric-pills" id="metricPills"></div>
         </div>
         <div class="ranking-grid" id="rankingGrid"></div>
@@ -158,19 +160,6 @@ const GROUPS = [
         { label:'%',     idx:14, type:'pct'                  },
     ]},
 ];
-
-// Метрики для рейтингу (факт-значення)
-const RATING_METRICS = [
-    { key:'to_fact',   label:'ТО',        idx:2,  color:'#0071e3', planIdx:1,  pctIdx:3,  fmt:'int' },
-    { key:'serv_fact', label:'Послуги',   idx:5,  color:'#34c759', planIdx:4,  pctIdx:7,  fmt:'int' },
-    { key:'acc_fact',  label:'ACC',       idx:9,  color:'#ff9500', planIdx:8,  pctIdx:11, fmt:'int' },
-    { key:'chk_fact',  label:'Чеки',      idx:13, color:'#af52de', planIdx:12, pctIdx:14, fmt:'int' },
-    { key:'serv_shr',  label:'Частка посл.', idx:6, color:'#34c759', fmt:'share' },
-    { key:'acc_shr',   label:'Частка ACC', idx:10, color:'#ff9500', fmt:'share' },
-];
-
-let allRatingRows = [];
-let activeMetricKey = 'to_fact';
 
 // ======= HELPERS =======
 function parseCSV(text) {
@@ -372,110 +361,103 @@ function buildTable(dataRows) {
     }
 }
 
-// ======= VIEW TOGGLE =======
-function setView(mode) {
-    const tableCard = document.getElementById('tableCard');
-    const ratingPanel = document.getElementById('ratingPanel');
-    document.getElementById('btnTable').classList.toggle('active', mode==='table');
-    document.getElementById('btnRating').classList.toggle('active', mode==='rating');
-    tableCard.style.display = mode==='table' ? '' : 'none';
-    if (mode==='rating') {
-        ratingPanel.classList.add('visible');
-        renderRating();
-    } else {
-        ratingPanel.classList.remove('visible');
-    }
-}
-
 // ======= RATING =======
+const RATING_METRICS = [
+    { key:'to_fact',   label:'ТО',          idx:2,  color:'#0071e3', planIdx:1,  pctIdx:3,  fmt:'int' },
+    { key:'serv_fact', label:'Послуги',      idx:5,  color:'#34c759', planIdx:4,  pctIdx:7,  fmt:'int' },
+    { key:'acc_fact',  label:'ACC',          idx:9,  color:'#ff9500', planIdx:8,  pctIdx:11, fmt:'int' },
+    { key:'chk_fact',  label:'Чеки',         idx:13, color:'#af52de', planIdx:12, pctIdx:14, fmt:'int' },
+    { key:'serv_shr',  label:'Частка посл.', idx:6,  color:'#34c759', fmt:'share' },
+    { key:'acc_shr',   label:'Частка ACC',   idx:10, color:'#ff9500', fmt:'share' },
+];
+let allRatingRows = [];
+let activeMetricKey = 'to_fact';
+
 function fmtRatingVal(v, fmt) {
-    if (v===null||v===undefined) return '—';
+    if (v===null||v===undefined||isNaN(Number(v))) return '—';
     const n = Number(v);
-    if (isNaN(n)) return '—';
     if (fmt==='share') return n.toFixed(2)+'%';
-    if (fmt==='pct') return n.toFixed(1)+'%';
     if (Math.abs(n)>=1000000) return (n/1000000).toFixed(2)+'М';
     if (Math.abs(n)>=1000) return (n/1000).toFixed(0)+'К';
     return Math.round(n).toLocaleString('uk-UA');
 }
 
+function setView(mode) {
+    document.getElementById('btnTable').classList.toggle('active', mode==='table');
+    document.getElementById('btnRating').classList.toggle('active', mode==='rating');
+    document.getElementById('tableWrap').style.display = mode==='table' ? '' : 'none';
+    const rp = document.getElementById('ratingPanel');
+    if (mode==='rating') { rp.classList.add('visible'); renderRating(); }
+    else rp.classList.remove('visible');
+}
+
 function buildMetricPills() {
-    const container = document.getElementById('metricPills');
-    container.innerHTML = '';
+    const c = document.getElementById('metricPills');
+    c.innerHTML = '';
     RATING_METRICS.forEach(m => {
         const btn = document.createElement('button');
         btn.className = 'mpill' + (m.key===activeMetricKey?' active':'');
         btn.textContent = m.label;
         if (m.key===activeMetricKey) btn.style.background = m.color;
-        btn.onclick = () => { activeMetricKey = m.key; buildMetricPills(); renderRankingCards(); };
-        container.appendChild(btn);
+        btn.onclick = () => { activeMetricKey=m.key; buildMetricPills(); renderRankingCards(); };
+        c.appendChild(btn);
     });
 }
 
 function renderRankingCards() {
-    const m = RATING_METRICS.find(x=>x.key===activeMetricKey) || RATING_METRICS[0];
+    const m = RATING_METRICS.find(x=>x.key===activeMetricKey)||RATING_METRICS[0];
     const grid = document.getElementById('rankingGrid');
     grid.innerHTML = '';
 
-    // Filter out total/dev rows — broad exclusion
-    const sellers = allRatingRows.filter(r => {
+    const excluded = ['разом','сума','total','тотал','підсумок','всього','итого','відставання','відхилення'];
+    const rows = allRatingRows.filter(r => {
         const nl = (r[0]||'').toLowerCase().trim();
-        if (!nl) return false;
-        const excluded = ['разом','сума','total','тотал','підсумок','всього','итого','відставання','відхилення','магазин','store','shop'];
-        return !excluded.some(k=>nl.includes(k));
+        return nl && !excluded.some(k=>nl.includes(k));
     });
 
-    const withVals = sellers.map(r => ({
+    const items = rows.map(r => ({
         name: (r[0]||'').trim(),
-        val: toNum(r[m.idx]||'0'),
-        plan: m.planIdx ? toNum(r[m.planIdx]||'0') : null,
-        pct: m.pctIdx ? toNum(r[m.pctIdx]||'0') : null,
-    })).filter(x=>x.name && x.val > 0);
+        val:  toNum(r[m.idx]||'0'),
+        plan: m.planIdx!=null ? toNum(r[m.planIdx]||'0') : null,
+        pct:  m.pctIdx!=null  ? toNum(r[m.pctIdx]||'0')  : null,
+    })).filter(x=>x.name && x.val>0);
 
-    withVals.sort((a,b) => b.val - a.val);
-    const maxVal = withVals.length ? withVals[0].val : 1;
+    items.sort((a,b)=>b.val-a.val);
+    const maxVal = items.length ? items[0].val : 1;
 
-    withVals.forEach((item, i) => {
+    items.forEach((item,i) => {
         const pos = i+1;
         const posClass = pos===1?'gold':pos===2?'silver':pos===3?'bronze':'rest';
-        const barPct = maxVal>0 ? Math.round((item.val/maxVal)*100) : 0;
-
-        const pctStr = item.pct!=null ? (() => {
-            let n = item.pct;
-            if (!(String(item.pct)).includes('%') && n>0 && n<2) n*=100;
-            return n.toFixed(1)+'%';
-        })() : null;
-
+        const barPct = maxVal>0 ? Math.round(item.val/maxVal*100) : 0;
+        let pctStr = null;
+        if (item.pct!=null) {
+            let n=item.pct;
+            if (!String(item.pct).includes('%')&&n>0&&n<2) n*=100;
+            pctStr = n.toFixed(1)+'%';
+        }
         const card = document.createElement('div');
         card.className = 'rank-card';
         card.innerHTML = `
             <div class="rank-bg" style="background:${m.color};width:${barPct}%"></div>
-            <div class="rank-pos ${posClass}">${pos<=3?['🥇','🥈','🥉'][pos-1]:pos}</div>
-            <div class="rank-name">
-                <div class="rank-name-text">${item.name}</div>
-                ${pctStr?`<div class="rank-sub">Виконання: ${pctStr}</div>`:''}
-            </div>
-            <div class="rank-bar-wrap">
-                <div class="rank-bar-bg">
-                    <div class="rank-bar-fill" style="width:${barPct}%;background:${m.color}"></div>
+            <div class="rank-top">
+                <div class="rank-pos ${posClass}">${pos<=3?['🥇','🥈','🥉'][pos-1]:pos}</div>
+                <div class="rank-name">
+                    <div class="rank-name-text">${item.name}</div>
+                    ${pctStr?`<div class="rank-sub">Виконання: ${pctStr}</div>`:''}
+                </div>
+                <div class="rank-val">
+                    <div class="rank-val-main" style="color:${m.color}">${fmtRatingVal(item.val,m.fmt)}</div>
+                    ${item.plan?`<div class="rank-val-sub">план: ${fmtRatingVal(item.plan,m.fmt)}</div>`:''}
                 </div>
             </div>
-            <div class="rank-val">
-                <div class="rank-val-main" style="color:${m.color}">${fmtRatingVal(item.val, m.fmt)}</div>
-                ${item.plan?`<div class="rank-val-sub">план: ${fmtRatingVal(item.plan, m.fmt)}</div>`:''}
-            </div>`;
+            <div class="rank-bar-bg"><div class="rank-bar-fill" style="width:${barPct}%;background:${m.color}"></div></div>`;
         grid.appendChild(card);
     });
 
-    if (!withVals.length) {
-        grid.innerHTML = '<div style="padding:40px;text-align:center;color:#86868b">Немає даних</div>';
-    }
+    if (!items.length) grid.innerHTML='<div style="padding:40px;text-align:center;color:#86868b">Немає даних</div>';
 }
 
-function renderRating() {
-    buildMetricPills();
-    renderRankingCards();
-}
+function renderRating() { buildMetricPills(); renderRankingCards(); }
 
 async function load() {
     const URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTOUXHhUpCkh6tgvNpJzY-w5tVrhPkvEeC0W0ZWuy2YxPayuO3pvahfeKYmMZ1DwHnILTpsJFNtXLsH/pub?output=csv";
@@ -503,5 +485,6 @@ document.addEventListener('touchend',  e=>{
     sw=false;
 },{passive:true});
 </script>
+
 </body>
 </html>

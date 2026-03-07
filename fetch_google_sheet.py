@@ -109,6 +109,19 @@ def process_data():
                 res = round(sum(vals), 2)
                 store_totals['metrics'][col] = {'value': res, 'label': col, 'unit': unit}
 
+        # Перераховуємо Ср. Чек, КПЧ, ASP за правильними формулами
+        total_шт   = store_totals['metrics'].get('Шт.', {}).get('value', 0)
+        total_чеки = store_totals['metrics'].get('Чеки', {}).get('value', 0)
+        total_to_base = store_totals['metrics'].get('ТО', {}).get('value', 0)
+
+        if total_чеки > 0:
+            ср_чек = round(total_to_base / total_чеки)
+            кпч    = round(total_шт / total_чеки, 2)
+            asp    = round(ср_чек / кпч) if кпч > 0 else 0
+            store_totals['metrics']['Ср. Чек'] = {'value': ср_чек, 'label': 'Ср. Чек', 'unit': 'грн'}
+            store_totals['metrics']['КПЧ']     = {'value': кпч,    'label': 'КПЧ',     'unit': 'грн'}
+            store_totals['metrics']['ASP']     = {'value': asp,    'label': 'ASP',     'unit': 'грн'}
+
         # Тепер окремо розраховуємо частки (відсотки) для всього магазину
         # Формула: (Сума категорії / Сума ТО) * 100
         

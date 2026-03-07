@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
@@ -10,114 +11,156 @@
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); padding: 8px 10px; }
 
-        .back-link { color: var(--accent); text-decoration: none; font-weight: 500; display: inline-block; font-size: 14px; }
+```
+    .back-link { color: var(--accent); text-decoration: none; font-weight: 500; display: inline-block; font-size: 14px; }
 
-        .top-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-        h1 { font-size: 22px; font-weight: 700; }
+    .top-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    h1 { font-size: 22px; font-weight: 700; }
 
-        #toggleBtn {
-            background: #0071e3; color: white; border: none; border-radius: 10px;
-            padding: 7px 14px; font-size: 12px; font-weight: 600; cursor: pointer;
-            font-family: inherit; white-space: nowrap; transition: background 0.2s;
-        }
+    #toggleBtn {
+        background: #0071e3; color: white; border: none; border-radius: 10px;
+        padding: 7px 14px; font-size: 12px; font-weight: 600; cursor: pointer;
+        font-family: inherit; white-space: nowrap; transition: background 0.2s;
+    }
 
-        .table-card {
-            background: white; border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
-            overflow-x: auto; -webkit-overflow-scrolling: touch;
-            overscroll-behavior-x: contain;
-        }
+    .table-card {
+        background: white; border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+        overflow-x: auto; -webkit-overflow-scrolling: touch;
+        overscroll-behavior-x: contain;
+    }
 
-        table { border-collapse: collapse; table-layout: fixed; }
+    table { border-collapse: collapse; table-layout: fixed; }
 
-        th.group-header {
-            text-align: center; font-size: 10px; font-weight: 800;
-            text-transform: uppercase; letter-spacing: 0.5px;
-            padding: 7px 4px; border-bottom: 1px solid #d2d2d7; background: white;
-        }
-        th.group-header.g-to     { color: #0071e3; border-bottom: 3px solid #0071e3; }
-        th.group-header.g-serv   { color: #34c759; border-bottom: 3px solid #34c759; }
-        th.group-header.g-acc    { color: #ff9500; border-bottom: 3px solid #ff9500; }
-        th.group-header.g-checks { color: #af52de; border-bottom: 3px solid #af52de; }
-        th.group-header.g-none   { color: #86868b; border-bottom: 3px solid #d2d2d7; }
+    th.group-header {
+        text-align: center; font-size: 10px; font-weight: 800;
+        text-transform: uppercase; letter-spacing: 0.5px;
+        padding: 7px 4px; border-bottom: 1px solid #d2d2d7; background: white;
+    }
+    th.group-header.g-to     { color: #0071e3; border-bottom: 3px solid #0071e3; }
+    th.group-header.g-serv   { color: #34c759; border-bottom: 3px solid #34c759; }
+    th.group-header.g-acc    { color: #ff9500; border-bottom: 3px solid #ff9500; }
+    th.group-header.g-checks { color: #af52de; border-bottom: 3px solid #af52de; }
+    th.group-header.g-none   { color: #86868b; border-bottom: 3px solid #d2d2d7; }
 
-        th {
-            text-align: left; padding: 5px 4px; color: #86868b;
-            font-size: 9px; font-weight: 600; text-transform: uppercase;
-            border-bottom: 1px solid #d2d2d7; background: white;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-        }
-        th.g-to     { color: #0071e3; }
-        th.g-serv   { color: #34c759; }
-        th.g-acc    { color: #ff9500; }
-        th.g-checks { color: #af52de; }
+    th {
+        text-align: left; padding: 5px 4px; color: #86868b;
+        font-size: 9px; font-weight: 600; text-transform: uppercase;
+        border-bottom: 1px solid #d2d2d7; background: white;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    th.g-to     { color: #0071e3; }
+    th.g-serv   { color: #34c759; }
+    th.g-acc    { color: #ff9500; }
+    th.g-checks { color: #af52de; }
 
-        td {
-            padding: 4px 3px; border-bottom: 1px solid #f2f2f4;
-            font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-        }
+    td {
+        padding: 4px 3px; border-bottom: 1px solid #f2f2f4;
+        font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
 
-        .grp-start { border-left: 2px solid #d2d2d7 !important; }
+    .grp-start { border-left: 2px solid #d2d2d7 !important; }
 
+    .name-cell, th:first-child {
+        position: sticky; left: 0; background: white; z-index: 100;
+        font-weight: 600; white-space: normal;
+        word-break: break-word; font-size: 7.5px;
+        line-height: 1.2;
+        box-shadow: 4px 0 10px -2px rgba(0,0,0,0.18);
+        border-right: 1px solid #e0e0e5;
+    }
+    th:first-child { z-index: 101; }
+
+    .cell-badge {
+        display: block; border-radius: 6px; font-size: 10px; font-weight: 600;
+        text-align: center; padding: 2px 3px; white-space: nowrap;
+    }
+    .badge-plan        { background: rgba(134,134,139,0.10); color: #6e6e73; font-weight: 500; font-size: 9px; }
+    .badge-fact-to     { background: rgba(0,113,227,0.12);   color: #1a50b8; }
+    .badge-fact-serv   { background: rgba(52,199,89,0.12);   color: #1a7f37; }
+    .badge-fact-acc    { background: rgba(255,149,0,0.12);   color: #b85000; }
+    .badge-fact-checks { background: rgba(175,82,222,0.12);  color: #6d28d9; }
+    .badge-fact-none   { background: rgba(134,134,139,0.08); color: #3d3d3f; }
+
+    .time-row td           { background: #f5f5f7 !important; font-weight: 700; color: #333; }
+    .time-row td.name-cell { background: #f5f5f7 !important; }
+    .summary-row td           { background: #eaf1fe !important; font-weight: 700; color: #1d1d1f !important; }
+    .summary-row td.name-cell { background: #eaf1fe !important; }
+
+    .loading { padding: 40px; text-align: center; color: #86868b; }
+    .error   { padding: 40px; text-align: center; color: #ff3b30; }
+
+    @media (max-width: 767px) {
+        .table-card { scroll-snap-type: x mandatory; scroll-padding-left: 82px; }
         .name-cell, th:first-child {
-            position: sticky; left: 0; background: white; z-index: 100;
-            font-weight: 600; white-space: normal; line-height: 1.2;
-            word-break: break-word; font-size: 9px;
-            box-shadow: 4px 0 10px -2px rgba(0,0,0,0.18);
-            border-right: 1px solid #e0e0e5;
+            width: 82px; min-width: 82px; max-width: 82px;
+            font-size: 9px; padding: 4px 4px;
+            z-index: 200 !important;
+            background: white; background-clip: padding-box;
         }
-        th:first-child { z-index: 101; }
+        th:first-child { z-index: 201 !important; }
+        td { font-size: 10.5px; padding: 4px 2px; }
+        th { font-size: 8px; padding: 4px 2px; }
+        th.group-header { font-size: 8.5px; padding: 5px 2px; }
+        .cell-badge { font-size: 10px; padding: 2px 2px; border-radius: 5px; }
+    }
+    /* ── RATING VIEW ── */
+    .rating-panel{display:none;margin-top:8px}
+    .rating-panel.visible{display:block}
+    .metric-bar{background:white;border-radius:14px;box-shadow:0 4px 20px rgba(0,0,0,.06);padding:10px 14px;margin-bottom:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+    .metric-bar-title{font-size:10px;font-weight:700;color:#6e6e73;text-transform:uppercase;letter-spacing:.4px;white-space:nowrap}
+    .metric-pills{display:flex;gap:4px;flex-wrap:wrap;flex:1}
+    .mpill{border:none;background:#f2f2f7;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;color:#6e6e73;transition:all .15s;white-space:nowrap}
+    .mpill:hover{background:#e5e5ea}
+    .mpill.active{color:white;border-color:transparent}
+    .ranking-grid{display:flex;flex-direction:column;gap:7px}
+    .rank-card{background:white;border-radius:14px;box-shadow:0 4px 20px rgba(0,0,0,.06);padding:10px 14px;display:flex;flex-direction:column;gap:5px;position:relative;overflow:hidden;transition:transform .15s}
+    .rank-card:hover{transform:translateY(-1px)}
+    .rank-bg{position:absolute;left:0;top:0;height:100%;opacity:.07;border-radius:14px;pointer-events:none;transition:width .5s ease}
+    .rank-top{display:flex;align-items:flex-start;gap:10px}
+    .rank-pos{font-size:17px;font-weight:800;min-width:26px;text-align:center;line-height:1.4;flex-shrink:0}
+    .rank-pos.gold{color:#f5a623}.rank-pos.silver{color:#9b9b9b}.rank-pos.bronze{color:#c47a3a}.rank-pos.rest{color:#ccc;font-size:13px}
+    .rank-name{flex:1;min-width:0}
+    .rank-name-text{font-size:12px;font-weight:700;white-space:normal;word-break:break-word;line-height:1.35}
+    .rank-sub{font-size:10px;color:#6e6e73;margin-top:2px}
+    .rank-val{text-align:right;flex-shrink:0}
+    .rank-val-main{font-size:13px;font-weight:800;line-height:1.2}
+    .rank-val-sub{font-size:10px;color:#6e6e73}
+    .rank-bar-bg{height:5px;background:#ebebef;border-radius:3px;overflow:hidden;margin-left:36px}
+    .rank-bar-fill{height:100%;border-radius:3px;transition:width .6s ease}
+</style>
+```
 
-        .cell-badge {
-            display: block; border-radius: 6px; font-size: 10px; font-weight: 600;
-            text-align: center; padding: 2px 3px; white-space: nowrap;
-        }
-        .badge-plan        { background: rgba(134,134,139,0.10); color: #6e6e73; font-weight: 500; font-size: 9px; }
-        .badge-fact-to     { background: rgba(0,113,227,0.12);   color: #1a50b8; }
-        .badge-fact-serv   { background: rgba(52,199,89,0.12);   color: #1a7f37; }
-        .badge-fact-acc    { background: rgba(255,149,0,0.12);   color: #b85000; }
-        .badge-fact-checks { background: rgba(175,82,222,0.12);  color: #6d28d9; }
-        .badge-fact-none   { background: rgba(134,134,139,0.08); color: #3d3d3f; }
-
-        .time-row td           { background: #f5f5f7 !important; font-weight: 700; color: #333; }
-        .time-row td.name-cell { background: #f5f5f7 !important; }
-        .summary-row td           { background: #eaf1fe !important; font-weight: 700; color: #1d1d1f !important; }
-        .summary-row td.name-cell { background: #eaf1fe !important; }
-
-        .loading { padding: 40px; text-align: center; color: #86868b; }
-        .error   { padding: 40px; text-align: center; color: #ff3b30; }
-
-        @media (max-width: 767px) {
-            .table-card { scroll-snap-type: x mandatory; scroll-padding-left: 82px; }
-            .name-cell, th:first-child {
-                width: 82px; min-width: 82px; max-width: 82px;
-                font-size: 9px; padding: 4px 4px;
-                z-index: 200 !important;
-                background: white; background-clip: padding-box;
-            }
-            th:first-child { z-index: 201 !important; }
-            td { font-size: 10.5px; padding: 4px 2px; }
-            th { font-size: 8px; padding: 4px 2px; }
-            th.group-header { font-size: 8.5px; padding: 5px 2px; }
-            .cell-badge { font-size: 10px; padding: 2px 2px; border-radius: 5px; }
-        }
-    </style>
 </head>
 <body>
     <a href="index.html" class="back-link">← Назад</a>
     <div class="top-bar">
         <h1>Щоденні звіти</h1>
-        <button id="toggleBtn" onclick="toggleCompact()">Компакт</button>
+        <div style="display:flex;gap:6px;align-items:center">
+            <button id="toggleBtn" onclick="toggleCompact()">Компакт</button>
+            <button id="ratingBtn" onclick="setView('rating')" style="background:#5856d6;color:white;border:none;border-radius:10px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;transition:background .2s">🏆 Рейтинг</button>
+        </div>
     </div>
 
-    <div class="table-card" id="tableCard">
-        <div id="loader" class="loading">Завантаження...</div>
-        <table id="tbl" style="display:none">
-            <colgroup id="cg"></colgroup>
-            <thead id="thead"></thead>
-            <tbody id="tbody"></tbody>
-        </table>
+```
+<div id="tableCard" class="table-card">
+    <div id="loader" class="loading">Завантаження...</div>
+    <table id="tbl" style="display:none">
+        <colgroup id="cg"></colgroup>
+        <thead id="thead"></thead>
+        <tbody id="tbody"></tbody>
+    </table>
+</div>
+
+<div class="rating-panel" id="ratingPanel">
+    <div class="metric-bar">
+        <span class="metric-bar-title">Метрика</span>
+        <div class="metric-pills" id="metricPills"></div>
+        <button onclick="setView('table')" style="border:none;background:#e5e5ea;border-radius:8px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;color:#1d1d1f;white-space:nowrap">✕ Закрити</button>
     </div>
+    <div class="ranking-grid" id="rankingGrid"></div>
+</div>
+```
 
 <script>
 // ===== CSV =====
@@ -146,6 +189,8 @@ function colInfo(h) {
     else if (u.includes('АСС') || u.includes('ACC') || u.includes('АКСЕС')) g = 'acc';
     else if (u === 'ЧЕКИ' || u === 'ЧЕК' || u.startsWith('ПЛАН ЧЕК') || u.startsWith('ФАКТ ЧЕК') || u.startsWith('% ЧЕК')) g = 'checks';
     else if (u.includes(' ТО') || u.startsWith('ТО') || u.endsWith('ТО')) g = 'to';
+    else if (u.includes('ДОХІД') || u.includes('ДОХОД') || u.includes('INCOME') || u.includes('MARGIN') || u.includes('МАРЖА')) g = 'income';
+    else if ((u.includes('СР') && (u.includes('ЧЕК') || u.includes('CHECK'))) || u === 'ASP' || u.includes('AVG CHECK')) g = 'avgcheck';
     if      (u.includes('ПЛАН'))                         t = 'plan';
     else if (u.includes('%') || u.includes('ВИКО'))      t = 'pct';
     else if (u.includes('ДОЛЯ') || u.includes('SHARE'))  t = 'share';
@@ -354,11 +399,12 @@ function renderTable(headers, rows, compact) {
 
     // TBODY
     for (const row of rows) {
+        if (!row || row.length === 0) continue;
         if (!row[0] || !row[0].trim()) continue;
         const name = row[0].trim();
         const nameLC = name.toLowerCase();
         const isTime = /^\d{1,2}:\d{2}(:\d{2})?$/.test(name);
-        const isSummary = ['виконання','залишок','разом','всього','підсумок','total','итого'].some(k => nameLC.includes(k));
+        const isSummary = ['виконання','залишок','разом','всього','підсумок','total','итого','тотал','тоtal'].some(k => nameLC.includes(k));
 
         const tr = document.createElement('tr');
         if (isTime)    tr.className = 'time-row';
@@ -372,7 +418,7 @@ function renderTable(headers, rows, compact) {
 
         colIndexes.forEach((ci, ii) => {
             const { g, t } = colInfo(headers[ci]);
-            const val = (row[ci] || '').trim();
+            const val = (row[ci] != null ? row[ci] : '').toString().trim();
             const td = document.createElement('td');
             td.style.width = colWidths[ii] + 'px';
             if (ii === 0 || (!compact && colIndexes[ii-1] !== undefined && colInfo(headers[colIndexes[ii-1]]).g !== g)) {
@@ -444,6 +490,149 @@ function toggleCompact() {
     renderTable(savedHeaders, savedRows, isCompact);
 }
 
+// ===== RATING =====
+const RATING_DEFS = [
+    { key:'to',        label:'ТО',          color:'#0071e3', gFilter:'to',       tFilter:'fact'  },
+    { key:'serv',      label:'Послуги',      color:'#34c759', gFilter:'serv',     tFilter:'fact'  },
+    { key:'serv_shr',  label:'Доля посл.',   color:'#34c759', gFilter:'serv',     tFilter:'share' },
+    { key:'acc',       label:'ACC',          color:'#ff9500', gFilter:'acc',      tFilter:'fact'  },
+    { key:'acc_shr',   label:'Доля ACC',     color:'#ff9500', gFilter:'acc',      tFilter:'share' },
+    { key:'checks',    label:'Чеки',         color:'#af52de', gFilter:'checks',   tFilter:'fact'  },
+    { key:'income',    label:'Дохід',        color:'#00b388', gFilter:'income',   tFilter:'fact'  },
+    { key:'avgcheck',  label:'Серед. чек',   color:'#5856d6', gFilter:'avgcheck', tFilter:'fact'  },
+];
+let activeRatingKey = 'to';
+
+function setView(mode) {
+    const tableCard = document.getElementById('tableCard');
+    const ratingPanel = document.getElementById('ratingPanel');
+    const ratingBtn = document.getElementById('ratingBtn');
+    const toggleBtn = document.getElementById('toggleBtn');
+    if (mode === 'rating') {
+        tableCard.style.display = 'none';
+        toggleBtn.style.display = 'none';
+        ratingBtn.style.background = '#3634a3';
+        ratingPanel.classList.add('visible');
+        buildRatingMetricPills();
+        renderRankingCards();
+    } else {
+        tableCard.style.display = '';
+        toggleBtn.style.display = '';
+        ratingBtn.style.background = '#5856d6';
+        ratingPanel.classList.remove('visible');
+    }
+}
+
+function buildRatingMetricPills() {
+    const c = document.getElementById('metricPills');
+    c.innerHTML = '';
+    // показуємо тільки метрики для яких є відповідна колонка в заголовках
+    const available = RATING_DEFS.filter(d => {
+        return savedHeaders.some(h => {
+            const { g, t } = colInfo(h);
+            return g === d.gFilter && t === d.tFilter;
+        });
+    });
+    available.forEach(d => {
+        const btn = document.createElement('button');
+        btn.className = 'mpill' + (d.key === activeRatingKey ? ' active' : '');
+        btn.textContent = d.label;
+        if (d.key === activeRatingKey) btn.style.background = d.color;
+        btn.onclick = () => { activeRatingKey = d.key; buildRatingMetricPills(); renderRankingCards(); };
+        c.appendChild(btn);
+    });
+    // якщо поточна метрика недоступна — переключаємо на першу
+    if (available.length && !available.find(d => d.key === activeRatingKey)) {
+        activeRatingKey = available[0].key;
+    }
+}
+
+function renderRankingCards() {
+    const grid = document.getElementById('rankingGrid');
+    grid.innerHTML = '';
+    const def = RATING_DEFS.find(d => d.key === activeRatingKey) || RATING_DEFS[0];
+
+    // Знаходимо індекс колонки за gFilter + tFilter
+    let factIdx = -1, planIdx = -1, pctIdx = -1;
+    for (let i = 1; i < savedHeaders.length; i++) {
+        const { g, t } = colInfo(savedHeaders[i]);
+        if (g !== def.gFilter) continue;
+        if (t === def.tFilter && factIdx < 0) factIdx = i;
+        // план і % шукаємо тільки для fact-метрик (не для share)
+        if (def.tFilter === 'fact') {
+            if (t === 'plan' && planIdx < 0) planIdx = i;
+            if (t === 'pct'  && pctIdx  < 0) pctIdx  = i;
+        }
+    }
+    if (factIdx < 0) {
+        grid.innerHTML = '<div style="padding:40px;text-align:center;color:#86868b">Немає даних для цієї метрики</div>';
+        return;
+    }
+
+    const excluded = ['разом','сума','total','тотал','підсумок','всього','итого','відставання','відхилення','виконання','залишок'];
+
+    const items = savedRows
+        .filter(r => {
+            const name = (r[0]||'').trim();
+            if (!name) return false;
+            if (/^\d{1,2}:\d{2}/.test(name)) return false; // часові рядки
+            const nl = name.toLowerCase();
+            return !excluded.some(k => nl.includes(k));
+        })
+        .map(r => ({
+            name: (r[0]||'').trim(),
+            val:  toNum(r[factIdx]),
+            plan: planIdx >= 0 ? toNum(r[planIdx]) : null,
+            pct:  pctIdx  >= 0 ? r[pctIdx] : null,
+        }))
+        .filter(x => x.val > 0);
+
+    items.sort((a, b) => b.val - a.val);
+    const maxVal = items.length ? items[0].val : 1;
+
+    items.forEach((item, i) => {
+        const pos = i + 1;
+        const posClass = pos===1?'gold':pos===2?'silver':pos===3?'bronze':'rest';
+        const barPct = Math.round(item.val / maxVal * 100);
+
+        let pctStr = null;
+        if (item.pct != null) {
+            let n = toNum(item.pct);
+            if (!String(item.pct).includes('%') && n > 0 && n < 2) n *= 100;
+            pctStr = n.toFixed(1) + '%';
+        }
+
+        const valFmt = v => {
+            if (!v) return '—';
+            const n = Number(v);
+            if (isNaN(n)) return String(v);
+            return Number.isInteger(n) ? n.toLocaleString('uk-UA') : n.toLocaleString('uk-UA', {minimumFractionDigits:2, maximumFractionDigits:2});
+        };
+
+        const card = document.createElement('div');
+        card.className = 'rank-card';
+        card.innerHTML = `
+            <div class="rank-bg" style="background:${def.color};width:${barPct}%"></div>
+            <div class="rank-top">
+                <div class="rank-pos ${posClass}">${pos<=3?['🥇','🥈','🥉'][pos-1]:pos}</div>
+                <div class="rank-name">
+                    <div class="rank-name-text">${item.name}</div>
+                    ${pctStr ? `<div class="rank-sub">Виконання: ${pctStr}</div>` : ''}
+                </div>
+                <div class="rank-val">
+                    <div class="rank-val-main" style="color:${def.color}">${valFmt(item.val)}</div>
+                    ${item.plan ? `<div class="rank-val-sub">план: ${valFmt(item.plan)}</div>` : ''}
+                </div>
+            </div>
+            <div class="rank-bar-bg"><div class="rank-bar-fill" style="width:${barPct}%;background:${def.color}"></div></div>`;
+        grid.appendChild(card);
+    });
+
+    if (!items.length) {
+        grid.innerHTML = '<div style="padding:40px;text-align:center;color:#86868b">Немає даних</div>';
+    }
+}
+
 // ===== ЗАВАНТАЖЕННЯ =====
 async function load() {
     const SHEET = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQOxz-ozH9yNLW3IAzlkMlbRqOTrR4sIUO1__KpAMBFEvvpMXr4LWTnRvzYGb_y6za7WBxOUhl2DV84/pub?output=csv";
@@ -476,5 +665,6 @@ document.addEventListener('touchend',   e=>{
     sw=false;
 },{passive:true});
 </script>
+
 </body>
 </html>
