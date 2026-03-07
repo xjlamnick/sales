@@ -12,6 +12,29 @@
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); padding: 8px 10px; }
         .back-link { color: var(--accent); text-decoration: none; font-weight: 500; display: inline-block; margin-bottom: 8px; font-size: 14px; }
 
+        /* ── SKELETON + ANIMATION SYSTEM ── */
+        @keyframes shimmer{0%{background-position:-600px 0}100%{background-position:600px 0}}
+        @keyframes fadeInUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+        .skel{
+            background:linear-gradient(90deg,#eaeaed 25%,#f5f5f7 50%,#eaeaed 75%);
+            background-size:600px 100%;
+            animation:shimmer 1.4s ease-in-out infinite;
+            border-radius:7px;
+        }
+        .rank-card-skel{background:#fff;border-radius:14px;box-shadow:0 2px 10px rgba(0,0,0,.04);padding:10px 14px;display:flex;flex-direction:column;gap:8px;margin-bottom:7px}
+        .rank-card-skel-top{display:flex;align-items:center;gap:12px}
+        .rank-card-skel-pos{width:24px;height:24px;border-radius:6px;flex-shrink:0}
+        .rank-card-skel-body{flex:1;display:flex;flex-direction:column;gap:7px}
+        .rank-card-skel-line{height:12px;border-radius:6px}
+        .rank-card-skel-sub{height:9px;width:50%;border-radius:5px}
+        .rank-card-skel-val{width:52px;height:16px;border-radius:7px;flex-shrink:0}
+        .rank-card-skel-bar{height:5px;border-radius:3px;margin-top:2px}
+        .rank-card.appear{animation:fadeInUp .3s ease both}
+        .tbl-row-skel{display:flex;gap:8px;padding:8px 12px;border-bottom:1px solid #f2f2f4}
+        .tbl-row-skel-cell{height:11px;border-radius:5px;flex:1}
+        .tbl-row-skel-cell.wide{flex:2}
+
 ```
     .table-card {
         background: white; border-radius: 16px;
@@ -472,9 +495,34 @@ function renderRankingCards() {
     });
 
     if (!items.length) grid.innerHTML='<div style="padding:40px;text-align:center;color:#86868b">Немає даних</div>';
+    else { grid.querySelectorAll('.rank-card').forEach((c,i)=>{c.classList.add('appear');c.style.animationDelay=(i*0.055)+'s';}); }
 }
 
-function renderRating() { buildMetricPills(); renderRankingCards(); }
+function showRatingSkeleton(grid, count=7){
+    grid.innerHTML='';
+    for(let i=0;i<count;i++){
+        const card=document.createElement('div');card.className='rank-card-skel';
+        const delay=(i*0.06)+'s';
+        card.innerHTML=`
+            <div class="rank-card-skel-top">
+                <div class="rank-card-skel-pos skel" style="animation-delay:${delay}"></div>
+                <div class="rank-card-skel-body">
+                    <div class="rank-card-skel-line skel" style="width:${55+(i*7)%36}%;animation-delay:${delay}"></div>
+                    <div class="rank-card-skel-sub skel" style="animation-delay:${delay}"></div>
+                </div>
+                <div class="rank-card-skel-val skel" style="animation-delay:${delay}"></div>
+            </div>
+            <div class="rank-card-skel-bar skel" style="width:${100-(i*10)%55}%;animation-delay:${delay}"></div>`;
+        grid.appendChild(card);
+    }
+}
+
+function renderRating() {
+    const grid = document.getElementById('rankingGrid');
+    showRatingSkeleton(grid, 7);
+    buildMetricPills();
+    setTimeout(()=>{ grid.innerHTML=''; renderRankingCards(); }, 180);
+}
 
 async function load() {
     const URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTOUXHhUpCkh6tgvNpJzY-w5tVrhPkvEeC0W0ZWuy2YxPayuO3pvahfeKYmMZ1DwHnILTpsJFNtXLsH/pub?output=csv";

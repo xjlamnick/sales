@@ -11,6 +11,17 @@
         *{box-sizing:border-box;margin:0;padding:0}
         body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);padding:8px 10px 60px}
 
+        /* ── SKELETON + ANIMATION SYSTEM ── */
+        @keyframes shimmer{0%{background-position:-600px 0}100%{background-position:600px 0}}
+        @keyframes fadeInUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+        .skel{background:linear-gradient(90deg,#eaeaed 25%,#f5f5f7 50%,#eaeaed 75%);background-size:600px 100%;animation:shimmer 1.4s ease-in-out infinite;border-radius:7px}
+        .tbl-row-skel{display:flex;gap:8px;padding:9px 10px;border-bottom:1px solid #f2f2f4}
+        .tbl-row-skel-cell{height:11px;border-radius:5px;flex:1}
+        .tbl-row-skel-cell.wide{flex:2.5}
+        .metric-row.appear{animation:fadeInUp .28s ease both}
+        .filters-wrap.appear{animation:fadeIn .3s ease both}
+
         .top-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:10px;flex-wrap:wrap}
         .back-link{color:var(--accent);text-decoration:none;font-weight:600;font-size:14px}
         .page-title{font-size:20px;font-weight:700}
@@ -26,21 +37,26 @@
             border:1px solid rgba(0,0,0,0.06);
         }
         .filter-group{
-            display:flex;align-items:center;gap:0;
-            padding:8px 14px;
+            display:flex;align-items:flex-start;gap:0;
+            padding:8px 12px;
             border-right:1px solid #f0f0f2;
             flex-shrink:0;
+        }
+        /* група місяців — може розтягуватись і переносити pills */
+        .filter-group.filter-months{
+            flex:1;min-width:0;border-right:none;
         }
         .filter-group:last-child{border-right:none}
         .filter-label{
             font-size:10px;font-weight:700;color:#a0a0ab;
             text-transform:uppercase;letter-spacing:.06em;
             white-space:nowrap;margin-right:8px;user-select:none;
+            padding-top:5px;
         }
-        .pills{display:flex;gap:3px;align-items:center;flex-wrap:nowrap}
+        .pills{display:flex;gap:3px;align-items:center;flex-wrap:wrap}
         .pill{
             border:none;background:transparent;
-            padding:4px 9px;border-radius:7px;
+            padding:4px 8px;border-radius:7px;
             font-size:11px;font-weight:600;cursor:pointer;
             font-family:inherit;color:#6e6e73;
             transition:all .15s;white-space:nowrap;
@@ -132,7 +148,7 @@
         <span class="filter-label">📅 Рік</span>
         <div class="pills" id="yearPills"></div>
     </div>
-    <div class="filter-group">
+    <div class="filter-group filter-months">
         <span class="filter-label">📆 Місяці</span>
         <div class="pills" id="monthPills"></div>
     </div>
@@ -344,9 +360,12 @@ function renderTable(){
     }
     tbl.appendChild(thead);
     const tbody=document.createElement('tbody');
+    let rowIdx=0;
     allMetrics.forEach(metric=>{
         if(!years.some(y=>parsedByYear[y]?.[metric]))return;
-        const tr=document.createElement('tr');tr.className='metric-row';tr.dataset.metric=metric;
+        const tr=document.createElement('tr');tr.className='metric-row appear';tr.dataset.metric=metric;
+        tr.style.animationDelay=(rowIdx*0.03)+'s';
+        rowIdx++;
         if(selectedMetrics.has(metric))tr.classList.add('selected');
         const tdN=document.createElement('td');tdN.className='col-metric';tdN.textContent=metric;tr.appendChild(tdN);
         const bc=badgeCls(metric);
@@ -621,8 +640,27 @@ function setView(mode){
     if(mode==='chart')renderChart();else renderSummary();
 }
 
+function showTableSkeleton(card, rows=12, cols=5){
+    card.innerHTML='';
+    const wrap=document.createElement('div');
+    for(let r=0;r<rows;r++){
+        const row=document.createElement('div');row.className='tbl-row-skel';
+        for(let c=0;c<cols;c++){
+            const cell=document.createElement('div');
+            cell.className='tbl-row-skel-cell skel'+(c===0?' wide':'');
+            cell.style.animationDelay=(r*0.04+c*0.015)+'s';
+            row.appendChild(cell);
+        }
+        wrap.appendChild(row);
+    }
+    card.appendChild(wrap);
+}
+
 // INIT
 async function init(){
+    // Show skeleton immediately
+    const card=document.getElementById('tableCard');
+    showTableSkeleton(card, 12, 5);
     try{
         const res=await fetch(CSV_URL+'&t='+Date.now());
         if(!res.ok)throw new Error('HTTP '+res.status);
@@ -631,6 +669,9 @@ async function init(){
         if(!rows.length)throw new Error('Порожній файл');
         detectAndParse(rows);
         if(!allYears.length)throw new Error('Не вдалось розпізнати структуру');
+        // Animate filters in
+        const fw=document.querySelector('.filters-wrap');
+        if(fw)fw.classList.add('appear');
         renderFilters();
         renderTable();
         setView('table');

@@ -12,6 +12,36 @@
         *{box-sizing:border-box;margin:0;padding:0}
         body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);padding:8px 10px 60px}
 
+        /* ── SKELETON + ANIMATION SYSTEM ── */
+        @keyframes shimmer{0%{background-position:-600px 0}100%{background-position:600px 0}}
+        @keyframes fadeInUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+        .skel{
+            background:linear-gradient(90deg,#eaeaed 25%,#f5f5f7 50%,#eaeaed 75%);
+            background-size:600px 100%;
+            animation:shimmer 1.4s ease-in-out infinite;
+            border-radius:7px;
+        }
+        /* skeleton rank card */
+        .rank-card-skel{
+            background:#fff;border-radius:14px;
+            box-shadow:0 2px 10px rgba(0,0,0,.04);
+            padding:11px 14px;display:flex;align-items:center;gap:14px;
+            margin-bottom:7px;
+        }
+        .rank-card-skel-pos{width:24px;height:24px;border-radius:6px}
+        .rank-card-skel-body{flex:1;display:flex;flex-direction:column;gap:7px}
+        .rank-card-skel-line{height:12px;border-radius:6px}
+        .rank-card-skel-sub{height:9px;width:50%;border-radius:5px}
+        .rank-card-skel-val{width:52px;height:18px;border-radius:7px;flex-shrink:0}
+        /* skeleton table row */
+        .tbl-row-skel{display:flex;gap:8px;padding:8px 12px;border-bottom:1px solid #f2f2f4}
+        .tbl-row-skel-cell{height:11px;border-radius:5px;flex:1}
+        .tbl-row-skel-cell.wide{flex:2}
+        /* real cards animate in */
+        .rank-card.appear{animation:fadeInUp .3s ease both}
+        .filters-wrap.appear,.metric-bar.appear,.dyn-controls.appear{animation:fadeIn .25s ease both}
+
 ```
     .top-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:10px;flex-wrap:wrap}
     .back-link{color:var(--accent);text-decoration:none;font-weight:600;font-size:14px}
@@ -29,19 +59,22 @@
         border:1px solid rgba(0,0,0,0.06);
     }
     .filter-group{
-        display:flex;align-items:center;
-        padding:8px 14px;
+        display:flex;align-items:flex-start;
+        padding:8px 12px;
         border-right:1px solid #f0f0f2;
         flex-shrink:0;
     }
     .filter-group:last-child{border-right:none}
+    /* група з продавцями або місяцями — розтягується */
+    .filter-group.filter-flex{flex:1;min-width:0;border-right:none}
     .filter-row{display:contents}
     .filter-label{
         font-size:10px;font-weight:700;color:#a0a0ab;
         text-transform:uppercase;letter-spacing:.06em;
         white-space:nowrap;margin-right:8px;user-select:none;
+        padding-top:5px;
     }
-    .pills{display:flex;gap:3px;align-items:center;flex-wrap:wrap;max-width:300px}
+    .pills{display:flex;gap:3px;align-items:center;flex-wrap:wrap}
     .pill{
         border:none;background:transparent;
         padding:4px 9px;border-radius:7px;
@@ -117,13 +150,13 @@
     .mpill.active{color:white;border-color:transparent}
 
     .ranking-grid{display:flex;flex-direction:column;gap:7px}
-    .rank-card{background:var(--card);border-radius:14px;box-shadow:var(--shadow);padding:11px 14px;display:flex;align-items:center;gap:12px;position:relative;overflow:hidden;transition:transform .15s}
+    .rank-card{background:var(--card);border-radius:14px;box-shadow:var(--shadow);padding:11px 14px;display:flex;align-items:flex-start;gap:12px;position:relative;overflow:hidden;transition:transform .15s}
     .rank-card:hover{transform:translateY(-1px)}
     .rank-bg{position:absolute;left:0;top:0;height:100%;opacity:.07;border-radius:14px;pointer-events:none;transition:width .5s ease}
-    .rank-pos{font-size:18px;font-weight:800;min-width:26px;text-align:center;line-height:1}
+    .rank-pos{font-size:18px;font-weight:800;min-width:26px;text-align:center;line-height:1;padding-top:2px}
     .rank-pos.gold{color:#f5a623}.rank-pos.silver{color:#9b9b9b}.rank-pos.bronze{color:#c47a3a}.rank-pos.rest{color:#ccc;font-size:14px}
     .rank-name{flex:1;min-width:0}
-    .rank-name-text{font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .rank-name-text{font-size:13px;font-weight:700;white-space:normal;word-break:break-word;line-height:1.35;overflow:visible;text-overflow:unset}
     .rank-sub{font-size:10px;color:var(--text-sec);margin-top:1px}
     .rank-bar-wrap{flex:2;min-width:50px;max-width:140px}
     .rank-bar-bg{height:6px;background:#ebebef;border-radius:3px;overflow:hidden}
@@ -178,7 +211,6 @@
 
     /* Skeleton */
     @keyframes shimmer{0%{background-position:-600px 0}100%{background-position:600px 0}}
-    .skel{background:linear-gradient(90deg,#e8e8ed 25%,#f5f5f7 50%,#e8e8ed 75%);background-size:600px 100%;animation:shimmer 1.4s ease-in-out infinite;border-radius:6px}
 </style>
 ```
 
@@ -206,7 +238,7 @@
         <span class="filter-label">📆 Місяць</span>
         <div class="pills" id="monthPills"></div>
     </div>
-    <div class="filter-group">
+    <div class="filter-group filter-flex">
         <span class="filter-label">👤 Продавець</span>
         <div class="pills" id="sellerPills"></div>
     </div>
@@ -825,67 +857,114 @@ function renderDynChart(){
 function renderRating(){
     renderMetricPills();
     const data=filteredData();
-    const grid=document.getElementById('rankingGrid');grid.innerHTML='';
-    if(!data.length){grid.innerHTML='<div class="status-box">Немає даних</div>';return;}
+    const grid=document.getElementById('rankingGrid');
+    // Show skeleton briefly if grid is empty/stale
+    showRatingSkeleton(grid, 7);
+    if(!data.length){
+        setTimeout(()=>{grid.innerHTML='<div class="status-box">Немає даних</div>';},150);
+        return;
+    }
+    // Small delay so skeleton flashes once, then real cards appear
+    setTimeout(()=>{
+        grid.innerHTML='';
+        const m=RATING_METRICS.find(x=>x.key===activeMetricKey)||RATING_METRICS[0];
+        const byS={};
+        data.forEach(r=>{if(!byS[r.продавець])byS[r.продавець]=[];byS[r.продавець].push(r);});
 
-    const m=RATING_METRICS.find(x=>x.key===activeMetricKey)||RATING_METRICS[0];
-    const byS={};
-    data.forEach(r=>{if(!byS[r.продавець])byS[r.продавець]=[];byS[r.продавець].push(r);});
+        const scored=Object.entries(byS).map(([seller,rows])=>{
+            const agg=aggregate(rows);
+            const val=agg?agg[m.key]:null;
+            return{seller,val};
+        }).filter(x=>x.val!==null);
 
-    const scored=Object.entries(byS).map(([seller,rows])=>{
-        const agg=aggregate(rows);
-        const val=agg?agg[m.key]:null;
-        return{seller,val};
-    }).filter(x=>x.val!==null);
+        scored.sort((a,b)=>m.higher?b.val-a.val:a.val-b.val);
+        const maxVal=scored[0]?.val||1;
 
-    scored.sort((a,b)=>m.higher?b.val-a.val:a.val-b.val);
-    const maxVal=scored[0]?.val||1;
+        scored.forEach((item,i)=>{
+            const card=document.createElement('div');card.className='rank-card';
 
-    scored.forEach((item,i)=>{
-        const card=document.createElement('div');card.className='rank-card';
+            const bg=document.createElement('div');bg.className='rank-bg';
+            bg.style.cssText=`background:${m.color};width:${(item.val/maxVal*100).toFixed(1)}%`;
+            card.appendChild(bg);
 
-        // фон-прогрес
-        const bg=document.createElement('div');bg.className='rank-bg';
-        bg.style.cssText=`background:${m.color};width:${(item.val/maxVal*100).toFixed(1)}%`;
-        card.appendChild(bg);
+            const pos=document.createElement('div');
+            pos.className='rank-pos '+(i===0?'gold':i===1?'silver':i===2?'bronze':'rest');
+            pos.textContent=i===0?'🥇':i===1?'🥈':i===2?'🥉':`${i+1}`;
+            card.appendChild(pos);
 
-        // Позиція
-        const pos=document.createElement('div');
-        pos.className='rank-pos '+(i===0?'gold':i===1?'silver':i===2?'bronze':'rest');
-        pos.textContent=i===0?'🥇':i===1?'🥈':i===2?'🥉':`${i+1}`;
-        card.appendChild(pos);
+            const nameDiv=document.createElement('div');nameDiv.className='rank-name';
+            const nameText=document.createElement('div');nameText.className='rank-name-text';nameText.textContent=item.seller;
+            nameDiv.appendChild(nameText);
+            if(i>0){
+                const sub=document.createElement('div');sub.className='rank-sub';
+                const pct=(item.val/scored[0].val*100).toFixed(1);
+                sub.textContent=`${pct}% від лідера`;nameDiv.appendChild(sub);
+            }
+            card.appendChild(nameDiv);
 
-        // Ім'я
-        const nameDiv=document.createElement('div');nameDiv.className='rank-name';
-        const nameText=document.createElement('div');nameText.className='rank-name-text';nameText.textContent=item.seller;
-        nameDiv.appendChild(nameText);
-        // Підзаголовок: доля від лідера
-        if(i>0){
-            const sub=document.createElement('div');sub.className='rank-sub';
-            const pct=(item.val/scored[0].val*100).toFixed(1);
-            sub.textContent=`${pct}% від лідера`;nameDiv.appendChild(sub);
+            const barWrap=document.createElement('div');barWrap.className='rank-bar-wrap';
+            const barBg=document.createElement('div');barBg.className='rank-bar-bg';
+            const barFill=document.createElement('div');barFill.className='rank-bar-fill';
+            barFill.style.cssText=`background:${m.color};width:${(item.val/maxVal*100).toFixed(1)}%`;
+            barBg.appendChild(barFill);barWrap.appendChild(barBg);card.appendChild(barWrap);
+
+            const valDiv=document.createElement('div');valDiv.className='rank-val';
+            const valMain=document.createElement('div');valMain.className='rank-val-main';valMain.style.color=m.color;
+            valMain.textContent=fmtV(item.val,m.fmt);
+            valDiv.appendChild(valMain);
+            card.appendChild(valDiv);
+
+            grid.appendChild(card);
+        });
+        animateCards(grid);
+    }, 180);
+}
+
+// ── SKELETON HELPERS ──
+function showTableSkeleton(card, rows=6, cols=5){
+    card.innerHTML='';
+    const wrap=document.createElement('div');
+    wrap.style.cssText='padding:4px 0';
+    for(let r=0;r<rows;r++){
+        const row=document.createElement('div');
+        row.className='tbl-row-skel';
+        const widths=['wide','','','','','','',''];
+        for(let c=0;c<cols;c++){
+            const cell=document.createElement('div');
+            cell.className='tbl-row-skel-cell skel'+(c===0?' wide':'');
+            cell.style.animationDelay=(r*0.05+c*0.02)+'s';
+            row.appendChild(cell);
         }
-        card.appendChild(nameDiv);
+        wrap.appendChild(row);
+    }
+    card.appendChild(wrap);
+}
 
-        // Прогрес-бар
-        const barWrap=document.createElement('div');barWrap.className='rank-bar-wrap';
-        const barBg=document.createElement('div');barBg.className='rank-bar-bg';
-        const barFill=document.createElement('div');barFill.className='rank-bar-fill';
-        barFill.style.cssText=`background:${m.color};width:${(item.val/maxVal*100).toFixed(1)}%`;
-        barBg.appendChild(barFill);barWrap.appendChild(barBg);card.appendChild(barWrap);
-
-        // Значення
-        const valDiv=document.createElement('div');valDiv.className='rank-val';
-        const valMain=document.createElement('div');valMain.className='rank-val-main';valMain.style.color=m.color;
-        valMain.textContent=fmtV(item.val,m.fmt);
-        valDiv.appendChild(valMain);
-        card.appendChild(valDiv);
-
+function showRatingSkeleton(grid, count=7){
+    grid.innerHTML='';
+    for(let i=0;i<count;i++){
+        const card=document.createElement('div');
+        card.className='rank-card-skel';
+        card.style.animationDelay=(i*0.06)+'s';
+        card.innerHTML=`
+            <div class="rank-card-skel-pos skel" style="animation-delay:${i*0.06}s"></div>
+            <div class="rank-card-skel-body">
+                <div class="rank-card-skel-line skel" style="width:${55+Math.random()*35|0}%;animation-delay:${i*0.06+0.04}s"></div>
+                <div class="rank-card-skel-sub skel" style="animation-delay:${i*0.06+0.08}s"></div>
+            </div>
+            <div class="rank-card-skel-val skel" style="animation-delay:${i*0.06+0.02}s"></div>`;
         grid.appendChild(card);
+    }
+}
+
+function animateCards(grid){
+    grid.querySelectorAll('.rank-card').forEach((card,i)=>{
+        card.classList.add('appear');
+        card.style.animationDelay=(i*0.055)+'s';
     });
 }
 
-// ── VIEW ──
+
 function setView(mode){
     viewMode=mode;
     document.getElementById('btnTable').classList.toggle('active',mode==='table');
@@ -901,6 +980,8 @@ function setView(mode){
 
 // ── INIT ──
 async function init(){
+    // Show skeletons immediately
+    showTableSkeleton(document.getElementById('tableCard'), 8, 6);
     try{
         const res=await fetch(CSV_URL+'&t='+Date.now());
         if(!res.ok)throw new Error('HTTP '+res.status);
@@ -909,6 +990,9 @@ async function init(){
         if(!rows.length)throw new Error('Порожній файл');
         parseFull(rows);
         if(!allData.length)throw new Error('Не вдалось розпізнати дані');
+        // Animate filters in
+        const fw=document.querySelector('.filters-wrap');
+        if(fw){fw.classList.add('appear');}
         renderFilters();
         renderTable();
     }catch(e){

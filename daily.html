@@ -11,6 +11,23 @@
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); padding: 8px 10px; }
 
+        /* ── SKELETON + ANIMATION SYSTEM ── */
+        @keyframes shimmer{0%{background-position:-600px 0}100%{background-position:600px 0}}
+        @keyframes fadeInUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+        .skel{background:linear-gradient(90deg,#eaeaed 25%,#f5f5f7 50%,#eaeaed 75%);background-size:600px 100%;animation:shimmer 1.4s ease-in-out infinite;border-radius:7px;}
+        .rank-card-skel{background:#fff;border-radius:14px;box-shadow:0 2px 10px rgba(0,0,0,.04);padding:10px 14px;display:flex;flex-direction:column;gap:8px;margin-bottom:7px}
+        .rank-card-skel-top{display:flex;align-items:center;gap:12px}
+        .rank-card-skel-pos{width:24px;height:24px;border-radius:6px;flex-shrink:0}
+        .rank-card-skel-body{flex:1;display:flex;flex-direction:column;gap:7px}
+        .rank-card-skel-line{height:12px;border-radius:6px}
+        .rank-card-skel-sub{height:9px;width:50%;border-radius:5px}
+        .rank-card-skel-val{width:52px;height:16px;border-radius:7px;flex-shrink:0}
+        .rank-card-skel-bar{height:5px;border-radius:3px;margin-top:2px}
+        .rank-card.appear{animation:fadeInUp .3s ease both}
+        .tbl-row-skel{display:flex;gap:8px;padding:9px 12px;border-bottom:1px solid #f2f2f4}
+        .tbl-row-skel-cell{height:11px;border-radius:5px;flex:1}
+        .tbl-row-skel-cell.wide{flex:2.5}
+
 ```
     .back-link { color: var(--accent); text-decoration: none; font-weight: 500; display: inline-block; font-size: 14px; }
 
@@ -531,7 +548,10 @@ function setView(mode) {
         ratingBtn.style.background = '#3634a3';
         ratingPanel.classList.add('visible');
         buildRatingMetricPills();
-        renderRankingCards();
+        // Show skeleton briefly
+        const grid = document.getElementById('rankingGrid');
+        showRatingSkeleton(grid, 7);
+        setTimeout(()=>{ grid.innerHTML=''; renderRankingCards(); }, 180);
     } else {
         tableCard.style.display = '';
         toggleBtn.style.display = '';
@@ -647,11 +667,53 @@ function renderRankingCards() {
 
     if (!items.length) {
         grid.innerHTML = '<div style="padding:40px;text-align:center;color:#86868b">Немає даних</div>';
+    } else {
+        grid.querySelectorAll('.rank-card').forEach((c,i)=>{c.classList.add('appear');c.style.animationDelay=(i*0.055)+'s';});
+    }
+}
+
+function showRatingSkeleton(grid, count=7){
+    grid.innerHTML='';
+    for(let i=0;i<count;i++){
+        const card=document.createElement('div');card.className='rank-card-skel';
+        const delay=(i*0.06)+'s';
+        card.innerHTML=`
+            <div class="rank-card-skel-top">
+                <div class="rank-card-skel-pos skel" style="animation-delay:${delay}"></div>
+                <div class="rank-card-skel-body">
+                    <div class="rank-card-skel-line skel" style="width:${60+(i*9)%35}%;animation-delay:${delay}"></div>
+                    <div class="rank-card-skel-sub skel" style="animation-delay:${delay}"></div>
+                </div>
+                <div class="rank-card-skel-val skel" style="animation-delay:${delay}"></div>
+            </div>
+            <div class="rank-card-skel-bar skel" style="width:${100-(i*12)%55}%;animation-delay:${delay}"></div>`;
+        grid.appendChild(card);
     }
 }
 
 // ===== ЗАВАНТАЖЕННЯ =====
 async function load() {
+    // Show skeleton table rows while fetching
+    const tableCard = document.getElementById('tableCard');
+    const loader = document.getElementById('loader');
+    loader.style.display = 'none';
+    // Build skeleton rows
+    const skelWrap = document.createElement('div');
+    skelWrap.id = 'skelWrap';
+    const cols = window.innerWidth < 500 ? 4 : 7;
+    for(let r=0;r<10;r++){
+        const row = document.createElement('div');
+        row.className = 'tbl-row-skel';
+        for(let c=0;c<cols;c++){
+            const cell=document.createElement('div');
+            cell.className='tbl-row-skel-cell skel'+(c===0?' wide':'');
+            cell.style.animationDelay=(r*0.05+c*0.02)+'s';
+            row.appendChild(cell);
+        }
+        skelWrap.appendChild(row);
+    }
+    tableCard.appendChild(skelWrap);
+
     const SHEET = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQOxz-ozH9yNLW3IAzlkMlbRqOTrR4sIUO1__KpAMBFEvvpMXr4LWTnRvzYGb_y6za7WBxOUhl2DV84/pub?output=csv";
     try {
         const res = await fetch(SHEET + '&t=' + Date.now());
@@ -660,13 +722,16 @@ async function load() {
         if (rows.length < 2) throw new Error('Немає даних');
         savedHeaders = rows[0];
         savedRows = rows.slice(1);
-        document.getElementById('loader').style.display = 'none';
+        const sw = document.getElementById('skelWrap');
+        if(sw) sw.remove();
         document.getElementById('tbl').style.display = '';
         renderTable(savedHeaders, savedRows, false);
     } catch(e) {
-        const el = document.getElementById('loader');
-        el.className = 'error';
-        el.textContent = '❌ ' + e.message;
+        loader.style.display = '';
+        loader.className = 'error';
+        loader.textContent = '❌ ' + e.message;
+        const sw = document.getElementById('skelWrap');
+        if(sw) sw.remove();
     }
 }
 
