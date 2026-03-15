@@ -146,16 +146,17 @@
         /* РІЗНІ КОЛЬОРИ ДЛЯ ПЛАН, ФАКТ, % */
         .val-plan { color: #86868b; font-size: 11px; background: transparent; text-align: center; }
         .val-fact { font-weight: 600; background: transparent; color: #1d1d1f; text-align: center; }
-        /* === ПЛАН badge — розтягується на всю ширину клітинки === */
+        /* === ПЛАН badge — темно-сірий для всіх груп === */
         .plan-badge {
             display: block; padding: 2px 7px; border-radius: 7px;
             font-size: 11px; font-weight: 500; white-space: nowrap; text-align: center;
+            background: rgba(60,60,67,0.10); color: #3c3c43;
         }
-        .group-to    .plan-badge { background: rgba(52,199,89,0.09);   color: #3a9e5f; }
-        .group-serv  .plan-badge { background: rgba(175,82,222,0.09);  color: #8e44ad; }
-        .group-acc   .plan-badge { background: rgba(255,149,0,0.09);   color: #b87000; }
-        .group-traffic .plan-badge { background: rgba(0,113,227,0.09); color: #1a6bc4; }
-        .group-other .plan-badge { background: rgba(142,142,147,0.09); color: #6e6e73; }
+        .group-to    .plan-badge { background: rgba(60,60,67,0.10); color: #3c3c43; }
+        .group-serv  .plan-badge { background: rgba(60,60,67,0.10); color: #3c3c43; }
+        .group-acc   .plan-badge { background: rgba(60,60,67,0.10); color: #3c3c43; }
+        .group-traffic .plan-badge { background: rgba(60,60,67,0.10); color: #3c3c43; }
+        .group-other .plan-badge { background: rgba(60,60,67,0.10); color: #3c3c43; }
 
         /* === ФАКТ badge — яскравіший колір рядка === */
         .fact-badge {
