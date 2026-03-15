@@ -162,6 +162,44 @@
     .rank-val-sub{font-size:10px;color:#6e6e73}
     .rank-bar-bg{height:5px;background:#ebebef;border-radius:3px;overflow:hidden;margin-left:36px}
     .rank-bar-fill{height:100%;border-radius:3px;transition:width .6s ease}
+
+    /* ── INSIGHTS ── */
+    @keyframes insightFadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    .insights-panel{display:none;margin-top:0}
+    .insights-panel.visible{display:block}
+    .insights-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+    .insights-title{font-size:15px;font-weight:700;color:#1d1d1f;display:flex;align-items:center;gap:6px}
+    .insights-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+    @media(max-width:480px){.insights-grid{grid-template-columns:1fr}}
+    .insight-card{
+        background:white;border-radius:16px;
+        box-shadow:0 2px 12px rgba(0,0,0,.06);
+        padding:12px 14px;
+        display:flex;align-items:center;gap:10px;
+        position:relative;overflow:hidden;
+        animation:insightFadeIn .35s ease both;
+        border:1px solid rgba(0,0,0,.04);
+        min-height:72px;
+    }
+    .insight-card-glow{
+        position:absolute;top:0;right:0;width:70px;height:100%;
+        opacity:.07;border-radius:16px;
+        pointer-events:none;
+    }
+    .insight-icon{
+        font-size:22px;flex-shrink:0;width:40px;height:40px;
+        border-radius:11px;display:flex;align-items:center;justify-content:center;
+        font-style:normal;
+    }
+    .insight-body{flex:1;min-width:0}
+    .insight-label{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#a0a0ab;margin-bottom:2px}
+    .insight-name{font-size:12.5px;font-weight:700;color:#1d1d1f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3}
+    .insight-value{font-size:11px;font-weight:600;margin-top:1px}
+    .insights-skel-card{background:white;border-radius:16px;box-shadow:0 2px 12px rgba(0,0,0,.06);padding:12px 14px;display:flex;gap:10px;align-items:center;min-height:72px;border:1px solid rgba(0,0,0,.04)}
+    .insights-skel-icon{width:40px;height:40px;border-radius:11px;flex-shrink:0}
+    .insights-skel-body{flex:1;display:flex;flex-direction:column;gap:7px}
+    .insights-skel-line{height:10px;border-radius:5px}
+    .insights-skel-sub{height:8px;width:55%;border-radius:4px}
 </style>
 ```
 
@@ -172,6 +210,7 @@
         <h1>Щоденні звіти</h1>
         <div style="display:flex;gap:6px;align-items:center">
             <button id="toggleBtn" onclick="toggleCompact()">Компакт</button>
+            <button id="insightsBtn" onclick="setView('insights')" style="background:#ff9500;color:white;border:none;border-radius:10px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;transition:background .2s">💡 Інсайти</button>
             <button id="ratingBtn" onclick="setView('rating')" style="background:#5856d6;color:white;border:none;border-radius:10px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;transition:background .2s">🏆 Рейтинг</button>
         </div>
     </div>
@@ -193,6 +232,10 @@
         <button onclick="setView('table')" style="border:none;background:transparent;padding:8px 12px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;color:#a0a0ab;white-space:nowrap;border-left:1px solid #f0f0f2;transition:color .15s" onmouseover="this.style.color='#1d1d1f'" onmouseout="this.style.color='#a0a0ab'">✕</button>
     </div>
     <div class="ranking-grid" id="rankingGrid"></div>
+</div>
+
+<div class="insights-panel" id="insightsPanel">
+    <div class="insights-grid" id="insightsGrid"></div>
 </div>
 ```
 
@@ -540,24 +583,141 @@ let activeRatingKey = 'to';
 function setView(mode) {
     const tableCard = document.getElementById('tableCard');
     const ratingPanel = document.getElementById('ratingPanel');
+    const insightsPanel = document.getElementById('insightsPanel');
     const ratingBtn = document.getElementById('ratingBtn');
+    const insightsBtn = document.getElementById('insightsBtn');
     const toggleBtn = document.getElementById('toggleBtn');
-    if (mode === 'rating') {
-        tableCard.style.display = 'none';
-        toggleBtn.style.display = 'none';
+
+    // Reset all
+    tableCard.style.display = 'none';
+    ratingPanel.classList.remove('visible');
+    insightsPanel.classList.remove('visible');
+    toggleBtn.style.display = 'none';
+    ratingBtn.textContent = '🏆 Рейтинг';
+    ratingBtn.style.background = '#5856d6';
+    ratingBtn.onclick = () => setView('rating');
+    insightsBtn.textContent = '💡 Інсайти';
+    insightsBtn.style.background = '#ff9500';
+    insightsBtn.onclick = () => setView('insights');
+
+    if (mode === 'table') {
+        tableCard.style.display = '';
+        toggleBtn.style.display = '';
+    } else if (mode === 'rating') {
+        ratingBtn.textContent = '← Таблиця';
         ratingBtn.style.background = '#3634a3';
+        ratingBtn.onclick = () => setView('table');
         ratingPanel.classList.add('visible');
         buildRatingMetricPills();
-        // Show skeleton briefly
         const grid = document.getElementById('rankingGrid');
         showRatingSkeleton(grid, 7);
         setTimeout(()=>{ grid.innerHTML=''; renderRankingCards(); }, 180);
-    } else {
-        tableCard.style.display = '';
-        toggleBtn.style.display = '';
-        ratingBtn.style.background = '#5856d6';
-        ratingPanel.classList.remove('visible');
+    } else if (mode === 'insights') {
+        insightsBtn.textContent = '← Таблиця';
+        insightsBtn.style.background = '#c97000';
+        insightsBtn.onclick = () => setView('table');
+        insightsPanel.classList.add('visible');
+        const grid = document.getElementById('insightsGrid');
+        showInsightsSkeleton(grid);
+        setTimeout(()=>{ renderInsights(); }, 200);
     }
+}
+
+// ===== INSIGHTS =====
+const INSIGHT_DEFS = [
+    { key:'to',       label:'Найкращий по ТО',          icon:'💰', color:'#0071e3', iconBg:'rgba(0,113,227,0.12)', gFilter:'to',     tFilter:'fact' },
+    { key:'serv',     label:'Король послуг',             icon:'🔧', color:'#34c759', iconBg:'rgba(52,199,89,0.12)', gFilter:'serv',   tFilter:'fact' },
+    { key:'acc',      label:'Чемпіон з АСС',             icon:'🎧', color:'#ff9500', iconBg:'rgba(255,149,0,0.12)', gFilter:'acc',    tFilter:'fact' },
+    { key:'checks',   label:'Найбільше чеків',           icon:'🧾', color:'#af52de', iconBg:'rgba(175,82,222,0.12)', gFilter:'checks', tFilter:'fact' },
+    { key:'income',   label:'Заробив найбільше',         icon:'💵', color:'#00b388', iconBg:'rgba(0,179,136,0.12)', gFilter:'income', tFilter:'fact' },
+    { key:'avgcheck', label:'Найвищий середній чек',     icon:'📊', color:'#5856d6', iconBg:'rgba(88,86,214,0.12)', gFilter:'avgcheck',tFilter:'fact' },
+];
+
+function getTopPerson(gFilter, tFilter) {
+    let factIdx = -1;
+    for (let i = 1; i < savedHeaders.length; i++) {
+        const { g, t } = colInfo(savedHeaders[i]);
+        if (g === gFilter && t === tFilter && factIdx < 0) { factIdx = i; break; }
+    }
+    if (factIdx < 0) return null;
+
+    const excluded = ['разом','сума','total','тотал','підсумок','всього','итого','відставання','відхилення','виконання','залишок'];
+    const items = savedRows
+        .filter(r => {
+            const name = (r[0]||'').trim();
+            if (!name) return false;
+            if (/^\d{1,2}:\d{2}/.test(name)) return false;
+            const nl = name.toLowerCase();
+            return !excluded.some(k => nl.includes(k));
+        })
+        .map(r => ({ name: (r[0]||'').trim(), val: toNum(r[factIdx]) }))
+        .filter(x => x.val > 0);
+
+    if (!items.length) return null;
+    items.sort((a,b) => b.val - a.val);
+    return items[0];
+}
+
+function fmtInsightVal(val, gFilter) {
+    const n = Number(val);
+    if (isNaN(n) || n === 0) return '—';
+    if (gFilter === 'checks') return Math.round(n).toLocaleString('uk-UA') + ' чек.';
+    if (gFilter === 'avgcheck') return Math.round(n).toLocaleString('uk-UA') + ' ₴';
+    return Math.round(n).toLocaleString('uk-UA') + ' ₴';
+}
+
+function renderInsights() {
+    const grid = document.getElementById('insightsGrid');
+    grid.innerHTML = '';
+
+    const available = INSIGHT_DEFS.filter(d =>
+        savedHeaders.some(h => {
+            const { g, t } = colInfo(h);
+            return g === d.gFilter && t === d.tFilter;
+        })
+    );
+
+    if (!available.length) {
+        grid.innerHTML = '<div style="padding:40px;text-align:center;color:#86868b;grid-column:1/-1">Немає даних для інсайтів</div>';
+        return;
+    }
+
+    available.forEach((def, idx) => {
+        const top = getTopPerson(def.gFilter, def.tFilter);
+        if (!top) return;
+
+        const card = document.createElement('div');
+        card.className = 'insight-card';
+        card.style.animationDelay = (idx * 0.07) + 's';
+
+        card.innerHTML = `
+            <div class="insight-card-glow" style="background:${def.color}"></div>
+            <div class="insight-icon" style="background:${def.iconBg};font-size:20px">${def.icon}</div>
+            <div class="insight-body">
+                <div class="insight-label">${def.label}</div>
+                <div class="insight-name">🥇 ${top.name}</div>
+                <div class="insight-value" style="color:${def.color}">${fmtInsightVal(top.val, def.gFilter)}</div>
+            </div>`;
+        grid.appendChild(card);
+    });
+}
+
+function showInsightsSkeleton(grid) {
+    grid.innerHTML = '';
+    const defs = INSIGHT_DEFS.slice(0, 6);
+    defs.forEach((d, i) => {
+        const card = document.createElement('div');
+        card.className = 'insights-skel-card';
+        const delay = (i * 0.06) + 's';
+        card.innerHTML = `
+            <div class="insights-skel-icon skel" style="animation-delay:${delay}"></div>
+            <div class="insights-skel-body">
+                <div class="insights-skel-sub skel" style="width:40%;animation-delay:${delay}"></div>
+                <div class="insights-skel-line skel" style="width:${55 + (i*11)%30}%;animation-delay:${delay}"></div>
+                <div class="insights-skel-sub skel" style="animation-delay:${delay}"></div>
+            </div>`;
+        grid.appendChild(card);
+    });
 }
 
 function buildRatingMetricPills() {
