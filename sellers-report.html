@@ -355,6 +355,7 @@ const RATING_METRICS = [
     { key:'Ср. Чек',      label:'Ср.Чек',     color:'#5856d6', fmt:'money', higher:true, group:'main' },
     { key:'КПЧ',          label:'КПЧ',        color:'#00b388', fmt:'dec2',  higher:true, group:'main' },
     // Категорії
+    { key:'__all_cat__', label:'Всі кат.', color:'#5856d6', fmt:'money', higher:true, group:'cat', allCat:true },
     { key:'AV',  label:'AV',  color:'#c8392b', fmt:'money', higher:true, group:'cat' },
     { key:'DIG', label:'DIG', color:'#e67e22', fmt:'money', higher:true, group:'cat' },
     { key:'IT',  label:'IT',  color:'#8e44ad', fmt:'money', higher:true, group:'cat' },
@@ -934,8 +935,15 @@ function renderRating(){
         const scored=Object.entries(byS).map(([seller,rows])=>{
             const agg=aggregate(rows);
             const uniqueMonths=new Set(rows.map(r=>r.рік+'-'+r.місяць)).size;
-            const total=agg?agg[m.key]:null;
-            const val=avgMode&&total!=null&&uniqueMonths>0 ? total/uniqueMonths : total;
+            const CAT_KEYS=['AV','IT','DIG','SDA','MDA','NIP'];
+            const total = m.allCat
+                ? CAT_KEYS.reduce((s,k)=>s+(agg&&agg[k]!=null?agg[k]:0),0)||null
+                : agg?agg[m.key]:null;
+            // для % і середніх метрик — average вже в aggregate(), не ділимо на місяці
+            const isAvgByNature = PCT_KEYS.has(m.key);
+            const val = avgMode && total!=null && !isAvgByNature && uniqueMonths>0
+                ? total/uniqueMonths
+                : total;
             const avgTO=agg&&agg['ТО']!=null&&uniqueMonths>0?agg['ТО']/uniqueMonths:null;
             return{seller,val,uniqueMonths,avgTO,agg};
         }).filter(x=>x.val!==null);
@@ -945,10 +953,14 @@ function renderRating(){
 
         scored.forEach((item,i)=>{
             const barPct=(item.val/maxVal*100).toFixed(1);
-            const totalVal=item.agg?item.agg[m.key]:null;
-            const subLine=avgMode&&totalVal!=null
+            const CAT_KEYS_DISP=['AV','IT','DIG','SDA','MDA','NIP'];
+            const totalVal = m.allCat
+                ? CAT_KEYS_DISP.reduce((s,k)=>s+(item.agg&&item.agg[k]!=null?item.agg[k]:0),0)||null
+                : item.agg?item.agg[m.key]:null;
+            const isAvgByNature=PCT_KEYS.has(m.key);
+            const subLine=avgMode&&totalVal!=null&&!isAvgByNature
                 ? `Разом: ${fmtV(totalVal,m.fmt)}`
-                : (!avgMode&&m.fmt==='money'&&item.uniqueMonths>1?`Сер./міс: ${fmtV(item.avgTO&&m.key==='ТО'?item.avgTO:totalVal/item.uniqueMonths,m.fmt)}`:'');
+                : (!avgMode&&m.fmt==='money'&&item.uniqueMonths>1&&!isAvgByNature?`Сер./міс: ${fmtV(totalVal/item.uniqueMonths,m.fmt)}`:'');
             const card=document.createElement('div');card.className='rank-card';
             card.innerHTML=`
                 <div class="rank-bg" style="background:${m.color};width:${barPct}%"></div>
