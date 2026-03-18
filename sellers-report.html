@@ -952,8 +952,27 @@ function renderRating(){
         const maxVal=scored[0]?.val||1;
 
         // ── ШАПКА: загальне + середнє ──
-        const totalSum = scored.reduce((s,x)=>s+x.val,0);
-        const avgVal   = totalSum / scored.length;
+        const CAT_KEYS_SUM = ['AV','IT','DIG','SDA','MDA','NIP'];
+        const isAvgByNatureGlobal = PCT_KEYS.has(m.key);
+
+        // Оригінальні суми (до ділення на місяці) для зваженого середнього
+        const getRawTotal = (item) => {
+            if(m.allCat) return CAT_KEYS_SUM.reduce((s,k)=>s+(item.agg&&item.agg[k]!=null?item.agg[k]:0),0);
+            return item.agg ? item.agg[m.key] : 0;
+        };
+
+        const totalSum    = scored.reduce((s,x)=>s+x.val, 0);
+        const totalMonths = scored.reduce((s,x)=>s+x.uniqueMonths, 0);
+
+        // Зважене середнє в режимі avg: сума оригіналів / сума місяців
+        // Просте арифметичне для % і avg-by-nature метрик
+        let displayAvg;
+        if(avgMode && !isAvgByNatureGlobal && totalMonths > 0){
+            const rawSum = scored.reduce((s,x)=>s+getRawTotal(x), 0);
+            displayAvg = rawSum / totalMonths;
+        } else {
+            displayAvg = totalSum / scored.length;
+        }
 
         const banner = document.createElement('div');
         banner.style.cssText=`background:white;border-radius:14px;box-shadow:0 2px 12px rgba(0,0,0,.06);border:1.5px solid ${m.color}33;padding:10px 14px;margin-bottom:4px;display:flex;gap:0;`;
@@ -968,7 +987,7 @@ function renderRating(){
             div() +
             mkStat('Загалом', fmtV(totalSum, m.fmt), m.color) +
             div() +
-            mkStat('Середнє', fmtV(avgVal, m.fmt), '#5856d6');
+            mkStat(avgMode&&!isAvgByNatureGlobal?'Сер. зважене':'Середнє', fmtV(displayAvg, m.fmt), '#5856d6');
         grid.appendChild(banner);
 
         scored.forEach((item,i)=>{
@@ -983,8 +1002,8 @@ function renderRating(){
                 : (!avgMode&&m.fmt==='money'&&item.uniqueMonths>1&&!isAvgByNature?`Сер./міс: ${fmtV(totalVal/item.uniqueMonths,m.fmt)}`:'');
 
             // відхилення від середнього
-            const diff = item.val - avgVal;
-            const diffPct = avgVal ? (diff/avgVal*100) : 0;
+            const diff = item.val - displayAvg;
+            const diffPct = displayAvg ? (diff/displayAvg*100) : 0;
             const diffColor = diff>=0 ? '#1a7f37' : '#c0392b';
             const diffBg    = diff>=0 ? 'rgba(52,199,89,0.10)' : 'rgba(255,59,48,0.10)';
             const diffSign  = diff>=0 ? '+' : '';
