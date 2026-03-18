@@ -169,20 +169,20 @@
     .mpill.active{color:white;border-color:transparent}
 
     .ranking-grid{display:flex;flex-direction:column;gap:7px}
-    .rank-card{background:var(--card);border-radius:14px;box-shadow:var(--shadow);padding:11px 14px;display:flex;align-items:flex-start;gap:12px;position:relative;overflow:hidden;transition:transform .15s}
+    .rank-card{background:var(--card);border-radius:14px;box-shadow:var(--shadow);padding:10px 14px;display:flex;flex-direction:column;gap:5px;position:relative;overflow:hidden;transition:transform .15s}
     .rank-card:hover{transform:translateY(-1px)}
     .rank-bg{position:absolute;left:0;top:0;height:100%;opacity:.07;border-radius:14px;pointer-events:none;transition:width .5s ease}
-    .rank-pos{font-size:18px;font-weight:800;min-width:26px;text-align:center;line-height:1;padding-top:2px}
-    .rank-pos.gold{color:#f5a623}.rank-pos.silver{color:#9b9b9b}.rank-pos.bronze{color:#c47a3a}.rank-pos.rest{color:#ccc;font-size:14px}
+    .rank-top{display:flex;align-items:flex-start;gap:10px}
+    .rank-pos{font-size:17px;font-weight:800;min-width:26px;text-align:center;line-height:1.4;flex-shrink:0}
+    .rank-pos.gold{color:#f5a623}.rank-pos.silver{color:#9b9b9b}.rank-pos.bronze{color:#c47a3a}.rank-pos.rest{color:#ccc;font-size:13px}
     .rank-name{flex:1;min-width:0}
-    .rank-name-text{font-size:13px;font-weight:700;white-space:normal;word-break:break-word;line-height:1.35;overflow:visible;text-overflow:unset}
-    .rank-sub{font-size:10px;color:var(--text-sec);margin-top:1px}
-    .rank-bar-wrap{flex:2;min-width:50px;max-width:140px}
-    .rank-bar-bg{height:6px;background:#ebebef;border-radius:3px;overflow:hidden}
-    .rank-bar-fill{height:100%;border-radius:3px;transition:width .6s ease}
-    .rank-val{text-align:right;min-width:58px}
-    .rank-val-main{font-size:14px;font-weight:800;line-height:1.2}
+    .rank-name-text{font-size:12px;font-weight:700;white-space:normal;word-break:break-word;line-height:1.35}
+    .rank-sub{font-size:10px;color:var(--text-sec);margin-top:2px}
+    .rank-val{text-align:right;flex-shrink:0}
+    .rank-val-main{font-size:13px;font-weight:800;line-height:1.2}
     .rank-val-sub{font-size:10px;color:var(--text-sec)}
+    .rank-bar-bg{height:5px;background:#ebebef;border-radius:3px;overflow:hidden;margin-left:36px}
+    .rank-bar-fill{height:100%;border-radius:3px;transition:width .6s ease}
 
     /* DYNAMICS */
     .dyn-panel{display:none}
@@ -330,6 +330,10 @@ const COL_GROUPS = [
         { key:'MDA', label:'MDA', badge:'b-cat', fmt:'money' },
         { key:'NIP', label:'NIP', badge:'b-cat', fmt:'money' },
         { key:'SDA', label:'SDA', badge:'b-cat', fmt:'money' },
+    ]},
+    { name:'Середнє/міс', cls:'gh-other', cols:[
+        { key:'__months__',  label:'Міс.', badge:'b-plain', fmt:'int',   special:'months' },
+        { key:'__avg_to__',  label:'Сер.ТО', badge:'b-to',   fmt:'money', special:'avg_to' },
     ]},
 ];
 
@@ -679,6 +683,9 @@ function renderTable(){
     sellers.forEach(seller=>{
         const agg=aggregate(byS[seller]);
         if(!agg)return;
+        // рахуємо унікальні місяці продавця у відфільтрованих даних
+        const uniqueMonths=new Set(byS[seller].map(r=>r.рік+'-'+r.місяць)).size;
+        const avgTO=agg['ТО']!=null&&uniqueMonths>0?agg['ТО']/uniqueMonths:null;
         allRows.push({seller,agg});
         const tr=document.createElement('tr');
         const tdN=document.createElement('td');tdN.className='col-fix';tdN.textContent=seller;tr.appendChild(tdN);
@@ -686,7 +693,10 @@ function renderTable(){
             g.cols.forEach((col,ci)=>{
                 const td=document.createElement('td');
                 if(ci===0&&gi>0)td.classList.add('grp-start');
-                const v=agg[col.key];
+                let v;
+                if(col.special==='months')      v=uniqueMonths;
+                else if(col.special==='avg_to') v=avgTO;
+                else                            v=agg[col.key];
                 if(v!==undefined&&v!==null){
                     const sp=document.createElement('span');sp.className='badge '+col.badge;
                     sp.textContent=fmtV(v,col.fmt);td.appendChild(sp);
@@ -707,6 +717,8 @@ function renderTable(){
                 g.cols.forEach((col,ci)=>{
                     const td=document.createElement('td');
                     if(ci===0&&gi>0)td.classList.add('grp-start');
+                    // special колонки в підсумку — прочерк
+                    if(col.special){td.textContent='—';td.style.color='#ccc';tr.appendChild(td);return;}
                     const v=allAgg[col.key];
                     if(v!==undefined&&v!==null){
                         const sp=document.createElement('span');sp.className='badge '+col.badge;
@@ -877,13 +889,11 @@ function renderRating(){
     renderMetricPills();
     const data=filteredData();
     const grid=document.getElementById('rankingGrid');
-    // Show skeleton briefly if grid is empty/stale
     showRatingSkeleton(grid, 7);
     if(!data.length){
         setTimeout(()=>{grid.innerHTML='<div class="status-box">Немає даних</div>';},150);
         return;
     }
-    // Small delay so skeleton flashes once, then real cards appear
     setTimeout(()=>{
         grid.innerHTML='';
         const m=RATING_METRICS.find(x=>x.key===activeMetricKey)||RATING_METRICS[0];
@@ -893,46 +903,37 @@ function renderRating(){
         const scored=Object.entries(byS).map(([seller,rows])=>{
             const agg=aggregate(rows);
             const val=agg?agg[m.key]:null;
-            return{seller,val};
+            // Рахуємо унікальні місяці (з урахуванням року) які відпрацював продавець
+            const uniqueMonths=new Set(rows.map(r=>r.рік+'-'+r.місяць)).size;
+            const avg=val!==null&&uniqueMonths>0?val/uniqueMonths:null;
+            return{seller,val,uniqueMonths,avg};
         }).filter(x=>x.val!==null);
 
         scored.sort((a,b)=>m.higher?b.val-a.val:a.val-b.val);
         const maxVal=scored[0]?.val||1;
 
         scored.forEach((item,i)=>{
+            const barPct=(item.val/maxVal*100).toFixed(1);
+            const avgStr=item.avg!==null&&m.fmt==='money'?`Серед./міс: ${fmtV(item.avg,m.fmt)}`:'';
+            const monthsStr=item.uniqueMonths>1?`${item.uniqueMonths} міс.`:`${item.uniqueMonths} міс.`;
             const card=document.createElement('div');card.className='rank-card';
-
-            const bg=document.createElement('div');bg.className='rank-bg';
-            bg.style.cssText=`background:${m.color};width:${(item.val/maxVal*100).toFixed(1)}%`;
-            card.appendChild(bg);
-
-            const pos=document.createElement('div');
-            pos.className='rank-pos '+(i===0?'gold':i===1?'silver':i===2?'bronze':'rest');
-            pos.textContent=i===0?'🥇':i===1?'🥈':i===2?'🥉':`${i+1}`;
-            card.appendChild(pos);
-
-            const nameDiv=document.createElement('div');nameDiv.className='rank-name';
-            const nameText=document.createElement('div');nameText.className='rank-name-text';nameText.textContent=item.seller;
-            nameDiv.appendChild(nameText);
-            if(i>0){
-                const sub=document.createElement('div');sub.className='rank-sub';
-                const pct=(item.val/scored[0].val*100).toFixed(1);
-                sub.textContent=`${pct}% від лідера`;nameDiv.appendChild(sub);
-            }
-            card.appendChild(nameDiv);
-
-            const barWrap=document.createElement('div');barWrap.className='rank-bar-wrap';
-            const barBg=document.createElement('div');barBg.className='rank-bar-bg';
-            const barFill=document.createElement('div');barFill.className='rank-bar-fill';
-            barFill.style.cssText=`background:${m.color};width:${(item.val/maxVal*100).toFixed(1)}%`;
-            barBg.appendChild(barFill);barWrap.appendChild(barBg);card.appendChild(barWrap);
-
-            const valDiv=document.createElement('div');valDiv.className='rank-val';
-            const valMain=document.createElement('div');valMain.className='rank-val-main';valMain.style.color=m.color;
-            valMain.textContent=fmtV(item.val,m.fmt);
-            valDiv.appendChild(valMain);
-            card.appendChild(valDiv);
-
+            card.innerHTML=`
+                <div class="rank-bg" style="background:${m.color};width:${barPct}%"></div>
+                <div class="rank-top">
+                    <div class="rank-pos ${i===0?'gold':i===1?'silver':i===2?'bronze':'rest'}">${i===0?'🥇':i===1?'🥈':i===2?'🥉':i+1}</div>
+                    <div class="rank-name">
+                        <div class="rank-name-text">${item.seller}</div>
+                        <div class="rank-sub" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:3px">
+                            ${i>0?`<span>${(item.val/scored[0].val*100).toFixed(1)}% від лідера</span>`:''}
+                            <span style="background:rgba(0,0,0,.06);border-radius:5px;padding:1px 6px;font-size:9px;font-weight:700;color:#6e6e73">📅 ${monthsStr}</span>
+                        </div>
+                    </div>
+                    <div class="rank-val">
+                        <div class="rank-val-main" style="color:${m.color}">${fmtV(item.val,m.fmt)}</div>
+                        ${avgStr?`<div class="rank-val-sub" style="color:#86868b;font-size:9.5px;margin-top:2px">${avgStr}</div>`:''}
+                    </div>
+                </div>
+                <div class="rank-bar-bg"><div class="rank-bar-fill" style="width:${barPct}%;background:${m.color}"></div></div>`;
             grid.appendChild(card);
         });
         animateCards(grid);
