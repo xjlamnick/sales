@@ -154,10 +154,11 @@
             <div class="empty-chart-text">Натисніть на заголовок колонки у таблиці</div>
         </div>
     </div>
-    <div class="summary-panel" id="summaryPanel" style="display:none">
-        <div class="summary-title">Підсумки за обраний період</div>
-        <div class="summary-grid" id="summaryGrid"></div>
-    </div>
+</div>
+
+<div class="summary-panel" id="summaryPanel" style="display:none;background:var(--card);border-radius:16px;box-shadow:var(--shadow);padding:16px;margin-top:12px">
+    <div class="summary-title">Підсумки за обраний період</div>
+    <div class="summary-grid" id="summaryGrid"></div>
 </div>
 
 <script>
@@ -346,8 +347,8 @@ function activeRows(){
 function refreshAll(){
     renderTable();
     renderChips();
-    if(viewMode==='chart')renderChart();
-    else renderSummary();
+    if(viewMode==='chart'){renderChart();renderSummary();}
+    else{renderSummary();}
 }
 
 // ── TABLE ──
