@@ -559,9 +559,11 @@ function renderSummary(){
 
         years.forEach((y,yi)=>{
             const yMonths=allMonths.filter(m=>selectedPeriods.has(y+'_'+m));
-            const mv=parsedByYear[y]?.[metric]||{};\n            const vals=yMonths.map(m=>mv[m]).filter(v=>v!==undefined&&v!==null);
+            const mv=parsedByYear[y]?.[metric]||{};
+            const vals=yMonths.map(m=>mv[m]).filter(v=>v!==undefined&&v!==null);
             if(!vals.length)return;
-            const yc=yColor(y);\n            if(yi>0){const hr=document.createElement('hr');hr.className='summary-divider';rowsEl.appendChild(hr);}
+            const yc=yColor(y);
+            if(yi>0){const hr=document.createElement('hr');hr.className='summary-divider';rowsEl.appendChild(hr);}
             if(years.length>1){
                 const yl=document.createElement('div');
                 yl.style.cssText=`font-size:10px;font-weight:700;color:${yc};margin-bottom:2px;display:flex;align-items:center;gap:4px`;
