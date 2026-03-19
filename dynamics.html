@@ -671,24 +671,27 @@ function renderChart(){
         const p1pairs=[...periods1].map(k=>{const[y,m]=k.split('_');return{y:+y,m:+m};}).sort((a,b)=>a.y-b.y||a.m-b.m);
         const p2pairs=[...periods2].map(k=>{const[y,m]=k.split('_');return{y:+y,m:+m};}).sort((a,b)=>a.y-b.y||a.m-b.m);
         const maxLen=Math.max(p1pairs.length,p2pairs.length);
-        // Вісь X = порядковий крок (0,1,2...), мітки — місяць П1 / місяць П2
-        // Кожна позиція унікальна — Chart.js не плутає однакові назви місяців
+        // Вісь X = ТІЛЬКИ назви місяців з П1 (порядок кроків, без року)
+        // Обидва датасети мають однакову кількість точок — i-та точка П2 накладається на i-ту точку П1
         labels=Array.from({length:maxLen},(_,i)=>{
-            const a=p1pairs[i],b=p2pairs[i];
-            const la=a?MONTHS_UK[a.m-1].slice(0,3)+' '+String(a.y).slice(2):'';
-            const lb=b?MONTHS_UK[b.m-1].slice(0,3)+' '+String(b.y).slice(2):'';
-            if(la&&lb&&la!==lb) return la+' | '+lb;
-            return la||lb;
+            const p=p1pairs[i]||p2pairs[i];
+            return MONTHS_UK[p.m-1].slice(0,3);
         });
         const P1_SHADES=['#0071e3','#5856d6','#af52de','#ff3b30','#ff9500','#00b388','#5ac8fa','#007aff'];
         const P2_SHADES=['#34c759','#30d158','#32ade6','#ffd60a','#ff6b35','#64d2ff','#a8e063','#b5e48c'];
         metrics.forEach((metric,mi)=>{
             const c1=P1_SHADES[mi%P1_SHADES.length];
             const c2=P2_SHADES[mi%P2_SHADES.length];
-            const data1=Array.from({length:maxLen},(_,i)=>{const p=p1pairs[i];return p?(parsedByYear[p.y]?.[metric]?.[p.m]??null):null;});
-            const data2=Array.from({length:maxLen},(_,i)=>{const p=p2pairs[i];return p?(parsedByYear[p.y]?.[metric]?.[p.m]??null):null;});
-            datasets.push({label:`${metric} (П1)`,data:data1,borderColor:c1,backgroundColor:c1+'18',pointBackgroundColor:c1,pointBorderColor:'#fff',pointBorderWidth:1.5,pointRadius:4,pointHoverRadius:7,tension:0.35,fill:false,spanGaps:false,borderDash:[]});
-            datasets.push({label:`${metric} (П2)`,data:data2,borderColor:c2,backgroundColor:c2+'18',pointBackgroundColor:c2,pointBorderColor:'#fff',pointBorderWidth:1.5,pointRadius:4,pointHoverRadius:7,tension:0.35,fill:false,spanGaps:false,borderDash:[5,3]});
+            // i-та точка = i-й місяць у хронологічному порядку всередині набору
+            const data1=Array.from({length:maxLen},(_,i)=>{const p=p1pairs[i];return p!=null?(parsedByYear[p.y]?.[metric]?.[p.m]??null):null;});
+            const data2=Array.from({length:maxLen},(_,i)=>{const p=p2pairs[i];return p!=null?(parsedByYear[p.y]?.[metric]?.[p.m]??null):null;});
+            // tooltip: реальна дата кожної точки
+            const tt1=p1pairs.map(p=>MONTHS_UK[p.m-1].slice(0,3)+' '+p.y);
+            const tt2=p2pairs.map(p=>MONTHS_UK[p.m-1].slice(0,3)+' '+p.y);
+            while(tt1.length<maxLen) tt1.push('');
+            while(tt2.length<maxLen) tt2.push('');
+            datasets.push({label:`${metric} (П1)`,data:data1,borderColor:c1,backgroundColor:c1+'18',pointBackgroundColor:c1,pointBorderColor:'#fff',pointBorderWidth:1.5,pointRadius:4,pointHoverRadius:7,tension:0.35,fill:false,spanGaps:false,borderDash:[],_tt:tt1});
+            datasets.push({label:`${metric} (П2)`,data:data2,borderColor:c2,backgroundColor:c2+'18',pointBackgroundColor:c2,pointBorderColor:'#fff',pointBorderWidth:1.5,pointRadius:4,pointHoverRadius:7,tension:0.35,fill:false,spanGaps:false,borderDash:[5,3],_tt:tt2});
         });
     } else {
         const periods=activePeriods();const years=[...new Set(periods.map(p=>p.y))].sort((a,b)=>a-b);
@@ -765,7 +768,7 @@ function renderChart(){
                 legend:{display:datasets.length>1,position:'top',labels:{font:{family:'Inter',size:10},boxWidth:20,padding:10,
                     generateLabels(c){return c.data.datasets.map((ds,i)=>({text:ds.label,fillStyle:ds.borderColor,strokeStyle:ds.borderColor,lineWidth:2,hidden:c.getDatasetMeta(i).hidden,datasetIndex:i}));}}},
                 tooltip:{backgroundColor:'#1d1d1f',titleFont:{family:'Inter',size:12},bodyFont:{family:'Inter',size:11},padding:10,
-                    callbacks:{label:c=>` ${c.dataset.label}: ${fmt(c.raw)}`}}
+                    callbacks:{label:c=>{const d=c.dataset._tt?.[c.dataIndex];return` ${c.dataset.label}${d?' ['+d+']':''}: ${fmt(c.raw)}`;}}}
             },
             scales:{
                 x:{grid:{color:'#f0f0f0'},ticks:{font:{family:'Inter',size:compareMode?8:10},color:'#86868b',maxRotation:compareMode?45:0,minRotation:0}},
