@@ -118,7 +118,7 @@
         .summary-row-val{font-size:12px;font-weight:700;color:var(--text);white-space:nowrap}
         .summary-row-val.pct{color:#1a50b8}
         .summary-divider{border:none;border-top:1px solid #ebebef;margin:3px 0}
-        .delta-row{display:flex;align-items:center;justify-content:space-between;margin-top:6px;padding-top:6px;border-top:1px dashed #e0e0e5}
+        .delta-row{display:flex;flex-direction:column;align-items:flex-start;gap:3px;margin-top:6px;padding-top:6px;border-top:1px dashed #e0e0e5}
         .delta-label{font-size:10px;color:var(--text-sec);font-weight:500}
         .delta-badge{display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap}
         .delta-up  {background:rgba(52,199,89,.15);color:#1a7f37}
@@ -510,7 +510,7 @@ function renderCompareSummary(){
             </div>`;
         grid.appendChild(card);
     });
-    panel.style.display=grid.children.length?'':'none';
+    panel.style.display=grid.children.length?'block':'none';
 }
 
 function refreshAll(){
@@ -885,7 +885,7 @@ function renderSummary(){
 
             if(rowsEl.children.length)grid.appendChild(card);
         });
-        panel.style.display=grid.children.length?'':'none';
+        panel.style.display=grid.children.length?'block':'none';
         return;
     }
 
@@ -952,7 +952,7 @@ function renderSummary(){
 
         if(rowsEl.children.length)grid.appendChild(card);
     });
-    panel.style.display=grid.children.length?'':'none';
+    panel.style.display=grid.children.length?'block':'none';
 }
 
 function mkSRow(label,val,isPct=false){

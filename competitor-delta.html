@@ -719,7 +719,7 @@ function renderSummary(){
             grid.appendChild(card);
         });
     }
-    panel.style.display=grid.children.length?'':'none';
+    panel.style.display=grid.children.length?'block':'none';
 }
 function mkSRow(label,val){
     const row=document.createElement('div');row.className='summary-row';
