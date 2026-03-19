@@ -144,13 +144,9 @@
 </div>
 
 <div class="filters-wrap">
-    <div class="filter-group">
-        <span class="filter-label">📅 Рік</span>
-        <div class="pills" id="yearPills"></div>
-    </div>
-    <div class="filter-group filter-months">
-        <span class="filter-label">📆 Місяці</span>
-        <div class="pills" id="monthPills"></div>
+    <div class="filter-group" style="flex:1;border-right:none;flex-wrap:wrap">
+        <span class="filter-label">📅 Період</span>
+        <div class="pills" id="yearPills" style="flex-wrap:wrap"></div>
     </div>
 </div>
 
@@ -212,7 +208,9 @@ function summaryRule(name) {
 
 // STATE
 let allYears=[],allMetrics=[],allMonths=[];
-let selectedYears=new Set(),selectedMetrics=new Set(),selectedMonths=new Set();
+let selectedPeriods=new Set(); // "рік_місяць"
+let selectedMetrics=new Set();
+const yearColorMap={};
 let viewMode='table',chartInstance=null;
 let parsedByYear={},yearColorMap={};
 
@@ -259,10 +257,12 @@ function detectAndParse(rows){
     allMonths=[...ms].sort((a,b)=>a-b);
     const step=Math.floor(CHART_COLORS.length/Math.max(allYears.length,1));
     allYears.forEach((y,i)=>{yearColorMap[y]=CHART_COLORS[(i*step)%CHART_COLORS.length];});
-    if(allYears.length)selectedYears.add(allYears[0]);
+    // За замовчуванням — всі місяці всіх років
+    allYears.forEach(y=>allMonths.forEach(m=>selectedPeriods.add(y+'_'+m)));
 }
 
-function activeMonths(){return selectedMonths.size===0?allMonths:[...selectedMonths].sort((a,b)=>a-b);}
+function activeMonths(y){ return allMonths.filter(m=>selectedPeriods.has(y+'_'+m)); }
+function activePeriods(){ return allYears.flatMap(y=>allMonths.filter(m=>selectedPeriods.has(y+'_'+m)).map(m=>({y,m}))); }
 function yColor(y){return yearColorMap[y]||'#86868b';}
 function dsColor(y,mi){const bi=CHART_COLORS.indexOf(yearColorMap[y]);return CHART_COLORS[(bi+mi*2)%CHART_COLORS.length];}
 function badgeCls(name){const lo=name.toLowerCase();for(const g of GROUP_HINTS)if(g.kw.some(k=>lo.includes(k)))return g.cls;if(lo.includes('%')||lo.includes('доля')||lo.includes('конвер'))return'badge-pct';return'badge-other';}
@@ -270,94 +270,82 @@ function badgeCls(name){const lo=name.toLowerCase();for(const g of GROUP_HINTS)i
 // FILTERS
 function renderFilters(){
     const yp=document.getElementById('yearPills');yp.innerHTML='';
-    // Кнопка "Всі роки"
-    const ba=mkPill('Всі',selectedYears.size===allYears.length,()=>{allYears.forEach(y=>selectedYears.add(y));refreshAll();});
+
+    // "Всі"
+    const allPairs=allYears.flatMap(y=>allMonths.map(m=>y+'_'+m));
+    const allActive=allPairs.every(k=>selectedPeriods.has(k));
+    const ba=mkPill('Всі',allActive,()=>{
+        allPairs.forEach(k=>selectedPeriods.add(k));
+        renderFilters();refreshAll();
+    });
     yp.appendChild(ba);
-    allYears.forEach(y=>{
-        const active=selectedYears.has(y);
-        const btn=mkPill(y,active,()=>{
-            if(selectedYears.has(y)){if(selectedYears.size>1)selectedYears.delete(y);}else selectedYears.add(y);
-            refreshAll();
+
+    // Пілюлі "Міс РР" — тільки ті пари де є дані
+    allYears.slice().sort((a,b)=>a-b).forEach(y=>{
+        allMonths.forEach(m=>{
+            const hasData=allMetrics.some(met=>parsedByYear[y]&&parsedByYear[y][met]&&parsedByYear[y][met][m]!=null);
+            if(!hasData)return;
+            const key=y+'_'+m;
+            const btn=mkPill(MONTHS_UK[m-1].slice(0,3)+' '+String(y).slice(2), selectedPeriods.has(key), ()=>{
+                if(selectedPeriods.has(key)){if(selectedPeriods.size>1)selectedPeriods.delete(key);}
+                else selectedPeriods.add(key);
+                renderFilters();refreshAll();
+            });
+            btn.dataset.period=key;
+            if(selectedPeriods.has(key)){btn.style.background=yColor(y);btn.style.borderColor=yColor(y);}
+            yp.appendChild(btn);
         });
-        btn.dataset.year=y;
-        if(active){btn.style.background=yColor(y);btn.style.borderColor=yColor(y);btn.classList.add('year-active');}
-        yp.appendChild(btn);
     });
 
-    const mp=document.getElementById('monthPills');mp.innerHTML='';
-    mp.appendChild(mkPill('Всі',selectedMonths.size===0,()=>{selectedMonths.clear();refreshAll();}));
-    allMonths.forEach(m=>{
-        const btn=mkPill(MONTHS_UK[m-1].slice(0,3),selectedMonths.size===0||selectedMonths.has(m),()=>{
-            if(selectedMonths.size===0){
-                // перший клік — вибираємо лише цей місяць
-                selectedMonths.add(m);
-            } else if(selectedMonths.has(m)){
-                selectedMonths.delete(m);
-                // якщо всі знято — скидаємо до "всі"
-            } else {
-                selectedMonths.add(m);
-            }
-            refreshAll();
-        });
-        btn.dataset.month=m;
-        mp.appendChild(btn);
-    });
+    const mp=document.getElementById('monthPills');if(mp)mp.innerHTML='';
 }
 function mkPill(text,active,onclick){
     const b=document.createElement('button');b.className='pill'+(active?' active':'');b.textContent=text;b.onclick=onclick;return b;
 }
 function updFilters(){
-    document.querySelectorAll('#yearPills .pill[data-year]').forEach(b=>{
-        const y=+b.dataset.year,a=selectedYears.has(y);
-        b.className='pill'+(a?' active year-active':'');b.style.background=a?yColor(y):'';b.style.borderColor=a?yColor(y):'';
+    document.querySelectorAll('#yearPills .pill[data-period]').forEach(b=>{
+        const key=b.dataset.period;
+        const y=+key.split('_')[0];
+        const a=selectedPeriods.has(key);
+        b.className='pill'+(a?' active':'');
+        b.style.background=a?yColor(y):'';
+        b.style.borderColor=a?yColor(y):'';
     });
-    const bay=document.querySelector('#yearPills .pill:not([data-year])');
-    if(bay)bay.className='pill'+(selectedYears.size===allYears.length?' active':'');
-    document.querySelectorAll('#monthPills .pill[data-month]').forEach(b=>{
-        b.className='pill'+((selectedMonths.size===0||selectedMonths.has(+b.dataset.month))?' active':'');
-    });
-    const bam=document.querySelector('#monthPills .pill:not([data-month])');
-    if(bam)bam.className='pill'+(selectedMonths.size===0?' active':'');
+    const ba=document.querySelector('#yearPills .pill:not([data-period])');
+    if(ba)ba.className='pill'+(allYears.flatMap(y=>allMonths.map(m=>y+'_'+m)).every(k=>selectedPeriods.has(k))?' active':'');
 }
 function refreshAll(){updFilters();renderTable();renderChips();if(viewMode==='chart'){renderChart();}else{renderSummary();}}
 
 // TABLE
 function renderTable(){
     const card=document.getElementById('tableCard');card.innerHTML='';
-    const years=[...selectedYears].sort((a,b)=>a-b),months=activeMonths();
-    if(!months.length||!years.length){card.innerHTML='<div class="status-box">Немає даних</div>';return;}
+    const periods=activePeriods();
+    const years=[...new Set(periods.map(p=>p.y))].sort((a,b)=>a-b);
+    const months=[...new Set(periods.map(p=>p.m))].sort((a,b)=>a-b);
+    if(!periods.length){card.innerHTML='<div class="status-box">Немає даних</div>';return;}
     const hint=document.createElement('div');hint.className='table-hint';
     hint.innerHTML=`<span>💡</span> Натисніть на рядок щоб додати показник на <span>графік</span>`;
     card.appendChild(hint);
     const wrap=document.createElement('div');wrap.style.cssText='overflow-x:auto;-webkit-overflow-scrolling:touch;';card.appendChild(wrap);
-    const colW=Math.max(44,Math.floor((window.innerWidth-115)/(months.length*years.length)));
-    const tbl=document.createElement('table');tbl.style.width=(115+colW*months.length*years.length)+'px';
+    const colW=Math.max(44,Math.floor((window.innerWidth-115)/periods.length));
+    const tbl=document.createElement('table');tbl.style.width=(115+colW*periods.length)+'px';
     const cg=document.createElement('colgroup');
     const c0=document.createElement('col');c0.style.width='115px';cg.appendChild(c0);
-    years.forEach(()=>months.forEach(()=>{const c=document.createElement('col');c.style.width=colW+'px';cg.appendChild(c);}));
+    periods.forEach(()=>{const c=document.createElement('col');c.style.width=colW+'px';cg.appendChild(c);});
     tbl.appendChild(cg);
     const thead=document.createElement('thead');
-    if(years.length>1){
-        const trY=document.createElement('tr');
-        const thC=document.createElement('th');thC.className='col-metric';thC.rowSpan=2;thC.textContent='Показник';trY.appendChild(thC);
-        years.forEach((y,yi)=>{
-            const th=document.createElement('th');th.colSpan=months.length;th.textContent=y;
-            const yc=yColor(y);th.style.cssText=`font-weight:800;font-size:11px;border-bottom:2px solid ${yc};color:${yc};`;
-            if(yi>0)th.classList.add('grp-start');trY.appendChild(th);
-        });
-        thead.appendChild(trY);
-        const trM=document.createElement('tr');
-        years.forEach((y,yi)=>months.forEach((m,mi)=>{
-            const th=document.createElement('th');th.textContent=MONTHS_UK[m-1].slice(0,3);
-            if(mi===0&&yi>0)th.classList.add('grp-start');trM.appendChild(th);
-        }));
-        thead.appendChild(trM);
-    } else {
-        const trH=document.createElement('tr');
-        const thN=document.createElement('th');thN.className='col-metric';thN.textContent='Показник';trH.appendChild(thN);
-        months.forEach(m=>{const th=document.createElement('th');th.textContent=MONTHS_UK[m-1];trH.appendChild(th);});
-        thead.appendChild(trH);
-    }
+    // Один рядок заголовків "Міс РР"
+    const trH=document.createElement('tr');
+    const thN=document.createElement('th');thN.className='col-metric';thN.textContent='Показник';trH.appendChild(thN);
+    periods.forEach((p,pi)=>{
+        const th=document.createElement('th');
+        th.textContent=MONTHS_UK[p.m-1].slice(0,3)+' '+String(p.y).slice(2);
+        const yc=yColor(p.y);
+        th.style.cssText=`color:${yc};font-weight:700;`;
+        if(pi>0&&periods[pi-1].y!==p.y)th.classList.add('grp-start');
+        trH.appendChild(th);
+    });
+    thead.appendChild(trH);
     tbl.appendChild(thead);
     const tbody=document.createElement('tbody');
     let rowIdx=0;
@@ -369,18 +357,16 @@ function renderTable(){
         if(selectedMetrics.has(metric))tr.classList.add('selected');
         const tdN=document.createElement('td');tdN.className='col-metric';tdN.textContent=metric;tr.appendChild(tdN);
         const bc=badgeCls(metric);
-        years.forEach((y,yi)=>{
-            const mv=parsedByYear[y]?.[metric]||{};
-            months.forEach((m,mi)=>{
-                const val=mv[m],td=document.createElement('td');
-                if(mi===0&&yi>0)td.classList.add('grp-start');
-                if(val!==undefined&&val!==null){
-                    const sp=document.createElement('span');
-                    sp.className='badge '+(selectedMetrics.has(metric)?bc:'badge-other');
-                    sp.textContent=fmt(val);td.appendChild(sp);
-                } else{td.textContent='—';td.style.color='#ccc';}
-                tr.appendChild(td);
-            });
+        periods.forEach((p,pi)=>{
+            const val=parsedByYear[p.y]?.[metric]?.[p.m];
+            const td=document.createElement('td');
+            if(pi>0&&periods[pi-1].y!==p.y)td.classList.add('grp-start');
+            if(val!==undefined&&val!==null){
+                const sp=document.createElement('span');
+                sp.className='badge '+(selectedMetrics.has(metric)?bc:'badge-other');
+                sp.textContent=fmt(val);td.appendChild(sp);
+            } else{td.textContent='—';td.style.color='#ccc';}
+            tr.appendChild(td);
         });
         tr.addEventListener('click',()=>toggleMetric(metric));
         tbody.appendChild(tr);
@@ -406,7 +392,9 @@ function toggleMetric(metric){
 // CHIPS
 function renderChips(){
     const cont=document.getElementById('selectedChips');cont.innerHTML='';
-    const years=[...selectedYears].sort((a,b)=>a-b),metrics=[...selectedMetrics];
+    const periods=activePeriods();
+    const years=[...new Set(periods.map(p=>p.y))].sort((a,b)=>a-b);
+    const metrics=[...selectedMetrics];
     years.forEach((y)=>{
         metrics.forEach((metric,mi)=>{
             const color=dsColor(y,mi);
@@ -418,10 +406,8 @@ function renderChips(){
             cont.appendChild(chip);
         });
     });
-    const months=activeMonths();
-    const yrs=[...selectedYears].sort((a,b)=>a-b).join(', ');
-    const monStr=selectedMonths.size===0?'всі місяці':months.map(m=>MONTHS_UK[m-1].slice(0,3)).join(', ');
-    document.getElementById('chartSubtitle').textContent=selectedMetrics.size?`${yrs} · ${monStr}`:'Оберіть показники у таблиці';
+    const periodStr=[...selectedPeriods].sort().map(k=>{const[y,m]=k.split('_');return MONTHS_UK[+m-1].slice(0,3)+' '+String(y).slice(2);}).join(', ');
+    document.getElementById('chartSubtitle').textContent=selectedMetrics.size?periodStr:'Оберіть показники у таблиці';
 }
 
 // CHART
@@ -432,15 +418,15 @@ function renderChart(){
         body.innerHTML=`<div class="empty-chart"><div class="empty-chart-icon">📊</div><div class="empty-chart-text">Натисніть на рядок у таблиці, щоб додати показник</div></div>`;
         renderSummary();return;
     }
-    const years=[...selectedYears].sort((a,b)=>a-b),metrics=[...selectedMetrics],months=activeMonths();
-    const labels=months.map(m=>MONTHS_UK[m-1].slice(0,3));
+    const periods=activePeriods();const years=[...new Set(periods.map(p=>p.y))].sort((a,b)=>a-b);const metrics=[...selectedMetrics];const months=[...new Set(periods.map(p=>p.m))].sort((a,b)=>a-b);
+    const labels=periods.map(p=>MONTHS_UK[p.m-1].slice(0,3)+' '+String(p.y).slice(2));
     const datasets=[];
-    years.forEach(y=>{
-        metrics.forEach((metric,mi)=>{
+    metrics.forEach((metric,mi)=>{
+        years.forEach(y=>{
             const mv=parsedByYear[y]?.[metric]||{};
             const color=dsColor(y,mi);
             const label=years.length>1?`${metric} (${y})`:metric;
-            datasets.push({label,data:months.map(m=>mv[m]??null),borderColor:color,backgroundColor:color+'18',pointBackgroundColor:color,pointBorderColor:'#fff',pointBorderWidth:1.5,pointRadius:4,pointHoverRadius:7,tension:0.35,fill:false,spanGaps:true});
+            datasets.push({label,data:periods.map(p=>p.y===y?(mv[p.m]??null):null),borderColor:color,backgroundColor:color+'18',pointBackgroundColor:color,pointBorderColor:'#fff',pointBorderWidth:1.5,pointRadius:4,pointHoverRadius:7,tension:0.35,fill:false,spanGaps:true});
         });
     });
     if(chartInstance){chartInstance.destroy();chartInstance=null;}
@@ -557,7 +543,7 @@ function mkDeltaRow(prevYear, currYear, prevVal, currVal){
 function renderSummary(){
     const panel=document.getElementById('summaryPanel');
     const grid=document.getElementById('summaryGrid');grid.innerHTML='';
-    const years=[...selectedYears].sort((a,b)=>a-b),metrics=[...selectedMetrics],months=activeMonths();
+    const periods=activePeriods();const years=[...new Set(periods.map(p=>p.y))].sort((a,b)=>a-b);const metrics=[...selectedMetrics];const months=[...new Set(periods.map(p=>p.m))].sort((a,b)=>a-b);
     if(!metrics.length){panel.style.display='none';return;}
 
     metrics.forEach(metric=>{
@@ -572,19 +558,16 @@ function renderSummary(){
         const baseVals={};
 
         years.forEach((y,yi)=>{
-            const mv=parsedByYear[y]?.[metric]||{};
-            const vals=months.map(m=>mv[m]).filter(v=>v!==undefined&&v!==null);
+            const yMonths=allMonths.filter(m=>selectedPeriods.has(y+'_'+m));
+            const mv=parsedByYear[y]?.[metric]||{};\n            const vals=yMonths.map(m=>mv[m]).filter(v=>v!==undefined&&v!==null);
             if(!vals.length)return;
-            const yc=yColor(y);
-
-            if(yi>0){const hr=document.createElement('hr');hr.className='summary-divider';rowsEl.appendChild(hr);}
+            const yc=yColor(y);\n            if(yi>0){const hr=document.createElement('hr');hr.className='summary-divider';rowsEl.appendChild(hr);}
             if(years.length>1){
                 const yl=document.createElement('div');
                 yl.style.cssText=`font-size:10px;font-weight:700;color:${yc};margin-bottom:2px;display:flex;align-items:center;gap:4px`;
                 yl.innerHTML=`<span class="year-dot" style="background:${yc}"></span>${y}`;
                 rowsEl.appendChild(yl);
             }
-
             if(rule.type==='sum'){
                 const sum=vals.reduce((a,b)=>a+b,0);
                 const avg=sum/vals.length;
@@ -599,8 +582,8 @@ function renderSummary(){
                 const numKey=rule.num,fbKey=rule.fallback;
                 const numMv=parsedByYear[y]?.[numKey]||parsedByYear[y]?.[fbKey]||{};
                 const toMv=parsedByYear[y]?.['ТО']||{};
-                const numSum=months.map(m=>numMv[m]).filter(v=>v!=null).reduce((a,b)=>a+b,0);
-                const toSum=months.map(m=>toMv[m]).filter(v=>v!=null).reduce((a,b)=>a+b,0);
+                const numSum=yMonths.map(m=>numMv[m]).filter(v=>v!=null).reduce((a,b)=>a+b,0);
+                const toSum=yMonths.map(m=>toMv[m]).filter(v=>v!=null).reduce((a,b)=>a+b,0);
                 const pct=toSum>0?(numSum/toSum*100):null;
                 if(pct===null)return;
                 baseVals[y]=pct;
