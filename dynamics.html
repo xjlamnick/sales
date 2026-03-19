@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
-
+    
     <style>
         :root {
             --bg: #f5f5f7;
@@ -217,6 +217,11 @@
             color: #fff;
         }
 
+        .pill.year-active {
+            background: #1d1d1f;
+            color: #fff;
+        }
+
         /* TABLE */
         .table-card {
             background: var(--card);
@@ -313,12 +318,12 @@
             padding: 2px 5px;
             white-space: nowrap;
         }
-        .badge-to     { background: rgba(0,113,227, 0.12); color: #1a50b8; }
-        .badge-serv   { background: rgba(52,199,89, 0.12); color: #1a7f37; }
-        .badge-acc    { background: rgba(255,149,0, 0.12); color: #b85000; }
-        .badge-checks { background: rgba(175,82,222, 0.12); color: #6d28d9; }
-        .badge-pct    { background: rgba(134,134,139, 0.10); color: #6e6e73; }
-        .badge-other  { background: rgba(134,134,139, 0.08); color: #555; }
+        .badge-to    { background: rgba(0,113,227, 0.12); color: #1a50b8; }
+        .badge-serv  { background: rgba(52,199,89, 0.12); color: #1a7f37; }
+        .badge-acc   { background: rgba(255,149,0, 0.12); color: #b85000; }
+        .badge-checks{ background: rgba(175,82,222, 0.12); color: #6d28d9; }
+        .badge-pct   { background: rgba(134,134,139, 0.10); color: #6e6e73; }
+        .badge-other { background: rgba(134,134,139, 0.08); color: #555; }
 
         /* CHART PANEL */
         .chart-panel {
@@ -395,7 +400,7 @@
             .chart-wrap { height: 240px; }
         }
 
-        /* SUMMARY */
+        /* SUMMARY / TOTALS - ПОВЕРНУТО ОРИГІНАЛЬНИЙ ДИЗАЙН */
         .summary-panel {
             margin-top: 16px;
             border-top: 1px solid var(--border);
@@ -422,15 +427,78 @@
             border-radius: 12px;
             padding: 10px 12px;
             border: 1px solid var(--border);
+            transition: transform 0.2s;
+        }
+
+        .summary-card-label {
+            font-size: 10px;
+            color: var(--text-sec);
+            font-weight: 600;
+            margin-bottom: 6px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .summary-rows {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .summary-row-lbl {
+            font-size: 10px;
+            color: var(--text-sec);
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .year-dot {
+            display: inline-block;
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            flex-shrink: 0;
         }
 
         .summary-row-val {
             font-size: 12px;
             font-weight: 700;
             color: var(--text);
+            white-space: nowrap;
         }
 
-        /* COMPARE MODE */
+        .delta-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 6px;
+            padding-top: 6px;
+            border-top: 1px dashed #e0e0e5;
+        }
+
+        .delta-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 20px;
+        }
+
+        .delta-up   { background: rgba(52,199,89, 0.15); color: #1a7f37; }
+        .delta-down { background: rgba(255,59,48, 0.12); color: #c0392b; }
+
+        /* COMPARE MODE UI */
         .compare-btn {
             border: none;
             background: #f0f0f5;
@@ -441,6 +509,9 @@
             cursor: pointer;
             color: var(--text-sec);
             transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
 
         .compare-btn.on {
@@ -472,10 +543,7 @@
             border: 1px solid var(--border);
         }
 
-        .cmp-delta.up { color: #1a7f37; font-weight: 700; }
-        .cmp-delta.down { color: #c0392b; font-weight: 700; }
-
-        .status-box { padding: 40px; text-align: center; color: var(--text-sec); }
+        .status-box { padding: 40px; text-align: center; color: var(--text-sec); font-size: 14px; }
     </style>
 </head>
 <body>
@@ -523,12 +591,14 @@
             <canvas id="mainChart"></canvas>
         </div>
     </div>
+    
     <div class="summary-panel" id="summaryPanel" style="display:none">
-        <div class="summary-title">Підсумки</div>
+        <div class="summary-title">Підсумки за обраний період</div>
         <div class="summary-grid" id="summaryGrid"></div>
     </div>
+
     <div class="summary-panel" id="compareSummaryPanel" style="display:none">
-        <div class="summary-title">Порівняння</div>
+        <div class="summary-title">Порівняння періодів</div>
         <div class="compare-summary-grid" id="compareSummaryGrid"></div>
     </div>
 </div>
@@ -540,14 +610,11 @@ const CHART_COLORS=['#0071e3','#ff3b30','#34c759','#ff9500','#af52de','#5856d6',
 
 Chart.register(ChartDataLabels);
 
-// ТУТ ВАША ПОВНА ЛОГІКА SUMMARY RULE
 function summaryRule(name) {
     const lo = name.toLowerCase().trim();
     if (/лфл/.test(lo)) return {type:'none'};
-    if (/послуги\s*%|послуг.*%/.test(lo)) return {type:'ratio', num:'Послуги грн', fallback:'Послуги'};
-    if (/acc\s*%|аcc\s*%/.test(lo))       return {type:'ratio', num:'ACC'};
-    if (/гурт\s*%/.test(lo))              return {type:'ratio', num:'Гурт'};
-    if (/конвер/.test(lo)) return {type:'avg'};
+    if (/послуги\s*%|послуг.*%/.test(lo)) return {type:'ratio', num:'Послуги грн'};
+    if (/acc\s*%|аcc\s*%/.test(lo)) return {type:'ratio', num:'ACC'};
     if (/^то$|товарообіг|трафік|^чеки$|послуги грн|^послуги$|^acc$|^аcc$|^гурт$/.test(lo)) return {type:'sum'};
     return {type:'avg'};
 }
@@ -601,9 +668,8 @@ function detectAndParse(rows){
         if(!mo || !lastYear)return; ms.add(mo);
         if(!parsedByYear[lastYear])parsedByYear[lastYear]={};
         allMetrics.forEach((m,i)=>{
-            const v=toN(row[i+2]);
             if(!parsedByYear[lastYear][m])parsedByYear[lastYear][m]={};
-            parsedByYear[lastYear][m][mo]=v;
+            parsedByYear[lastYear][m][mo]=toN(row[i+2]);
         });
     });
     allYears=Object.keys(parsedByYear).map(Number).sort((a,b)=>b-a);
@@ -623,7 +689,7 @@ function renderFilters(){
                 btn.className='pill'+(set.has(key)?' active':'');
                 btn.textContent=MONTHS_UK[m-1].slice(0,3)+' '+String(y).slice(2);
                 if(set.has(key)) btn.style.background=colorFn(y);
-                btn.onclick=()=>{ if(set.has(key))set.delete(key);else set.add(key); renderFilters(); refreshAll(); };
+                btn.onclick=()=>{if(set.has(key))set.delete(key);else set.add(key);renderFilters();refreshAll();};
                 cont.appendChild(btn);
             });
         });
@@ -638,21 +704,29 @@ function renderTable(){
     if(!periods.length){card.innerHTML='<div class="status-box">Оберіть період</div>';return;}
     const tbl=document.createElement('table');
     let html='<thead><tr><th class="col-metric">Показник</th>';
-    periods.forEach(p=>{ const[y,m]=p.split('_'); html+=`<th>${MONTHS_UK[m-1].slice(0,3)} ${y.slice(2)}</th>`; });
+    periods.forEach(p=>{const[y,m]=p.split('_');html+=`<th>${MONTHS_UK[m-1].slice(0,3)} ${y.slice(2)}</th>`;});
     html+='</tr></thead><tbody>';
     allMetrics.forEach(m=>{
         const isSel=selectedMetrics.has(m);
         let bCls='badge-other'; const mlo=m.toLowerCase();
         for(const h of GROUP_HINTS)if(h.kw.some(k=>mlo.includes(k))){bCls=h.cls;break;}
         html+=`<tr class="metric-row ${isSel?'selected':''} appear" onclick="toggleMetric('${m}')"><td class="col-metric">${m}</td>`;
-        periods.forEach(p=>{ const[y,mo]=p.split('_'); html+=`<td><span class="badge ${bCls}">${fmt(parsedByYear[y]?.[m]?.[mo])}</span></td>`; });
+        periods.forEach(p=>{const[y,mo]=p.split('_');html+=`<td><span class="badge ${bCls}">${fmt(parsedByYear[y]?.[m]?.[mo])}</span></td>`;});
         html+='</tr>';
     });
     tbl.innerHTML=html+'</tbody>'; card.appendChild(tbl);
 }
 
-function toggleMetric(m){ if(selectedMetrics.has(m))selectedMetrics.delete(m);else selectedMetrics.add(m); refreshAll(); }
-function toggleCompareMode(){ compareMode=!compareMode; document.getElementById('compareModeBtn').classList.toggle('on',compareMode); document.getElementById('filterRow2').style.display=compareMode?'flex':'none'; document.getElementById('periodLabel1').style.display=compareMode?'':'none'; if(compareMode&&periods1.size===0)selectedPeriods.forEach(k=>periods1.add(k)); renderFilters(); refreshAll(); }
+function toggleMetric(m){if(selectedMetrics.has(m))selectedMetrics.delete(m);else selectedMetrics.add(m);refreshAll();}
+
+function toggleCompareMode(){
+    compareMode=!compareMode;
+    document.getElementById('compareModeBtn').classList.toggle('on',compareMode);
+    document.getElementById('filterRow2').style.display=compareMode?'flex':'none';
+    document.getElementById('periodLabel1').style.display=compareMode?'':'none';
+    if(compareMode&&periods1.size===0)selectedPeriods.forEach(k=>periods1.add(k));
+    renderFilters(); refreshAll();
+}
 
 function setView(v){
     viewMode=v;
@@ -660,15 +734,22 @@ function setView(v){
     document.getElementById('btnChart').classList.toggle('active',v==='chart');
     document.getElementById('tableSection').style.display=v==='table'?'block':'none';
     document.getElementById('chartPanel').classList.toggle('visible',v==='chart');
-    if(v==='chart') renderChart();
+    if(v==='chart')renderChart();
 }
 
-function refreshAll(){ renderTable(); if(viewMode==='chart')renderChart(); if(compareMode)renderCompareSummary(); else if(viewMode==='chart')renderSummary(); }
+function refreshAll(){
+    renderTable();
+    if(viewMode==='chart')renderChart();
+    if(compareMode)renderCompareSummary();
+    else if(viewMode==='chart')renderSummary();
+}
 
-// ПОВНИЙ КОРЕКТНИЙ RENDER CHART
+// ПРАВКА: ТІЛЬКИ МІСЯЦІ НА ШКАЛІ
 function renderChart(){
     const ctx=document.getElementById('mainChart').getContext('2d');
     if(chartInstance)chartInstance.destroy();
+    
+    // Беремо унікальні місяці для осі X
     const periods=compareMode?Array.from(new Set([...periods1,...periods2])).sort():Array.from(selectedPeriods).sort();
     const metrics=Array.from(selectedMetrics);
     if(!metrics.length)return;
@@ -683,9 +764,7 @@ function renderChart(){
             borderWidth:3,
             datalabels: {
                 align: 'top',
-                offset: 5,
                 font: { size: 10, weight: 'bold' },
-                color: color,
                 formatter: (v) => v === null ? '' : fmt(v),
                 display: metrics.length <= 2
             }
@@ -694,7 +773,11 @@ function renderChart(){
 
     chartInstance=new Chart(ctx,{
         type:'line',
-        data:{ labels:periods.map(p=>{const[y,m]=p.split('_');return MONTHS_UK[m-1].slice(0,3)+' '+y.slice(2)}), datasets },
+        data:{ 
+            // Виводимо тільки коротку назву місяця
+            labels:periods.map(p=>MONTHS_UK[p.split('_')[1]-1].slice(0,3)), 
+            datasets 
+        },
         options:{
             responsive:true, maintainAspectRatio:false,
             plugins:{ datalabels: { clip: false }, legend: { position: 'bottom' } }
@@ -702,12 +785,15 @@ function renderChart(){
     });
 }
 
-// РЕШТА ФУНКЦІЙ (SUMMARY, SKELETON, INIT) - ПОВНІ ВЕРСІЇ
 function calcPeriodVal(metric, periodsSet){
     const rule=summaryRule(metric); if(rule.type==='none')return null;
     const pairs=[...periodsSet].map(k=>{const[y,m]=k.split('_');return{y:+y,m:+m};});
+    if(!pairs.length)return null;
     if(rule.type==='sum') return pairs.reduce((s,p)=>s+(parsedByYear[p.y]?.[metric]?.[p.m]||0),0);
-    if(rule.type==='avg'){ const v=pairs.map(p=>parsedByYear[p.y]?.[metric]?.[p.m]).filter(x=>x!=null); return v.length?v.reduce((a,b)=>a+b,0)/v.length:null; }
+    if(rule.type==='avg'){
+        const v=pairs.map(p=>parsedByYear[p.y]?.[metric]?.[p.m]).filter(x=>x!=null);
+        return v.length?v.reduce((a,b)=>a+b,0)/v.length:null;
+    }
     return null;
 }
 
@@ -715,7 +801,11 @@ function renderSummary(){
     const grid=document.getElementById('summaryGrid'); grid.innerHTML='';
     selectedMetrics.forEach(m=>{
         const val=calcPeriodVal(m, selectedPeriods);
-        grid.innerHTML+=`<div class="summary-card"><div class="summary-card-label">${m}</div><div class="summary-row-val">${fmt(val)}</div></div>`;
+        grid.innerHTML+=`
+        <div class="summary-card">
+            <div class="summary-card-label">${m}</div>
+            <div class="summary-row-val">${fmt(val)}</div>
+        </div>`;
     });
     document.getElementById('summaryPanel').style.display=selectedMetrics.size?'block':'none';
 }
@@ -725,7 +815,13 @@ function renderCompareSummary(){
     selectedMetrics.forEach(m=>{
         const v1=calcPeriodVal(m, periods1), v2=calcPeriodVal(m, periods2);
         const diff=(v2||0)-(v1||0);
-        grid.innerHTML+=`<div class="cmp-card"><div class="cmp-card-label">${m}</div><div>П1: ${fmt(v1)}</div><div>П2: ${fmt(v2)}</div><div class="cmp-delta ${diff>=0?'up':'down'}">${fmt(diff)}</div></div>`;
+        grid.innerHTML+=`
+        <div class="cmp-card">
+            <div class="cmp-card-label">${m}</div>
+            <div>П1: ${fmt(v1)}</div>
+            <div>П2: ${fmt(v2)}</div>
+            <div class="cmp-delta ${diff>=0?'up':'down'}">${diff>=0?'+':''}${fmt(diff)}</div>
+        </div>`;
     });
     document.getElementById('compareSummaryPanel').style.display=selectedMetrics.size?'block':'none';
 }
