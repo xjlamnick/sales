@@ -6,544 +6,150 @@
     <title>Динаміка показників</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
-    
     <style>
-        :root {
-            --bg: #f5f5f7;
-            --text: #1d1d1f;
-            --text-sec: #6e6e73;
-            --accent: #0071e3;
-            --border: #d2d2d7;
-            --card: #fff;
-            --shadow: 0 4px 20px rgba(0,0,0,0.06);
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            padding: 8px 10px 60px;
-            -webkit-font-smoothing: antialiased;
-        }
+        :root { --bg:#f5f5f7;--text:#1d1d1f;--text-sec:#6e6e73;--accent:#0071e3;--border:#d2d2d7;--card:#fff;--shadow:0 4px 20px rgba(0,0,0,0.06); }
+        *{box-sizing:border-box;margin:0;padding:0}
+        body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);padding:8px 10px 60px}
 
         /* ── SKELETON + ANIMATION SYSTEM ── */
-        @keyframes shimmer {
-            0% { background-position: -600px 0; }
-            100% { background-position: 600px 0; }
-        }
+        @keyframes shimmer{0%{background-position:-600px 0}100%{background-position:600px 0}}
+        @keyframes fadeInUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+        .skel{background:linear-gradient(90deg,#eaeaed 25%,#f5f5f7 50%,#eaeaed 75%);background-size:600px 100%;animation:shimmer 1.4s ease-in-out infinite;border-radius:7px}
+        .tbl-row-skel{display:flex;gap:8px;padding:9px 10px;border-bottom:1px solid #f2f2f4}
+        .tbl-row-skel-cell{height:11px;border-radius:5px;flex:1}
+        .tbl-row-skel-cell.wide{flex:2.5}
+        .metric-row.appear{animation:fadeInUp .28s ease both}
+        .filters-wrap.appear{animation:fadeIn .3s ease both}
 
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(8px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        .skel {
-            background: linear-gradient(90deg, #eaeaed 25%, #f5f5f7 50%, #eaeaed 75%);
-            background-size: 600px 100%;
-            animation: shimmer 1.4s ease-in-out infinite;
-            border-radius: 7px;
-        }
-
-        .tbl-row-skel {
-            display: flex;
-            gap: 8px;
-            padding: 9px 10px;
-            border-bottom: 1px solid #f2f2f4;
-        }
-
-        .tbl-row-skel-cell {
-            height: 11px;
-            border-radius: 5px;
-            flex: 1;
-        }
-
-        .tbl-row-skel-cell.wide {
-            flex: 2.5;
-        }
-
-        .metric-row.appear {
-            animation: fadeInUp 0.28s ease both;
-        }
-
-        .filters-wrap.appear {
-            animation: fadeIn 0.3s ease both;
-        }
-
-        /* NAVIGATION & UI */
-        .top-bar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 12px;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .back-link {
-            color: var(--accent);
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            padding: 6px 0;
-        }
-
-        .page-title {
-            font-size: 20px;
-            font-weight: 700;
-            letter-spacing: -0.02em;
-        }
-
-        .view-toggle {
-            display: flex;
-            gap: 4px;
-            background: #e5e5ea;
-            border-radius: 10px;
-            padding: 3px;
-            align-self: center;
-        }
-
-        .view-btn {
-            border: none;
-            background: transparent;
-            padding: 5px 12px;
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            color: var(--text-sec);
-            font-family: inherit;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .view-btn.active {
-            background: white;
-            color: var(--text);
-            box-shadow: 0 1px 4px rgba(0,0,0,0.12);
-        }
+        .top-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:10px;flex-wrap:wrap}
+        .back-link{color:var(--accent);text-decoration:none;font-weight:600;font-size:14px}
+        .page-title{font-size:20px;font-weight:700}
+        .view-toggle{display:flex;gap:4px;background:#e5e5ea;border-radius:10px;padding:3px}
+        .view-btn{border:none;background:transparent;padding:5px 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;color:var(--text-sec);font-family:inherit;transition:all .2s}
+        .view-btn.active{background:white;color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.12)}
 
         /* BI FILTERS */
-        .filters-wrap {
-            background: var(--card);
-            border-radius: 14px;
-            box-shadow: var(--shadow);
-            padding: 0;
-            margin-bottom: 12px;
-            overflow: hidden;
-            display: flex;
-            align-items: stretch;
-            flex-wrap: wrap;
-            border: 1px solid rgba(0,0,0,0.06);
-            opacity: 0;
+        .filters-wrap{
+            background:var(--card);border-radius:14px;box-shadow:var(--shadow);
+            padding:0;margin-bottom:12px;overflow:hidden;
+            display:flex;align-items:stretch;flex-wrap:wrap;
+            border:1px solid rgba(0,0,0,0.06);
         }
-
-        .filter-group {
-            display: flex;
-            align-items: flex-start;
-            gap: 0;
-            padding: 8px 12px;
-            border-right: 1px solid #f0f0f2;
-            flex-shrink: 0;
+        .filter-group{
+            display:flex;align-items:flex-start;gap:0;
+            padding:8px 12px;
+            border-right:1px solid #f0f0f2;
+            flex-shrink:0;
         }
-
-        .filter-group.filter-months {
-            flex: 1;
-            min-width: 0;
-            border-right: none;
+        /* група місяців — може розтягуватись і переносити pills */
+        .filter-group.filter-months{
+            flex:1;min-width:0;border-right:none;
         }
-
-        .filter-group:last-child {
-            border-right: none;
+        .filter-group:last-child{border-right:none}
+        .filter-label{
+            font-size:10px;font-weight:700;color:#a0a0ab;
+            text-transform:uppercase;letter-spacing:.06em;
+            white-space:nowrap;margin-right:8px;user-select:none;
+            padding-top:5px;
         }
-
-        .filter-label {
-            font-size: 10px;
-            font-weight: 700;
-            color: #a0a0ab;
-            text-transform: uppercase;
-            letter-spacing: .06em;
-            white-space: nowrap;
-            margin-right: 8px;
-            user-select: none;
-            padding-top: 5px;
+        .pills{display:flex;gap:3px;align-items:center;flex-wrap:wrap}
+        .pill{
+            border:none;background:transparent;
+            padding:4px 8px;border-radius:7px;
+            font-size:11px;font-weight:600;cursor:pointer;
+            font-family:inherit;color:#6e6e73;
+            transition:all .15s;white-space:nowrap;
+            line-height:1.4;
         }
-
-        .pills {
-            display: flex;
-            gap: 3px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        .pill {
-            border: none;
-            background: transparent;
-            padding: 4px 8px;
-            border-radius: 7px;
-            font-size: 11px;
-            font-weight: 600;
-            cursor: pointer;
-            font-family: inherit;
-            color: #6e6e73;
-            transition: all 0.15s;
-            white-space: nowrap;
-            line-height: 1.4;
-        }
-
-        .pill:hover {
-            background: #f2f2f7;
-            color: #1d1d1f;
-        }
-
-        .pill.active {
-            background: #1d1d1f;
-            color: #fff;
-        }
-
-        .pill.year-active {
-            background: #1d1d1f;
-            color: #fff;
-        }
+        .pill:hover{background:#f2f2f7;color:#1d1d1f}
+        .pill.active{background:#1d1d1f;color:#fff}
+        .pill.year-active{background:#1d1d1f;color:#fff}
+        .filter-row{display:contents}
 
         /* TABLE */
-        .table-card {
-            background: var(--card);
-            border-radius: 16px;
-            box-shadow: var(--shadow);
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-            margin-bottom: 14px;
-            border: 1px solid rgba(0,0,0,0.04);
-        }
-
-        table {
-            border-collapse: collapse;
-            table-layout: fixed;
-            width: 100%;
-        }
-
-        th {
-            text-align: center;
-            padding: 6px 4px;
-            color: var(--text-sec);
-            font-size: 10px;
-            font-weight: 600;
-            text-transform: uppercase;
-            border-bottom: 1px solid var(--border);
-            background: white;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-
-        td {
-            padding: 4px 4px;
-            border-bottom: 1px solid #f2f2f4;
-            font-size: 11px;
-            text-align: center;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            cursor: pointer;
-        }
-
-        tr:last-child td {
-            border-bottom: none;
-        }
-
-        th.col-metric, td.col-metric {
-            position: sticky;
-            left: 0;
-            background: white;
-            z-index: 5;
-            text-align: left;
-            font-weight: 600;
-            padding-left: 10px;
-            box-shadow: 4px 0 8px -2px rgba(0,0,0,.1);
-            border-right: 1px solid #e0e0e5;
-            white-space: normal;
-            word-break: break-word;
-            line-height: 1.25;
-            min-width: 110px;
-            max-width: 110px;
-            width: 110px;
-            font-size: 10px;
-            color: var(--text);
-        }
-
-        th.col-metric {
-            z-index: 11;
-            font-size: 9px;
-        }
-
-        tr.metric-row:hover td {
-            background: #f0f4ff !important;
-        }
-
-        tr.metric-row.selected td {
-            background: #e8f0fe !important;
-        }
-
-        tr.metric-row.selected td.col-metric {
-            color: var(--accent);
-            font-weight: 700;
-        }
-
-        /* BADGES */
-        .badge {
-            display: inline-block;
-            border-radius: 6px;
-            font-size: 10px;
-            font-weight: 600;
-            padding: 2px 5px;
-            white-space: nowrap;
-        }
-        .badge-to    { background: rgba(0,113,227, 0.12); color: #1a50b8; }
-        .badge-serv  { background: rgba(52,199,89, 0.12); color: #1a7f37; }
-        .badge-acc   { background: rgba(255,149,0, 0.12); color: #b85000; }
-        .badge-checks{ background: rgba(175,82,222, 0.12); color: #6d28d9; }
-        .badge-pct   { background: rgba(134,134,139, 0.10); color: #6e6e73; }
-        .badge-other { background: rgba(134,134,139, 0.08); color: #555; }
+        .table-card{background:var(--card);border-radius:16px;box-shadow:var(--shadow);overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:14px}
+        table{border-collapse:collapse;table-layout:fixed;width:100%}
+        th{text-align:center;padding:6px 4px;color:var(--text-sec);font-size:10px;font-weight:600;text-transform:uppercase;border-bottom:1px solid var(--border);background:white;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;position:sticky;top:0;z-index:10}
+        td{padding:4px 4px;border-bottom:1px solid #f2f2f4;font-size:11px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+        tr:last-child td{border-bottom:none}
+        th.col-metric,td.col-metric{position:sticky;left:0;background:white;z-index:5;text-align:left;font-weight:600;padding-left:10px;box-shadow:4px 0 8px -2px rgba(0,0,0,.1);border-right:1px solid #e0e0e5;white-space:normal;word-break:break-word;line-height:1.25;min-width:110px;max-width:110px;width:110px;font-size:10px;color:var(--text)}
+        th.col-metric{z-index:11;font-size:9px}
+        tr.metric-row:hover td{background:#f0f4ff!important}
+        tr.metric-row.selected td{background:#e8f0fe!important}
+        tr.metric-row.selected td.col-metric{color:var(--accent);font-weight:700}
+        .badge{display:inline-block;border-radius:6px;font-size:10px;font-weight:600;padding:2px 5px;white-space:nowrap}
+        .badge-to    {background:rgba(0,113,227,.12);color:#1a50b8}
+        .badge-serv  {background:rgba(52,199,89,.12);color:#1a7f37}
+        .badge-acc   {background:rgba(255,149,0,.12);color:#b85000}
+        .badge-checks{background:rgba(175,82,222,.12);color:#6d28d9}
+        .badge-pct   {background:rgba(134,134,139,.10);color:#6e6e73}
+        .badge-other {background:rgba(134,134,139,.08);color:#555}
+        .table-hint{font-size:11px;color:var(--text-sec);padding:8px 12px;border-bottom:1px solid #f2f2f4;background:#fafafa;border-radius:16px 16px 0 0;display:flex;align-items:center;gap:6px}
+        .table-hint span{color:var(--accent);font-weight:600}
+        .grp-start{border-left:2px solid #e0e0e5!important}
 
         /* CHART PANEL */
-        .chart-panel {
-            background: var(--card);
-            border-radius: 16px;
-            box-shadow: var(--shadow);
-            padding: 16px;
-            display: none;
-            border: 1px solid rgba(0,0,0,0.04);
-            animation: fadeIn 0.3s ease;
-        }
+        .chart-panel{background:var(--card);border-radius:16px;box-shadow:var(--shadow);padding:16px;display:none}
+        .chart-panel.visible{display:block}
+        .chart-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px}
+        .chart-title{font-size:15px;font-weight:700}
+        .chart-subtitle{font-size:11px;color:var(--text-sec);margin-top:2px}
+        .selected-chips{display:flex;flex-wrap:wrap;gap:6px}
+        .chip{display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;transition:opacity .15s;user-select:none}
+        .chip .chip-x{opacity:.6;font-size:13px;line-height:1}
+        .chip:hover .chip-x{opacity:1}
+        .chart-wrap{position:relative;height:320px}
+        @media(max-width:600px){.chart-wrap{height:240px}}
+        .empty-chart{display:flex;flex-direction:column;align-items:center;justify-content:center;height:200px;color:var(--text-sec);gap:8px}
+        .empty-chart-icon{font-size:36px;opacity:.4}
+        .empty-chart-text{font-size:13px;font-weight:500}
 
-        .chart-panel.visible {
-            display: block;
-        }
+        /* SUMMARY */
+        .summary-panel{margin-top:16px;border-top:1px solid var(--border);padding-top:14px}
+        .summary-title{font-size:11px;font-weight:700;color:var(--text-sec);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
+        .summary-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:8px}
+        .summary-card{background:#f9f9fb;border-radius:12px;padding:10px 12px;border:1px solid var(--border)}
+        .summary-card-label{font-size:10px;color:var(--text-sec);font-weight:600;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .summary-rows{display:flex;flex-direction:column;gap:4px}
+        .summary-row{display:flex;justify-content:space-between;align-items:center;gap:6px}
+        .summary-row-lbl{font-size:10px;color:var(--text-sec);display:flex;align-items:center;gap:3px;white-space:nowrap}
+        .year-dot{display:inline-block;width:7px;height:7px;border-radius:50%;flex-shrink:0}
+        .summary-row-val{font-size:12px;font-weight:700;color:var(--text);white-space:nowrap}
+        .summary-row-val.pct{color:#1a50b8}
+        .summary-divider{border:none;border-top:1px solid #ebebef;margin:3px 0}
+        .delta-row{display:flex;align-items:center;justify-content:space-between;margin-top:6px;padding-top:6px;border-top:1px dashed #e0e0e5}
+        .delta-label{font-size:10px;color:var(--text-sec);font-weight:500}
+        .delta-badge{display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap}
+        .delta-up  {background:rgba(52,199,89,.15);color:#1a7f37}
+        .delta-down{background:rgba(255,59,48,.12);color:#c0392b}
+        .delta-flat{background:rgba(134,134,139,.10);color:#6e6e73}
+        .delta-arrow{font-size:12px;line-height:1}
 
-        .chart-top {
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            margin-bottom: 12px;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
+        .status-box{padding:40px;text-align:center;color:var(--text-sec);font-size:14px}
+        .status-box.error{color:#ff3b30}
 
-        .chart-title {
-            font-size: 15px;
-            font-weight: 700;
-        }
-
-        .chart-subtitle {
-            font-size: 11px;
-            color: var(--text-sec);
-            margin-top: 2px;
-        }
-
-        .selected-chips {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-        }
-
-        .chip {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.15s;
-            user-select: none;
-            background: #f2f2f7;
-            border: 1px solid transparent;
-        }
-
-        .chip:hover {
-            background: #e5e5ea;
-        }
-
-        .chip .chip-x {
-            opacity: 0.6;
-            font-size: 13px;
-            line-height: 1;
-        }
-
-        .chart-wrap {
-            position: relative;
-            height: 320px;
-        }
-
-        @media (max-width: 600px) {
-            .chart-wrap { height: 240px; }
-        }
-
-        /* SUMMARY / TOTALS - ПОВЕРНУТО ОРИГІНАЛЬНИЙ ДИЗАЙН */
-        .summary-panel {
-            margin-top: 16px;
-            border-top: 1px solid var(--border);
-            padding-top: 14px;
-        }
-
-        .summary-title {
-            font-size: 11px;
-            font-weight: 700;
-            color: var(--text-sec);
-            text-transform: uppercase;
-            letter-spacing: .5px;
-            margin-bottom: 10px;
-        }
-
-        .summary-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
-            gap: 8px;
-        }
-
-        .summary-card {
-            background: #f9f9fb;
-            border-radius: 12px;
-            padding: 10px 12px;
-            border: 1px solid var(--border);
-            transition: transform 0.2s;
-        }
-
-        .summary-card-label {
-            font-size: 10px;
-            color: var(--text-sec);
-            font-weight: 600;
-            margin-bottom: 6px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .summary-rows {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .summary-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .summary-row-lbl {
-            font-size: 10px;
-            color: var(--text-sec);
-            display: flex;
-            align-items: center;
-            gap: 3px;
-        }
-
-        .year-dot {
-            display: inline-block;
-            width: 7px;
-            height: 7px;
-            border-radius: 50%;
-            flex-shrink: 0;
-        }
-
-        .summary-row-val {
-            font-size: 12px;
-            font-weight: 700;
-            color: var(--text);
-            white-space: nowrap;
-        }
-
-        .delta-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-top: 6px;
-            padding-top: 6px;
-            border-top: 1px dashed #e0e0e5;
-        }
-
-        .delta-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 3px;
-            font-size: 11px;
-            font-weight: 700;
-            padding: 2px 8px;
-            border-radius: 20px;
-        }
-
-        .delta-up   { background: rgba(52,199,89, 0.15); color: #1a7f37; }
-        .delta-down { background: rgba(255,59,48, 0.12); color: #c0392b; }
-
-        /* COMPARE MODE UI */
-        .compare-btn {
-            border: none;
-            background: #f0f0f5;
-            border-radius: 9px;
-            padding: 5px 12px;
-            font-size: 11px;
-            font-weight: 600;
-            cursor: pointer;
-            color: var(--text-sec);
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .compare-btn.on {
-            background: #5856d6;
-            color: #fff;
-        }
-
-        .period-label {
-            font-size: 10px;
-            font-weight: 700;
-            text-transform: uppercase;
-            padding: 3px 8px;
-            border-radius: 6px;
-        }
-        .period-label.p1 { background: #e8f1fd; color: #1a50b8; }
-        .period-label.p2 { background: #e3f8ec; color: #1a7f37; }
-
-        .compare-summary-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 8px;
-            margin-top: 10px;
-        }
-
-        .cmp-card {
-            background: #f9f9fb;
-            border-radius: 12px;
-            padding: 10px 12px;
-            border: 1px solid var(--border);
-        }
-
-        .status-box { padding: 40px; text-align: center; color: var(--text-sec); font-size: 14px; }
+        /* COMPARE MODE */
+        .compare-btn{border:none;background:#f0f0f5;border-radius:9px;padding:5px 12px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;color:#6e6e73;transition:all .2s}
+        .compare-btn.on{background:#5856d6;color:#fff}
+        .period-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:3px 8px;border-radius:6px;white-space:nowrap;flex-shrink:0}
+        .period-label.p1{background:#e8f1fd;color:#1a50b8}
+        .period-label.p2{background:#e3f8ec;color:#1a7f37}
+        .pill.p1-active{color:#fff}
+        .pill.p2-active{color:#fff}
+        .compare-summary-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-top:10px}
+        .cmp-card{background:#f9f9fb;border-radius:12px;padding:10px 12px;border:1px solid var(--border)}
+        .cmp-card-label{font-size:10px;color:var(--text-sec);font-weight:600;margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .cmp-row{display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:3px}
+        .cmp-row-lbl{font-size:10px;color:var(--text-sec);white-space:nowrap;display:flex;align-items:center;gap:4px}
+        .cmp-row-val{font-size:12px;font-weight:700;color:var(--text);white-space:nowrap}
+        .cmp-divider{border:none;border-top:1px dashed #e0e0e5;margin:5px 0}
+        .cmp-delta{display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px}
+        .cmp-delta.up  {background:rgba(52,199,89,.15);color:#1a7f37}
+        .cmp-delta.down{background:rgba(255,59,48,.12);color:#c0392b}
+        .cmp-delta.flat{background:rgba(134,134,139,.10);color:#6e6e73}
+        .p1-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#0071e3;flex-shrink:0}
+        .p2-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#34c759;flex-shrink:0}
     </style>
 </head>
 <body>
@@ -561,7 +167,7 @@
 
 <div class="filters-wrap" style="flex-direction:column;align-items:stretch">
     <div style="display:flex;align-items:center;gap:8px;padding:7px 12px;border-bottom:1px solid #f0f0f2;flex-wrap:wrap">
-        <span style="font-size:10px;font-weight:700;color:#a0a0ab;text-transform:uppercase;letter-spacing:.06em">Режим аналізу</span>
+        <span style="font-size:10px;font-weight:700;color:#a0a0ab;text-transform:uppercase;letter-spacing:.06em">Режим</span>
         <button class="compare-btn" id="compareModeBtn" onclick="toggleCompareMode()">⚖️ Порівняння</button>
     </div>
     <div id="filterRow1" style="display:flex;align-items:flex-start;padding:7px 10px;flex-wrap:wrap;gap:4px">
@@ -575,7 +181,9 @@
 </div>
 
 <div id="tableSection">
-    <div class="table-card" id="tableCard"></div>
+    <div class="table-card" id="tableCard">
+        <div class="status-box">Завантаження…</div>
+    </div>
 </div>
 
 <div class="chart-panel" id="chartPanel">
@@ -587,16 +195,15 @@
         <div class="selected-chips" id="selectedChips"></div>
     </div>
     <div id="chartBody">
-        <div class="chart-wrap">
-            <canvas id="mainChart"></canvas>
+        <div class="empty-chart">
+            <div class="empty-chart-icon">📊</div>
+            <div class="empty-chart-text">Натисніть на рядок у таблиці, щоб додати показник</div>
         </div>
     </div>
-    
     <div class="summary-panel" id="summaryPanel" style="display:none">
         <div class="summary-title">Підсумки за обраний період</div>
         <div class="summary-grid" id="summaryGrid"></div>
     </div>
-
     <div class="summary-panel" id="compareSummaryPanel" style="display:none">
         <div class="summary-title">Порівняння періодів</div>
         <div class="compare-summary-grid" id="compareSummaryGrid"></div>
@@ -605,19 +212,10 @@
 
 <script>
 const CSV_URL='https://docs.google.com/spreadsheets/d/e/2PACX-1vRXRKnTXILsjtEbTNQTCQI-Voi0H0mCOshu55mIbU6CZmtaCQWwVyNUrtPdvccCtuNyej6UJszLmZPV/pub?output=csv';
+
 const MONTHS_UK=['Січень','Лютий','Березень','Квітень','Травень','Червень','Липень','Серпень','Вересень','Жовтень','Листопад','Грудень'];
-const CHART_COLORS=['#0071e3','#ff3b30','#34c759','#ff9500','#af52de','#5856d6','#00b388','#ff6b35','#c8392b','#1abc9c'];
 
-Chart.register(ChartDataLabels);
-
-function summaryRule(name) {
-    const lo = name.toLowerCase().trim();
-    if (/лфл/.test(lo)) return {type:'none'};
-    if (/послуги\s*%|послуг.*%/.test(lo)) return {type:'ratio', num:'Послуги грн'};
-    if (/acc\s*%|аcc\s*%/.test(lo)) return {type:'ratio', num:'ACC'};
-    if (/^то$|товарообіг|трафік|^чеки$|послуги грн|^послуги$|^acc$|^аcc$|^гурт$/.test(lo)) return {type:'sum'};
-    return {type:'avg'};
-}
+const CHART_COLORS=['#0071e3','#ff3b30','#34c759','#ff9500','#af52de','#5856d6','#00b388','#ff6b35','#c8392b','#1abc9c','#e67e22','#8e44ad','#2980b9','#27ae60','#d35400','#16a085','#c0392b','#7f8c8d','#f39c12','#2c3e50'];
 
 const GROUP_HINTS=[
     {kw:['товарообіг','то ','то,'],cls:'badge-to'},
@@ -626,12 +224,34 @@ const GROUP_HINTS=[
     {kw:['чек','конвер','кпч','asp','шт'],cls:'badge-checks'},
 ];
 
-let allYears=[], allMetrics=[], allMonths=[];
-let selectedPeriods=new Set(), selectedMetrics=new Set();
-let parsedByYear={}, yearColorMap={};
-let compareMode=false, periods1=new Set(), periods2=new Set();
-let viewMode='table', chartInstance=null;
+// Правила підсумку
+function summaryRule(name) {
+    const lo = name.toLowerCase().trim();
+    if (/лфл/.test(lo)) return {type:'none'};
+    // % метрики — ratio
+    if (/послуги\s*%|послуг.*%/.test(lo)) return {type:'ratio', num:'Послуги грн', fallback:'Послуги'};
+    if (/acc\s*%|аcc\s*%/.test(lo))       return {type:'ratio', num:'ACC'};
+    if (/гурт\s*%/.test(lo))              return {type:'ratio', num:'Гурт'};
+    // Конверсія — avg
+    if (/конвер/.test(lo)) return {type:'avg'};
+    // Абсолютні суми
+    if (/^то$|товарообіг|трафік|^чеки$|послуги грн|^послуги$|^acc$|^аcc$|^гурт$/.test(lo)) return {type:'sum'};
+    // Решта — avg
+    return {type:'avg'};
+}
 
+// STATE
+let allYears=[],allMetrics=[],allMonths=[];
+let selectedPeriods=new Set(); // "рік_місяць"
+let selectedMetrics=new Set();
+const yearColorMap={};
+let viewMode='table',chartInstance=null;
+let parsedByYear={};
+let compareMode=false;
+let periods1=new Set(); // Період 1
+let periods2=new Set(); // Період 2
+
+// CSV
 function parseCSV(text){
     const rows=[];let row=[],col='',inQ=false;
     for(let i=0;i<text.length;i++){
@@ -645,206 +265,618 @@ function parseCSV(text){
     if(col||row.length){row.push(col.trim());rows.push(row);}
     return rows.filter(r=>r.some(c=>c));
 }
-
-const MMAP={'січень':1,'лютий':2,'березень':3,'квітень':4,'травень':5,'червень':6,'липень':7,'серпень':8,'вересень':9,'жовтень':10,'листопад':11,'грудень':12};
-function mNum(s){const lo=(s||'').toLowerCase().trim();for(const[k,v]of Object.entries(MMAP))if(lo.startsWith(k.slice(0,3)))return v;return null;}
-function toN(v){if(!v&&v!==0)return null;const s=String(v).replace(/\s|\u00a0/g,'').replace('%','').replace(',','.');const n=parseFloat(s);return isNaN(n)?null:n;}
-function fmt(v){
-    if(v===null||v===undefined)return'—';
-    const n=Number(v);
-    if(Math.abs(n)>=1000000)return(n/1000000).toFixed(2)+'М';
-    if(Math.abs(n)>=1000)return(n/1000).toFixed(1)+'К';
-    return n.toLocaleString('uk-UA');
-}
+const MMAP={'січень':1,'лютий':2,'березень':3,'квітень':4,'травень':5,'червень':6,'липень':7,'серпень':8,'вересень':9,'жовтень':10,'листопад':11,'грудень':12,'січ':1,'лют':2,'бер':3,'кві':4,'тра':5,'чер':6,'лип':7,'сер':8,'вер':9,'жов':10,'лис':11,'гру':12};
+function mNum(s){const lo=(s||'').toLowerCase().trim();for(const[k,v]of Object.entries(MMAP))if(lo===k||lo.startsWith(k))return v;return null;}
+function toN(v){if(!v&&v!==0)return null;const s=String(v).replace(/\s|\u00a0/g,'').replace('%','').replace(',','.');if(['#div/0!','#value!','#ref!','#n/a','#name?'].includes(s.toLowerCase()))return null;const n=parseFloat(s);return isNaN(n)?null:n;}
+function fmt(v){if(v===null||v===undefined)return'—';const n=Number(v);if(isNaN(n))return String(v);if(Math.abs(n)>=1000000)return(n/1000000).toFixed(2)+'М';if(Math.abs(n)>=1000)return(n/1000).toFixed(1)+'К';if(n%1!==0)return n.toFixed(2);return n.toLocaleString('uk-UA');}
 
 function detectAndParse(rows){
     const header=rows[0];
-    allMetrics=header.slice(2).map(h=>h.trim()).filter(Boolean);
-    let lastYear=null; const ms=new Set();
+    const metrics=header.slice(2).map(h=>h.trim()).filter(Boolean);
+    allMetrics=metrics;
+    let lastYear=null;
+    const ms=new Set();
     rows.slice(1).forEach(row=>{
         const yr=parseInt((row[0]||'').trim());
-        if(!isNaN(yr)&&yr>2000)lastYear=yr;
+        if(!isNaN(yr)&&yr>2000&&yr<2100)lastYear=yr;
+        if(!lastYear)return;
         const mo=mNum((row[1]||'').trim());
-        if(!mo || !lastYear)return; ms.add(mo);
+        if(!mo)return;
+        ms.add(mo);
         if(!parsedByYear[lastYear])parsedByYear[lastYear]={};
-        allMetrics.forEach((m,i)=>{
+        metrics.forEach((m,i)=>{
+            const v=toN(row[i+2]);if(v===null)return;
             if(!parsedByYear[lastYear][m])parsedByYear[lastYear][m]={};
-            parsedByYear[lastYear][m][mo]=toN(row[i+2]);
+            parsedByYear[lastYear][m][mo]=v;
         });
     });
     allYears=Object.keys(parsedByYear).map(Number).sort((a,b)=>b-a);
     allMonths=[...ms].sort((a,b)=>a-b);
-    allYears.forEach((y,i)=>yearColorMap[y]=CHART_COLORS[i%CHART_COLORS.length]);
-    allYears.slice(0,1).forEach(y=>allMonths.forEach(m=>selectedPeriods.add(y+'_'+m)));
+    const step=Math.floor(CHART_COLORS.length/Math.max(allYears.length,1));
+    allYears.forEach((y,i)=>{yearColorMap[y]=CHART_COLORS[(i*step)%CHART_COLORS.length];});
+    // За замовчуванням — всі місяці всіх років
+    allYears.forEach(y=>allMonths.forEach(m=>selectedPeriods.add(y+'_'+m)));
 }
 
+function activeMonths(y){ return allMonths.filter(m=>selectedPeriods.has(y+'_'+m)); }
+function getAllPairs(){
+    return allYears.flatMap(y=>
+        allMonths.filter(m=>allMetrics.some(met=>parsedByYear[y]?.[met]?.[m]!=null))
+                 .map(m=>({y,m,key:y+'_'+m}))
+    );
+}
+function activePeriods(){ return allYears.flatMap(y=>allMonths.filter(m=>selectedPeriods.has(y+'_'+m)).map(m=>({y,m}))); }
+function yColor(y){return yearColorMap[y]||'#86868b';}
+function dsColor(y,mi){const bi=CHART_COLORS.indexOf(yearColorMap[y]);return CHART_COLORS[(bi+mi*2)%CHART_COLORS.length];}
+function badgeCls(name){const lo=name.toLowerCase();for(const g of GROUP_HINTS)if(g.kw.some(k=>lo.includes(k)))return g.cls;if(lo.includes('%')||lo.includes('доля')||lo.includes('конвер'))return'badge-pct';return'badge-other';}
+
+// FILTERS
 function renderFilters(){
-    const yp=document.getElementById('yearPills'), yp2=document.getElementById('yearPills2');
-    yp.innerHTML=''; yp2.innerHTML='';
-    const renderTo=(cont, set, colorFn)=>{
-        allYears.slice().sort().forEach(y=>{
-            allMonths.filter(m=>parsedByYear[y]?.[allMetrics[0]]?.[m]!=null).forEach(m=>{
-                const key=y+'_'+m;
-                const btn=document.createElement('button');
-                btn.className='pill'+(set.has(key)?' active':'');
-                btn.textContent=MONTHS_UK[m-1].slice(0,3)+' '+String(y).slice(2);
-                if(set.has(key)) btn.style.background=colorFn(y);
-                btn.onclick=()=>{if(set.has(key))set.delete(key);else set.add(key);renderFilters();refreshAll();};
-                cont.appendChild(btn);
+    if(compareMode){
+        renderPillsFor('yearPills',  periods1, ()=>'#0071e3');
+        renderPillsFor('yearPills2', periods2, ()=>'#34c759');
+        return;
+    }
+    const yp=document.getElementById('yearPills');yp.innerHTML='';
+    const allPairs=getAllPairs();
+    if(!allPairs.length)return;
+    if(selectedPeriods.size===0)allPairs.forEach(p=>selectedPeriods.add(p.key));
+    const allActive=allPairs.every(p=>selectedPeriods.has(p.key));
+    const ba=mkPill('Всі',allActive,()=>{allPairs.forEach(p=>selectedPeriods.add(p.key));renderFilters();refreshAll();});
+    yp.appendChild(ba);
+    const divider=()=>{const s=document.createElement('span');s.style.cssText='color:#d2d2d7;align-self:center;padding:0 3px;font-size:11px';s.textContent='|';return s;};
+    yp.appendChild(divider());
+    allYears.slice().sort((a,b)=>a-b).forEach(y=>{
+        const yc=yColor(y);
+        const availM=allMonths.filter(m=>allMetrics.some(met=>parsedByYear[y]?.[met]?.[m]!=null));
+        if(!availM.length)return;
+        const allYActive=availM.every(m=>selectedPeriods.has(y+'_'+m));
+        const yBtn=document.createElement('button');
+        yBtn.className='pill'+(allYActive?' active':'');
+        yBtn.textContent=y;yBtn.style.fontWeight='800';
+        if(allYActive){yBtn.style.background=yc;yBtn.style.borderColor=yc;yBtn.style.color='#fff';}
+        yBtn.onclick=()=>{
+            if(allYActive){availM.forEach(m=>{if(selectedPeriods.size>1)selectedPeriods.delete(y+'_'+m);});}
+            else{availM.forEach(m=>selectedPeriods.add(y+'_'+m));}
+            renderFilters();refreshAll();
+        };
+        yp.appendChild(yBtn);
+        availM.forEach(m=>{
+            const key=y+'_'+m;
+            const btn=mkPill(MONTHS_UK[m-1].slice(0,3),selectedPeriods.has(key),()=>{
+                if(selectedPeriods.has(key)){if(selectedPeriods.size>1)selectedPeriods.delete(key);}
+                else selectedPeriods.add(key);
+                renderFilters();refreshAll();
             });
+            btn.dataset.period=key;
+            if(selectedPeriods.has(key)){btn.style.background=yc;btn.style.borderColor=yc;btn.style.color='#fff';}
+            yp.appendChild(btn);
         });
-    };
-    if(compareMode){ renderTo(yp, periods1, ()=>'#0071e3'); renderTo(yp2, periods2, ()=>'#34c759'); }
-    else renderTo(yp, selectedPeriods, (y)=>yearColorMap[y]);
-}
-
-function renderTable(){
-    const card=document.getElementById('tableCard'); card.innerHTML='';
-    const periods=compareMode?Array.from(new Set([...periods1,...periods2])).sort():Array.from(selectedPeriods).sort();
-    if(!periods.length){card.innerHTML='<div class="status-box">Оберіть період</div>';return;}
-    const tbl=document.createElement('table');
-    let html='<thead><tr><th class="col-metric">Показник</th>';
-    periods.forEach(p=>{const[y,m]=p.split('_');html+=`<th>${MONTHS_UK[m-1].slice(0,3)} ${y.slice(2)}</th>`;});
-    html+='</tr></thead><tbody>';
-    allMetrics.forEach(m=>{
-        const isSel=selectedMetrics.has(m);
-        let bCls='badge-other'; const mlo=m.toLowerCase();
-        for(const h of GROUP_HINTS)if(h.kw.some(k=>mlo.includes(k))){bCls=h.cls;break;}
-        html+=`<tr class="metric-row ${isSel?'selected':''} appear" onclick="toggleMetric('${m}')"><td class="col-metric">${m}</td>`;
-        periods.forEach(p=>{const[y,mo]=p.split('_');html+=`<td><span class="badge ${bCls}">${fmt(parsedByYear[y]?.[m]?.[mo])}</span></td>`;});
-        html+='</tr>';
+        yp.appendChild(divider());
     });
-    tbl.innerHTML=html+'</tbody>'; card.appendChild(tbl);
+    const mp=document.getElementById('monthPills');if(mp)mp.innerHTML='';
 }
 
-function toggleMetric(m){if(selectedMetrics.has(m))selectedMetrics.delete(m);else selectedMetrics.add(m);refreshAll();}
 
+function mkPill(text,active,onclick){
+    const b=document.createElement('button');b.className='pill'+(active?' active':'');b.textContent=text;b.onclick=onclick;return b;
+}
+function updFilters(){
+    document.querySelectorAll('#yearPills .pill[data-period]').forEach(b=>{
+        const key=b.dataset.period;
+        const y=+key.split('_')[0];
+        const a=selectedPeriods.has(key);
+        b.className='pill'+(a?' active':'');
+        b.style.background=a?yColor(y):'';
+        b.style.borderColor=a?yColor(y):'';
+    });
+    const ba=document.querySelector('#yearPills .pill:not([data-period])');
+    if(ba)ba.className='pill'+(allYears.flatMap(y=>allMonths.map(m=>y+'_'+m)).every(k=>selectedPeriods.has(k))?' active':'');
+}
 function toggleCompareMode(){
     compareMode=!compareMode;
-    document.getElementById('compareModeBtn').classList.toggle('on',compareMode);
+    const btn=document.getElementById('compareModeBtn');
+    btn.classList.toggle('on',compareMode);
     document.getElementById('filterRow2').style.display=compareMode?'flex':'none';
     document.getElementById('periodLabel1').style.display=compareMode?'':'none';
-    if(compareMode&&periods1.size===0)selectedPeriods.forEach(k=>periods1.add(k));
-    renderFilters(); refreshAll();
+    if(compareMode && periods1.size===0) selectedPeriods.forEach(k=>periods1.add(k));
+    if(compareMode && periods2.size===0){
+        // за замовчуванням — наступний рік
+        const allPairs=getAllPairs();
+        const p1years=[...new Set([...periods1].map(k=>+k.split('_')[0]))];
+        const nextYear=Math.max(...p1years)+1;
+        allPairs.filter(p=>p.y===nextYear).forEach(p=>periods2.add(p.key));
+        if(periods2.size===0) allPairs.slice(0,Math.min(6,allPairs.length)).forEach(p=>periods2.add(p.key));
+    }
+    renderFilters();refreshAll();
 }
 
-function setView(v){
-    viewMode=v;
-    document.getElementById('btnTable').classList.toggle('active',v==='table');
-    document.getElementById('btnChart').classList.toggle('active',v==='chart');
-    document.getElementById('tableSection').style.display=v==='table'?'block':'none';
-    document.getElementById('chartPanel').classList.toggle('visible',v==='chart');
-    if(v==='chart')renderChart();
-}
+function renderPillsFor(containerId, periodsSet, colorFn, activeClass){
+    const yp=document.getElementById(containerId);
+    yp.innerHTML='';
+    const allPairs=getAllPairs();
 
-function refreshAll(){
-    renderTable();
-    if(viewMode==='chart')renderChart();
-    if(compareMode)renderCompareSummary();
-    else if(viewMode==='chart')renderSummary();
-}
+    const divider=()=>{const s=document.createElement('span');s.style.cssText='color:#d2d2d7;align-self:center;padding:0 3px;font-size:11px';s.textContent='|';return s;};
 
-// ПРАВКА: ТІЛЬКИ МІСЯЦІ НА ШКАЛІ
-function renderChart(){
-    const ctx=document.getElementById('mainChart').getContext('2d');
-    if(chartInstance)chartInstance.destroy();
-    
-    // Беремо унікальні місяці для осі X
-    const periods=compareMode?Array.from(new Set([...periods1,...periods2])).sort():Array.from(selectedPeriods).sort();
-    const metrics=Array.from(selectedMetrics);
-    if(!metrics.length)return;
+    allYears.slice().sort((a,b)=>a-b).forEach(y=>{
+        const yc=colorFn(y);
+        const availM=allMonths.filter(m=>allMetrics.some(met=>parsedByYear[y]?.[met]?.[m]!=null));
+        if(!availM.length)return;
 
-    const datasets=metrics.map((m,idx)=>{
-        const color=CHART_COLORS[idx%CHART_COLORS.length];
-        return {
-            label:m,
-            data:periods.map(p=>{const[y,mo]=p.split('_');return parsedByYear[y]?.[m]?.[mo]}),
-            borderColor:color,
-            tension:0.35,
-            borderWidth:3,
-            datalabels: {
-                align: 'top',
-                font: { size: 10, weight: 'bold' },
-                formatter: (v) => v === null ? '' : fmt(v),
-                display: metrics.length <= 2
-            }
+        const allYActive=availM.every(m=>periodsSet.has(y+'_'+m));
+        const yBtn=document.createElement('button');
+        yBtn.className='pill'+(allYActive?' active':'');
+        yBtn.textContent=y;
+        yBtn.style.fontWeight='800';
+        if(allYActive){yBtn.style.background=yc;yBtn.style.borderColor=yc;yBtn.style.color='#fff';}
+        yBtn.onclick=()=>{
+            if(allYActive){availM.forEach(m=>{if(periodsSet.size>1)periodsSet.delete(y+'_'+m);});}
+            else{availM.forEach(m=>periodsSet.add(y+'_'+m));}
+            renderFilters();refreshAll();
         };
-    });
+        yp.appendChild(yBtn);
 
-    chartInstance=new Chart(ctx,{
-        type:'line',
-        data:{ 
-            // Виводимо тільки коротку назву місяця
-            labels:periods.map(p=>MONTHS_UK[p.split('_')[1]-1].slice(0,3)), 
-            datasets 
-        },
-        options:{
-            responsive:true, maintainAspectRatio:false,
-            plugins:{ datalabels: { clip: false }, legend: { position: 'bottom' } }
-        }
+        availM.forEach(m=>{
+            const key=y+'_'+m;
+            const active=periodsSet.has(key);
+            const btn=mkPill(MONTHS_UK[m-1].slice(0,3), active, ()=>{
+                if(periodsSet.has(key)){if(periodsSet.size>1)periodsSet.delete(key);}
+                else periodsSet.add(key);
+                renderFilters();refreshAll();
+            });
+            btn.dataset.period=key;
+            if(active){btn.style.background=yc;btn.style.borderColor=yc;btn.style.color='#fff';}
+            yp.appendChild(btn);
+        });
+        yp.appendChild(divider());
     });
 }
 
 function calcPeriodVal(metric, periodsSet){
-    const rule=summaryRule(metric); if(rule.type==='none')return null;
+    const rule=summaryRule(metric);
+    if(rule.type==='none')return null;
     const pairs=[...periodsSet].map(k=>{const[y,m]=k.split('_');return{y:+y,m:+m};});
     if(!pairs.length)return null;
-    if(rule.type==='sum') return pairs.reduce((s,p)=>s+(parsedByYear[p.y]?.[metric]?.[p.m]||0),0);
+
+    if(rule.type==='sum'){
+        return pairs.reduce((s,p)=>{
+            const v=parsedByYear[p.y]?.[metric]?.[p.m];
+            return s+(v!=null?v:0);
+        },0);
+    }
     if(rule.type==='avg'){
-        const v=pairs.map(p=>parsedByYear[p.y]?.[metric]?.[p.m]).filter(x=>x!=null);
-        return v.length?v.reduce((a,b)=>a+b,0)/v.length:null;
+        const vals=pairs.map(p=>parsedByYear[p.y]?.[metric]?.[p.m]).filter(v=>v!=null);
+        return vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:null;
+    }
+    if(rule.type==='ratio'){
+        const numKey=rule.num,fbKey=rule.fallback;
+        let numSum=0,toSum=0;
+        pairs.forEach(p=>{
+            const numMv=parsedByYear[p.y]?.[numKey]||parsedByYear[p.y]?.[fbKey]||{};
+            const toMv=parsedByYear[p.y]?.['ТО']||{};
+            const nv=numMv[p.m];const tv=toMv[p.m];
+            if(nv!=null)numSum+=nv;if(tv!=null)toSum+=tv;
+        });
+        return toSum>0?(numSum/toSum*100):null;
     }
     return null;
 }
 
-function renderSummary(){
-    const grid=document.getElementById('summaryGrid'); grid.innerHTML='';
-    selectedMetrics.forEach(m=>{
-        const val=calcPeriodVal(m, selectedPeriods);
-        grid.innerHTML+=`
-        <div class="summary-card">
-            <div class="summary-card-label">${m}</div>
-            <div class="summary-row-val">${fmt(val)}</div>
-        </div>`;
+function renderCompareSummary(){
+    const panel=document.getElementById('compareSummaryPanel');
+    const grid=document.getElementById('compareSummaryGrid');
+    grid.innerHTML='';
+    if(!selectedMetrics.size){panel.style.display='none';return;}
+
+    const metrics=[...selectedMetrics];
+    const p1label=[...periods1].sort().map(k=>{const[y,m]=k.split('_');return MONTHS_UK[+m-1].slice(0,3)+' '+String(y).slice(2);}).join(', ');
+    const p2label=[...periods2].sort().map(k=>{const[y,m]=k.split('_');return MONTHS_UK[+m-1].slice(0,3)+' '+String(y).slice(2);}).join(', ');
+
+    metrics.forEach(metric=>{
+        const rule=summaryRule(metric);
+        if(rule.type==='none')return;
+
+        const v1=calcPeriodVal(metric,periods1);
+        const v2=calcPeriodVal(metric,periods2);
+        if(v1===null&&v2===null)return;
+
+        const isRatio=rule.type==='ratio'||rule.type==='avg';
+        const n1=periods1.size,n2=periods2.size;
+
+        const fmtVal=v=>v!=null?(isRatio?v.toFixed(2)+'%':fmt(v)):'—';
+        const fmtAvg=v=>v!=null?(isRatio?v.toFixed(2)+'%':fmt(v)):'—';
+
+        let diff=null,diffPct=null;
+        if(v1!=null&&v2!=null){diff=v2-v1;diffPct=v1!==0?(diff/Math.abs(v1)*100):null;}
+        const cls=diff==null?'flat':Math.abs(diff)<0.001?'flat':diff>0?'up':'down';
+        const arrow=cls==='up'?'▲':cls==='down'?'▼':'→';
+        const diffStr=diff==null?'н/д':(isRatio?(diff>0?'+':'')+diff.toFixed(2)+'%':(diff>0?'+':'')+fmt(Math.abs(diff)))+(diffPct!=null?' ('+diffPct.toFixed(1)+'%)':'');
+
+        const card=document.createElement('div');card.className='cmp-card';
+        card.innerHTML=`
+            <div class="cmp-card-label">${metric}</div>
+            <div class="cmp-row">
+                <div class="cmp-row-lbl"><span class="p1-dot"></span> П1</div>
+                <div class="cmp-row-val">${fmtVal(v1)}</div>
+            </div>
+            ${!isRatio&&n1>1?`<div class="cmp-row"><div class="cmp-row-lbl" style="padding-left:11px">Сер./міс</div><div class="cmp-row-val" style="color:#86868b;font-size:11px">${v1!=null?fmt(v1/n1):'—'}</div></div>`:''}
+            <div class="cmp-row">
+                <div class="cmp-row-lbl"><span class="p2-dot"></span> П2</div>
+                <div class="cmp-row-val">${fmtVal(v2)}</div>
+            </div>
+            ${!isRatio&&n2>1?`<div class="cmp-row"><div class="cmp-row-lbl" style="padding-left:11px">Сер./міс</div><div class="cmp-row-val" style="color:#86868b;font-size:11px">${v2!=null?fmt(v2/n2):'—'}</div></div>`:''}
+            <hr class="cmp-divider">
+            <div class="cmp-row">
+                <div class="cmp-row-lbl">Відхилення</div>
+                <span class="cmp-delta ${cls}">${arrow} ${diffStr}</span>
+            </div>`;
+        grid.appendChild(card);
     });
-    document.getElementById('summaryPanel').style.display=selectedMetrics.size?'block':'none';
+    panel.style.display=grid.children.length?'':'none';
 }
 
-function renderCompareSummary(){
-    const grid=document.getElementById('compareSummaryGrid'); grid.innerHTML='';
-    selectedMetrics.forEach(m=>{
-        const v1=calcPeriodVal(m, periods1), v2=calcPeriodVal(m, periods2);
-        const diff=(v2||0)-(v1||0);
-        grid.innerHTML+=`
-        <div class="cmp-card">
-            <div class="cmp-card-label">${m}</div>
-            <div>П1: ${fmt(v1)}</div>
-            <div>П2: ${fmt(v2)}</div>
-            <div class="cmp-delta ${diff>=0?'up':'down'}">${diff>=0?'+':''}${fmt(diff)}</div>
-        </div>`;
+function refreshAll(){
+    updFilters();
+    renderTable();
+    renderChips();
+    if(viewMode==='chart') renderChart();
+    else renderSummary();
+    if(compareMode) renderCompareSummary();
+    else document.getElementById('compareSummaryPanel').style.display='none';
+}
+
+// TABLE
+function renderTable(){
+    const card=document.getElementById('tableCard');card.innerHTML='';
+    const periods=activePeriods();
+    const years=[...new Set(periods.map(p=>p.y))].sort((a,b)=>a-b);
+    const months=[...new Set(periods.map(p=>p.m))].sort((a,b)=>a-b);
+    if(!periods.length){card.innerHTML='<div class="status-box">Немає даних</div>';return;}
+    const hint=document.createElement('div');hint.className='table-hint';
+    hint.innerHTML=`<span>💡</span> Натисніть на рядок щоб додати показник на <span>графік</span>`;
+    card.appendChild(hint);
+    const wrap=document.createElement('div');wrap.style.cssText='overflow-x:auto;-webkit-overflow-scrolling:touch;';card.appendChild(wrap);
+    const colW=Math.max(44,Math.floor((window.innerWidth-115)/periods.length));
+    const tbl=document.createElement('table');tbl.style.width=(115+colW*periods.length)+'px';
+    const cg=document.createElement('colgroup');
+    const c0=document.createElement('col');c0.style.width='115px';cg.appendChild(c0);
+    periods.forEach(()=>{const c=document.createElement('col');c.style.width=colW+'px';cg.appendChild(c);});
+    tbl.appendChild(cg);
+    const thead=document.createElement('thead');
+    // Один рядок заголовків "Міс РР"
+    const trH=document.createElement('tr');
+    const thN=document.createElement('th');thN.className='col-metric';thN.textContent='Показник';trH.appendChild(thN);
+    periods.forEach((p,pi)=>{
+        const th=document.createElement('th');
+        th.textContent=MONTHS_UK[p.m-1].slice(0,3)+' '+String(p.y).slice(2);
+        const yc=yColor(p.y);
+        th.style.cssText=`color:${yc};font-weight:700;`;
+        if(pi>0&&periods[pi-1].y!==p.y)th.classList.add('grp-start');
+        trH.appendChild(th);
     });
-    document.getElementById('compareSummaryPanel').style.display=selectedMetrics.size?'block':'none';
+    thead.appendChild(trH);
+    tbl.appendChild(thead);
+    const tbody=document.createElement('tbody');
+    let rowIdx=0;
+    allMetrics.forEach(metric=>{
+        if(!years.some(y=>parsedByYear[y]?.[metric]))return;
+        const tr=document.createElement('tr');tr.className='metric-row appear';tr.dataset.metric=metric;
+        tr.style.animationDelay=(rowIdx*0.03)+'s';
+        rowIdx++;
+        if(selectedMetrics.has(metric))tr.classList.add('selected');
+        const tdN=document.createElement('td');tdN.className='col-metric';tdN.textContent=metric;tr.appendChild(tdN);
+        const bc=badgeCls(metric);
+        periods.forEach((p,pi)=>{
+            const val=parsedByYear[p.y]?.[metric]?.[p.m];
+            const td=document.createElement('td');
+            if(pi>0&&periods[pi-1].y!==p.y)td.classList.add('grp-start');
+            if(val!==undefined&&val!==null){
+                const sp=document.createElement('span');
+                sp.className='badge '+(selectedMetrics.has(metric)?bc:'badge-other');
+                sp.textContent=fmt(val);td.appendChild(sp);
+            } else{td.textContent='—';td.style.color='#ccc';}
+            tr.appendChild(td);
+        });
+        tr.addEventListener('click',()=>toggleMetric(metric));
+        tbody.appendChild(tr);
+    });
+    tbl.appendChild(tbody);wrap.appendChild(tbl);
+}
+
+// TOGGLE METRIC
+function toggleMetric(metric){
+    if(selectedMetrics.has(metric))selectedMetrics.delete(metric);else selectedMetrics.add(metric);
+    document.querySelectorAll('tr.metric-row').forEach(tr=>{
+        const m=tr.dataset.metric,sel=selectedMetrics.has(m);
+        tr.classList.toggle('selected',sel);
+        tr.querySelectorAll('.badge').forEach(sp=>{sp.className='badge '+(sel?badgeCls(m):'badge-other');});
+    });
+    renderChips();renderChart();renderSummary();
+    if(selectedMetrics.size===1&&viewMode==='table'){
+        const b=document.getElementById('btnChart');b.style.background='#e8f0fe';b.style.color='var(--accent)';
+        setTimeout(()=>{b.style.background='';b.style.color='';},1500);
+    }
+}
+
+// CHIPS
+function renderChips(){
+    const cont=document.getElementById('selectedChips');cont.innerHTML='';
+    const periods=activePeriods();
+    const years=[...new Set(periods.map(p=>p.y))].sort((a,b)=>a-b);
+    const metrics=[...selectedMetrics];
+    years.forEach((y)=>{
+        metrics.forEach((metric,mi)=>{
+            const color=dsColor(y,mi);
+            const chip=document.createElement('div');chip.className='chip';
+            chip.style.cssText=`background:${color}22;color:${color};border:1.5px solid ${color}55;`;
+            const label=years.length>1?`${metric} (${y})`:metric;
+            chip.innerHTML=`<span>${label}</span><span class="chip-x">✕</span>`;
+            chip.addEventListener('click',()=>toggleMetric(metric));
+            cont.appendChild(chip);
+        });
+    });
+    const periodStr=[...selectedPeriods].sort().map(k=>{const[y,m]=k.split('_');return MONTHS_UK[+m-1].slice(0,3)+' '+String(y).slice(2);}).join(', ');
+    document.getElementById('chartSubtitle').textContent=selectedMetrics.size?periodStr:'Оберіть показники у таблиці';
+}
+
+// CHART
+function renderChart(){
+    const body=document.getElementById('chartBody');
+    if(!selectedMetrics.size){
+        if(chartInstance){chartInstance.destroy();chartInstance=null;}
+        body.innerHTML=`<div class="empty-chart"><div class="empty-chart-icon">📊</div><div class="empty-chart-text">Натисніть на рядок у таблиці, щоб додати показник</div></div>`;
+        renderSummary();return;
+    }
+    const periods=activePeriods();const years=[...new Set(periods.map(p=>p.y))].sort((a,b)=>a-b);const metrics=[...selectedMetrics];
+    // Вісь X — унікальні місяці з вибраних periods, відсортовані
+    const xMonths=[...new Set(periods.map(p=>p.m))].sort((a,b)=>a-b);
+    const labels=xMonths.map(m=>MONTHS_UK[m-1].slice(0,3));
+    const datasets=[];
+    metrics.forEach((metric,mi)=>{
+        years.forEach(y=>{
+            const mv=parsedByYear[y]?.[metric]||{};
+            const color=dsColor(y,mi);
+            const label=years.length>1?`${metric} (${y})`:metric;
+            // дані тільки для місяців що вибрані для цього року
+            const data=xMonths.map(m=>selectedPeriods.has(y+'_'+m)?(mv[m]??null):null);
+            datasets.push({label,data,borderColor:color,backgroundColor:color+'18',pointBackgroundColor:color,pointBorderColor:'#fff',pointBorderWidth:1.5,pointRadius:4,pointHoverRadius:7,tension:0.35,fill:false,spanGaps:true});
+        });
+    });
+    if(chartInstance){chartInstance.destroy();chartInstance=null;}
+    body.innerHTML='<div class="chart-wrap"><canvas id="dynChart"></canvas></div>';
+
+    const smartLabels={
+        id:'smartLabels',
+        afterDatasetsDraw(chart){
+            const ctx=chart.ctx;ctx.save();
+            const FS=10,PX=4,PY=3,LH=FS+PY*2+2,GAP=4;
+            ctx.font=`600 ${FS}px Inter,sans-serif`;
+            const pts=[];
+            chart.data.datasets.forEach((ds,di)=>{
+                const meta=chart.getDatasetMeta(di);if(meta.hidden)return;
+                ds.data.forEach((val,pi)=>{
+                    if(val===null||val===undefined)return;
+                    const el=meta.data[pi];if(!el)return;
+                    const text=fmt(val);
+                    pts.push({x:el.x,y:el.y,text,color:ds.borderColor,tw:ctx.measureText(text).width});
+                });
+            });
+            const byX={};
+            pts.forEach(p=>{const k=Math.round(p.x);if(!byX[k])byX[k]=[];byX[k].push(p);});
+            Object.values(byX).forEach(grp=>{
+                grp.sort((a,b)=>a.y-b.y);
+                grp.forEach(p=>{p.ly=p.y-LH/2-6;});
+                for(let it=0;it<20;it++){
+                    let ch=false;
+                    for(let i=1;i<grp.length;i++){
+                        const pr=grp[i-1],cu=grp[i],df=(pr.ly+LH+GAP)-cu.ly;
+                        if(df>0){pr.ly-=df/2;cu.ly+=df/2;ch=true;}
+                    }
+                    if(!ch)break;
+                }
+                grp.forEach(p=>{
+                    const bw=p.tw+PX*2,bh=FS+PY*2,bx=p.x-bw/2,by=p.ly-bh/2;
+                    ctx.shadowColor='rgba(0,0,0,0.15)';ctx.shadowBlur=4;ctx.shadowOffsetY=1;
+                    ctx.fillStyle='#fff';ctx.beginPath();ctx.roundRect(bx,by,bw,bh,4);ctx.fill();
+                    ctx.shadowColor='transparent';ctx.shadowBlur=0;ctx.shadowOffsetY=0;
+                    ctx.strokeStyle=p.color;ctx.lineWidth=1.2;ctx.beginPath();ctx.roundRect(bx,by,bw,bh,4);ctx.stroke();
+                    ctx.fillStyle=p.color;ctx.font=`700 ${FS}px Inter,sans-serif`;
+                    ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(p.text,p.x,by+bh/2);
+                    ctx.textAlign='left';ctx.textBaseline='alphabetic';
+                    const lsy=by+bh;
+                    if(p.y-lsy>6){ctx.strokeStyle=p.color+'66';ctx.lineWidth=1;ctx.setLineDash([2,2]);ctx.beginPath();ctx.moveTo(p.x,lsy);ctx.lineTo(p.x,p.y-5);ctx.stroke();ctx.setLineDash([]);}
+                });
+            });
+            ctx.restore();
+        }
+    };
+
+    const ctx=document.getElementById('dynChart').getContext('2d');
+    chartInstance=new Chart(ctx,{
+        type:'line',data:{labels,datasets},plugins:[smartLabels],
+        options:{
+            responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+            layout:{padding:{top:30,left:8,right:8}},
+            plugins:{
+                legend:{display:datasets.length>1,position:'top',labels:{font:{family:'Inter',size:10},boxWidth:20,padding:10,
+                    generateLabels(c){return c.data.datasets.map((ds,i)=>({text:ds.label,fillStyle:ds.borderColor,strokeStyle:ds.borderColor,lineWidth:2,hidden:c.getDatasetMeta(i).hidden,datasetIndex:i}));}}},
+                tooltip:{backgroundColor:'#1d1d1f',titleFont:{family:'Inter',size:12},bodyFont:{family:'Inter',size:11},padding:10,
+                    callbacks:{label:c=>` ${c.dataset.label}: ${fmt(c.raw)}`}}
+            },
+            scales:{
+                x:{grid:{color:'#f0f0f0'},ticks:{font:{family:'Inter',size:10},color:'#86868b'}},
+                y:{grid:{color:'#f0f0f0'},ticks:{font:{family:'Inter',size:10},color:'#86868b',callback:v=>fmt(v)}}
+            }
+        }
+    });
+    renderSummary();
+}
+
+// SUMMARY
+// Обчислює "базове значення" метрики для порівняння (залежно від правила)
+function calcBase(y, metric, rule, months){
+    const mv=parsedByYear[y]?.[metric]||{};
+    const vals=months.map(m=>mv[m]).filter(v=>v!==undefined&&v!==null);
+    if(!vals.length)return null;
+    if(rule.type==='sum') return vals.reduce((a,b)=>a+b,0);
+    if(rule.type==='avg') return vals.reduce((a,b)=>a+b,0)/vals.length;
+    if(rule.type==='ratio'){
+        const numKey=rule.num,fbKey=rule.fallback;
+        const numMv=parsedByYear[y]?.[numKey]||parsedByYear[y]?.[fbKey]||{};
+        const toMv=parsedByYear[y]?.['ТО']||{};
+        const numSum=months.map(m=>numMv[m]).filter(v=>v!=null).reduce((a,b)=>a+b,0);
+        const toSum=months.map(m=>toMv[m]).filter(v=>v!=null).reduce((a,b)=>a+b,0);
+        return toSum>0?(numSum/toSum*100):null;
+    }
+    return null;
+}
+
+function mkDeltaRow(prevYear, currYear, prevVal, currVal){
+    const row=document.createElement('div');row.className='delta-row';
+    const lbl=document.createElement('div');lbl.className='delta-label';
+    lbl.textContent=`${prevYear}→${currYear}`;
+    row.appendChild(lbl);
+
+    const diff=currVal-prevVal;
+    const pct=prevVal!==0?(diff/Math.abs(prevVal)*100):null;
+
+    const badge=document.createElement('div');
+    let cls, arrow, text;
+    if(pct===null){cls='delta-flat';arrow='→';text='н/д';}
+    else if(Math.abs(pct)<0.05){cls='delta-flat';arrow='→';text='0.00%';}
+    else if(diff>0){cls='delta-up';arrow='▲';text='+'+pct.toFixed(2)+'%';}
+    else{cls='delta-down';arrow='▼';text=pct.toFixed(2)+'%';}
+
+    badge.className='delta-badge '+cls;
+    badge.innerHTML=`<span class="delta-arrow">${arrow}</span>${text}`;
+    row.appendChild(badge);
+    return row;
+}
+
+function renderSummary(){
+    const panel=document.getElementById('summaryPanel');
+    const grid=document.getElementById('summaryGrid');grid.innerHTML='';
+    const periods=activePeriods();const years=[...new Set(periods.map(p=>p.y))].sort((a,b)=>a-b);const metrics=[...selectedMetrics];const months=[...new Set(periods.map(p=>p.m))].sort((a,b)=>a-b);
+    if(!metrics.length){panel.style.display='none';return;}
+
+    metrics.forEach(metric=>{
+        const rule=summaryRule(metric);
+        if(rule.type==='none')return;
+
+        const card=document.createElement('div');card.className='summary-card';
+        const lbl=document.createElement('div');lbl.className='summary-card-label';lbl.title=metric;lbl.textContent=metric;card.appendChild(lbl);
+        const rowsEl=document.createElement('div');rowsEl.className='summary-rows';card.appendChild(rowsEl);
+
+        // Зберігаємо базові значення для delta
+        const baseVals={};
+
+        years.forEach((y,yi)=>{
+            const yMonths=allMonths.filter(m=>selectedPeriods.has(y+'_'+m));
+            const mv=parsedByYear[y]?.[metric]||{};
+            const vals=yMonths.map(m=>mv[m]).filter(v=>v!==undefined&&v!==null);
+            if(!vals.length)return;
+            const yc=yColor(y);
+            if(yi>0){const hr=document.createElement('hr');hr.className='summary-divider';rowsEl.appendChild(hr);}
+            if(years.length>1){
+                const yl=document.createElement('div');
+                yl.style.cssText=`font-size:10px;font-weight:700;color:${yc};margin-bottom:2px;display:flex;align-items:center;gap:4px`;
+                yl.innerHTML=`<span class="year-dot" style="background:${yc}"></span>${y}`;
+                rowsEl.appendChild(yl);
+            }
+            if(rule.type==='sum'){
+                const sum=vals.reduce((a,b)=>a+b,0);
+                const avg=sum/vals.length;
+                baseVals[y]=sum;
+                rowsEl.appendChild(mkSRow('Сума',fmt(sum)));
+                rowsEl.appendChild(mkSRow('Середнє',fmt(avg)));
+            } else if(rule.type==='avg'){
+                const avg=vals.reduce((a,b)=>a+b,0)/vals.length;
+                baseVals[y]=avg;
+                rowsEl.appendChild(mkSRow('Середнє',fmt(avg)));
+            } else if(rule.type==='ratio'){
+                const numKey=rule.num,fbKey=rule.fallback;
+                const numMv=parsedByYear[y]?.[numKey]||parsedByYear[y]?.[fbKey]||{};
+                const toMv=parsedByYear[y]?.['ТО']||{};
+                const numSum=yMonths.map(m=>numMv[m]).filter(v=>v!=null).reduce((a,b)=>a+b,0);
+                const toSum=yMonths.map(m=>toMv[m]).filter(v=>v!=null).reduce((a,b)=>a+b,0);
+                const pct=toSum>0?(numSum/toSum*100):null;
+                if(pct===null)return;
+                baseVals[y]=pct;
+                rowsEl.appendChild(mkSRow('Частка від ТО',pct.toFixed(2)+'%',true));
+            }
+        });
+
+        // Delta між послідовними роками
+        if(years.length>=2){
+            for(let i=1;i<years.length;i++){
+                const py=years[i-1],cy=years[i];
+                if(baseVals[py]!=null&&baseVals[cy]!=null){
+                    rowsEl.appendChild(mkDeltaRow(py,cy,baseVals[py],baseVals[cy]));
+                }
+            }
+        }
+
+        if(rowsEl.children.length)grid.appendChild(card);
+    });
+    panel.style.display=grid.children.length?'':'none';
+}
+
+function mkSRow(label,val,isPct=false){
+    const row=document.createElement('div');row.className='summary-row';
+    const l=document.createElement('div');l.className='summary-row-lbl';l.textContent=label;
+    const v=document.createElement('div');v.className='summary-row-val'+(isPct?' pct':'');v.textContent=val;
+    row.appendChild(l);row.appendChild(v);return row;
+}
+
+// VIEW
+function setView(mode){
+    viewMode=mode;
+    document.getElementById('btnTable').classList.toggle('active',mode==='table');
+    document.getElementById('btnChart').classList.toggle('active',mode==='chart');
+    document.getElementById('tableSection').style.display=mode==='table'?'':'none';
+    document.getElementById('chartPanel').classList.toggle('visible',mode==='chart');
+    if(mode==='chart')renderChart();else renderSummary();
 }
 
 function showTableSkeleton(card, rows=12, cols=5){
     card.innerHTML='';
     const wrap=document.createElement('div');
     for(let r=0;r<rows;r++){
-        const row=document.createElement('div'); row.className='tbl-row-skel';
-        for(let c=0;c<cols;c++) row.innerHTML+=`<div class="tbl-row-skel-cell skel ${c===0?'wide':''}"></div>`;
+        const row=document.createElement('div');row.className='tbl-row-skel';
+        for(let c=0;c<cols;c++){
+            const cell=document.createElement('div');
+            cell.className='tbl-row-skel-cell skel'+(c===0?' wide':'');
+            cell.style.animationDelay=(r*0.04+c*0.015)+'s';
+            row.appendChild(cell);
+        }
         wrap.appendChild(row);
     }
     card.appendChild(wrap);
 }
 
+// INIT
 async function init(){
-    const card=document.getElementById('tableCard'); showTableSkeleton(card);
-    try {
+    // Show skeleton immediately
+    const card=document.getElementById('tableCard');
+    showTableSkeleton(card, 12, 5);
+    try{
         const res=await fetch(CSV_URL+'&t='+Date.now());
-        detectAndParse(parseCSV(await res.text()));
-        document.querySelector('.filters-wrap').classList.add('appear');
-        renderFilters(); renderTable();
-    } catch(e) { card.innerHTML=`Помилка: ${e.message}`; }
+        if(!res.ok)throw new Error('HTTP '+res.status);
+        const text=await res.text();
+        const rows=parseCSV(text);
+        if(!rows.length)throw new Error('Порожній файл');
+        detectAndParse(rows);
+        if(!allYears.length)throw new Error('Не вдалось розпізнати структуру');
+        // Animate filters in
+        const fw=document.querySelector('.filters-wrap');
+        if(fw)fw.classList.add('appear');
+        renderFilters();
+        renderTable();
+        setView('table');
+    }catch(e){
+        document.getElementById('tableCard').innerHTML=`<div class="status-box error">❌ ${e.message}</div>`;
+        console.error(e);
+    }
 }
 init();
 </script>
