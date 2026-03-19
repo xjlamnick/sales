@@ -325,6 +325,7 @@ const COL_GROUPS = [
         { key:'Конверсія ПК', label:'Конв.', badge:'b-eff', fmt:'pct' },
         { key:'Конверсія ПК Offline', label:'Оф.Конв', badge:'b-eff', fmt:'pct' },
         { key:'% УДС', label:'УДС', badge:'b-plain', fmt:'money' },
+        { key:'CSI', label:'CSI', badge:'b-eff', fmt:'dec2' },
     ]},
     { name:'Категорії', cls:'gh-cat', cols:[
         { key:'AV', label:'AV', badge:'b-cat', fmt:'money' },
@@ -350,6 +351,7 @@ const RATING_METRICS = [
     { key:'Конверсія ПК', label:'Конверсія',  color:'#af52de', fmt:'pct',   higher:true, group:'main' },
     { key:'Ср. Чек',      label:'Ср.Чек',     color:'#5856d6', fmt:'money', higher:true, group:'main' },
     { key:'КПЧ',          label:'КПЧ',        color:'#00b388', fmt:'dec2',  higher:true, group:'main' },
+    { key:'CSI',          label:'CSI',        color:'#ff6b35', fmt:'dec2',  higher:true, group:'main' },
     // Категорії
     { key:'__all_cat__', label:'Всі кат.', color:'#5856d6', fmt:'money', higher:true, group:'cat', allCat:true },
     { key:'AV',  label:'AV',  color:'#c8392b', fmt:'money', higher:true, group:'cat' },
@@ -454,6 +456,8 @@ const COL_NAME_MAP = {
     '% удс':                  '% УДС',
     'удс':                    '% УДС',
     'уds':                    '% УДС',
+    // CSI
+    'csi':                    'CSI',
     // Категорії
     'av':                     'AV',
     'dig':                    'DIG',
