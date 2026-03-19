@@ -567,6 +567,54 @@ function renderChart(){
     renderSummary();
 }
 
+// ── SUMMARY HELPERS ──
+// Знаходить колонку-партнер за назвою sub в іншій групі
+function findPartnerCol(sub, groupKeyword){
+    return allCols.find(c=>c.sub.trim()===sub.trim() && c.group.toLowerCase().includes(groupKeyword.toLowerCase()));
+}
+
+// Для дельта-колонки рахує правильно: sum(КОМБІ) / sum(ФОКС) за набором рядків
+// Повертає {ratio, kombiSum, foksSum} або null
+function calcDeltaRatio(col, rows){
+    const kombiCol = findPartnerCol(col.sub, 'комб');
+    const foksCol  = findPartnerCol(col.sub, 'фокс');
+    if(!kombiCol || !foksCol) return null;
+    const kombiSum = rows.reduce((s,r)=>{ const v=r.vals[kombiCol.key]; return s+(v!=null?v:0); }, 0);
+    const foksSum  = rows.reduce((s,r)=>{ const v=r.vals[foksCol.key];  return s+(v!=null?v:0); }, 0);
+    if(foksSum===0) return null;
+    return { ratio: kombiSum/foksSum, kombiSum, foksSum, kombiColName:kombiCol.group, foksColName:foksCol.group };
+}
+
+// Звичайна агрегація для не-дельта колонок
+function aggCol(col, rows){
+    const vals=rows.map(r=>r.vals[col.key]).filter(v=>v!=null);
+    if(!vals.length) return null;
+    if(col.isPct) return vals.reduce((a,b)=>a+b,0)/vals.length; // avg for %
+    return vals.reduce((a,b)=>a+b,0); // sum for absolute
+}
+
+function mkDeltaBadge(v1, v2, isRatio){
+    if(v1==null||v2==null) return null;
+    const diff=v2-v1, pct=v1!==0?(diff/Math.abs(v1)*100):null;
+    const cls=Math.abs(diff)<0.0001?'flat':diff>0?'up':'down';
+    const arrow=cls==='up'?'▲':cls==='down'?'▼':'→';
+    let txt;
+    if(isRatio){
+        // ratio: показуємо різницю в пп (процентних пунктах відносно відношення)
+        txt=(diff>0?'+':'')+(diff*100).toFixed(2)+' пп';
+        if(pct!=null) txt+=' ('+pct.toFixed(1)+'%)';
+    } else {
+        txt=(diff>0?'+':'')+fmt(Math.abs(diff));
+        if(pct!=null) txt+=' ('+pct.toFixed(1)+'%)';
+    }
+    const dRow=document.createElement('div');dRow.className='delta-row';
+    const dLbl=document.createElement('div');dLbl.className='delta-label';dLbl.textContent='Відхилення П2 vs П1';
+    const badge=document.createElement('div');badge.className='delta-badge delta-'+cls;
+    badge.innerHTML=`<span class="delta-arrow">${arrow}</span>${txt}`;
+    dRow.appendChild(dLbl);dRow.appendChild(badge);
+    return dRow;
+}
+
 // ── SUMMARY ──
 function renderSummary(){
     const panel=document.getElementById('summaryPanel');
@@ -579,67 +627,94 @@ function renderSummary(){
         const p1rows=rowsForPeriods(periods1);
         const p2rows=rowsForPeriods(periods2);
         if(!p1rows.length&&!p2rows.length){panel.style.display='none';return;}
-        colArr.forEach((key,i)=>{
+
+        colArr.forEach((key)=>{
             const col=allCols.find(c=>c.key===key);if(!col)return;
-            const agg=(rows)=>{
-                const vals=rows.map(r=>r.vals[key]).filter(v=>v!=null);
-                if(!vals.length)return null;
-                if(col.isPct)return vals.reduce((a,b)=>a+b,0)/vals.length;
-                return vals.reduce((a,b)=>a+b,0);
-            };
-            const v1=agg(p1rows),v2=agg(p2rows);
-            if(v1===null&&v2===null)return;
             const card=document.createElement('div');card.className='summary-card';
-            const lbl=document.createElement('div');lbl.className='summary-card-label';lbl.title=col.group+': '+col.sub;lbl.textContent=col.group+': '+col.sub;card.appendChild(lbl);
+            const lbl=document.createElement('div');lbl.className='summary-card-label';
+            lbl.title=col.group+': '+col.sub;lbl.textContent=col.group+': '+col.sub;card.appendChild(lbl);
             const rows2=document.createElement('div');rows2.className='summary-rows';card.appendChild(rows2);
-            // P1
-            const yl1=document.createElement('div');yl1.style.cssText='font-size:10px;font-weight:700;color:#0071e3;margin-bottom:2px;display:flex;align-items:center;gap:4px';
-            yl1.innerHTML='<span class="p1-dot"></span>Період 1';rows2.appendChild(yl1);
-            if(!col.isPct){
-                rows2.appendChild(mkSRow('Сума',fmt(v1,false)));
-                if(p1rows.length>1)rows2.appendChild(mkSRow('Середнє',fmt(v1/p1rows.length,false)));
+
+            if(col.isDelta){
+                // ── Правильний розрахунок для дельта: sum(КОМБІ)/sum(ФОКС) ──
+                const r1=calcDeltaRatio(col,p1rows);
+                const r2=calcDeltaRatio(col,p2rows);
+                if(!r1&&!r2) return;
+
+                const fmtRatio=v=>v!=null?(v*100).toFixed(2)+'%':'—';
+                const fmtSum=v=>v!=null?fmt(v):'—';
+
+                // П1
+                const yl1=document.createElement('div');yl1.style.cssText='font-size:10px;font-weight:700;color:#0071e3;margin-bottom:2px;display:flex;align-items:center;gap:4px';
+                yl1.innerHTML='<span class="p1-dot"></span>Період 1';rows2.appendChild(yl1);
+                if(r1){
+                    rows2.appendChild(mkSRow(r1.kombiColName+' (сума)',fmtSum(r1.kombiSum)));
+                    rows2.appendChild(mkSRow(r1.foksColName+' (сума)',fmtSum(r1.foksSum)));
+                    rows2.appendChild(mkSRow('Відношення',fmtRatio(r1.ratio)));
+                } else { rows2.appendChild(mkSRow('—','—')); }
+
+                const hr=document.createElement('hr');hr.className='summary-divider';rows2.appendChild(hr);
+
+                // П2
+                const yl2=document.createElement('div');yl2.style.cssText='font-size:10px;font-weight:700;color:#34c759;margin-bottom:2px;display:flex;align-items:center;gap:4px';
+                yl2.innerHTML='<span class="p2-dot"></span>Період 2';rows2.appendChild(yl2);
+                if(r2){
+                    rows2.appendChild(mkSRow(r2.kombiColName+' (сума)',fmtSum(r2.kombiSum)));
+                    rows2.appendChild(mkSRow(r2.foksColName+' (сума)',fmtSum(r2.foksSum)));
+                    rows2.appendChild(mkSRow('Відношення',fmtRatio(r2.ratio)));
+                } else { rows2.appendChild(mkSRow('—','—')); }
+
+                // Відхилення між відношеннями
+                const dRow=mkDeltaBadge(r1?.ratio??null, r2?.ratio??null, true);
+                if(dRow) rows2.appendChild(dRow);
+
             } else {
-                rows2.appendChild(mkSRow('Середнє',fmt(v1,true)));
+                // ── Звичайна агрегація ──
+                const v1=aggCol(col,p1rows), v2=aggCol(col,p2rows);
+                if(v1===null&&v2===null) return;
+
+                const yl1=document.createElement('div');yl1.style.cssText='font-size:10px;font-weight:700;color:#0071e3;margin-bottom:2px;display:flex;align-items:center;gap:4px';
+                yl1.innerHTML='<span class="p1-dot"></span>Період 1';rows2.appendChild(yl1);
+                if(col.isPct){ rows2.appendChild(mkSRow('Середнє',fmt(v1,true))); }
+                else { rows2.appendChild(mkSRow('Сума',fmt(v1))); if(p1rows.length>1) rows2.appendChild(mkSRow('Середнє',fmt(v1/p1rows.length))); }
+
+                const hr=document.createElement('hr');hr.className='summary-divider';rows2.appendChild(hr);
+
+                const yl2=document.createElement('div');yl2.style.cssText='font-size:10px;font-weight:700;color:#34c759;margin-bottom:2px;display:flex;align-items:center;gap:4px';
+                yl2.innerHTML='<span class="p2-dot"></span>Період 2';rows2.appendChild(yl2);
+                if(col.isPct){ rows2.appendChild(mkSRow('Середнє',fmt(v2,true))); }
+                else { rows2.appendChild(mkSRow('Сума',fmt(v2))); if(p2rows.length>1) rows2.appendChild(mkSRow('Середнє',fmt(v2/p2rows.length))); }
+
+                const dRow=mkDeltaBadge(v1,v2,false);
+                if(dRow) rows2.appendChild(dRow);
             }
-            const hr=document.createElement('hr');hr.className='summary-divider';rows2.appendChild(hr);
-            // P2
-            const yl2=document.createElement('div');yl2.style.cssText='font-size:10px;font-weight:700;color:#34c759;margin-bottom:2px;display:flex;align-items:center;gap:4px';
-            yl2.innerHTML='<span class="p2-dot"></span>Період 2';rows2.appendChild(yl2);
-            if(!col.isPct){
-                rows2.appendChild(mkSRow('Сума',fmt(v2,false)));
-                if(p2rows.length>1)rows2.appendChild(mkSRow('Середнє',fmt(v2/p2rows.length,false)));
-            } else {
-                rows2.appendChild(mkSRow('Середнє',fmt(v2,true)));
-            }
-            // Delta
-            if(v1!=null&&v2!=null){
-                const diff=v2-v1,pct=v1!==0?(diff/Math.abs(v1)*100):null;
-                const cls=Math.abs(diff)<0.001?'flat':diff>0?'up':'down';
-                const arrow=cls==='up'?'▲':cls==='down'?'▼':'→';
-                let ds=col.isPct?(diff>0?'+':'')+diff.toFixed(2)+'%':(diff>0?'+':'')+fmt(Math.abs(diff));
-                if(pct!=null&&!col.isPct)ds+=' ('+pct.toFixed(1)+'%)';
-                const dRow=document.createElement('div');dRow.className='delta-row';
-                const dLbl=document.createElement('div');dLbl.className='delta-label';dLbl.textContent='Відхилення П2 vs П1';
-                const badge=document.createElement('div');badge.className='delta-badge delta-'+cls;
-                badge.innerHTML=`<span class="delta-arrow">${arrow}</span>${ds}`;
-                dRow.appendChild(dLbl);dRow.appendChild(badge);rows2.appendChild(dRow);
-            }
-            if(rows2.children.length)grid.appendChild(card);
+
+            if(rows2.children.length) grid.appendChild(card);
         });
+
     } else {
+        // Normal mode (no compare)
         const data=activeRows();if(!data.length){panel.style.display='none';return;}
         colArr.forEach((key)=>{
             const col=allCols.find(c=>c.key===key);if(!col)return;
-            const vals=data.map(r=>r.vals[key]).filter(v=>v!=null);if(!vals.length)return;
             const card=document.createElement('div');card.className='summary-card';
             const lbl=document.createElement('div');lbl.className='summary-card-label';lbl.title=col.group+': '+col.sub;lbl.textContent=col.group+': '+col.sub;card.appendChild(lbl);
             const rows2=document.createElement('div');rows2.className='summary-rows';card.appendChild(rows2);
-            if(col.isPct){
-                rows2.appendChild(mkSRow('Середнє',fmt(vals.reduce((a,b)=>a+b,0)/vals.length,true)));
+
+            if(col.isDelta){
+                const r=calcDeltaRatio(col,data);
+                if(!r) return;
+                rows2.appendChild(mkSRow(r.kombiColName+' (сума)',fmt(r.kombiSum)));
+                rows2.appendChild(mkSRow(r.foksColName+' (сума)',fmt(r.foksSum)));
+                rows2.appendChild(mkSRow('Відношення',(r.ratio*100).toFixed(2)+'%'));
             } else {
-                const sum=vals.reduce((a,b)=>a+b,0);
-                rows2.appendChild(mkSRow('Сума',fmt(sum)));
-                if(vals.length>1)rows2.appendChild(mkSRow('Середнє',fmt(sum/vals.length)));
+                const vals=data.map(r=>r.vals[key]).filter(v=>v!=null);if(!vals.length)return;
+                if(col.isPct){ rows2.appendChild(mkSRow('Середнє',fmt(vals.reduce((a,b)=>a+b,0)/vals.length,true))); }
+                else {
+                    const sum=vals.reduce((a,b)=>a+b,0);
+                    rows2.appendChild(mkSRow('Сума',fmt(sum)));
+                    if(vals.length>1) rows2.appendChild(mkSRow('Середнє',fmt(sum/vals.length)));
+                }
             }
             grid.appendChild(card);
         });
