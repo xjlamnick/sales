@@ -241,6 +241,8 @@ function detectStructure(csvRows){
     allYears=[...yrs].sort((a,b)=>a-b);
     allMonths=[...mos].sort((a,b)=>a-b);
     dataRows.forEach(r=>selectedPeriods.add(r.key));
+    // Debug: log all columns
+    console.log('[allCols]', allCols.map(c=>({group:c.group, sub:c.sub, isDelta:c.isDelta, key:c.key})));
     return dataRows.length>0;
 }
 
