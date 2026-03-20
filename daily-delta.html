@@ -41,10 +41,8 @@ thead{position:sticky;top:0;z-index:30}
 th.grp{text-align:center;font-size:9px;font-weight:800;letter-spacing:.05em;color:#fff;border-bottom:1px solid rgba(255,255,255,0.15);height:22px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px}
 th.sub{font-size:9px;font-weight:700;color:rgba(255,255,255,0.9);text-transform:uppercase;height:20px;border-bottom:2px solid rgba(0,0,0,0.2)}
 /* Frozen left cols */
-th.c-l1,td.c-l1{position:sticky;left:0;z-index:5;text-align:left;min-width:52px;width:52px;font-size:10px;font-weight:600;background:var(--card)}
-th.c-l1{z-index:31}
-th.c-l2,td.c-l2{position:sticky;left:52px;z-index:5;text-align:left;min-width:34px;width:34px;font-size:10px;background:var(--card);border-right:2px solid rgba(0,0,0,0.1);box-shadow:3px 0 5px -2px rgba(0,0,0,.07)}
-th.c-l2{z-index:31}
+th.c-l1,td.c-l1{position:sticky;left:0;z-index:31;text-align:left;min-width:52px;width:52px;font-size:10px;font-weight:600;background:var(--card)}
+th.c-l2,td.c-l2{position:sticky;left:52px;z-index:30;text-align:left;min-width:34px;width:34px;font-size:10px;background:var(--card);border-right:2px solid rgba(0,0,0,0.1);box-shadow:3px 0 5px -2px rgba(0,0,0,.07)}
 th.c-l1,th.c-l2{background:#374151;color:#fff}
 /* Weekend */
 tr.weekend td{background:#fff8f0!important}
@@ -60,8 +58,8 @@ tr.tot td.c-l1,tr.tot td.c-l2{background:#e0e8ff!important}
 .d3{color:#6b7280;font-weight:600}
 .d2{color:#c2410c;font-weight:600}
 .d1{color:#b91c1c;font-weight:700;background:rgba(185,28,28,.08);border-radius:3px;padding:1px 3px}
-/* Diff rows */
-tr.diff-row td{background:#fefce8;font-size:10px;color:#7c2d12;border-bottom:1px solid #fde68a;position:relative;z-index:15}
+/* Diff rows — правка 3: щоб vs-рядки йшли під фіксованими колонками */
+tr.diff-row td{background:#fefce8;font-size:10px;color:#7c2d12;border-bottom:1px solid #fde68a;position:relative;z-index:20}
 tr.diff-row td.diff-pos{color:#15803d}
 tr.diff-row td.diff-neg{color:#b91c1c}
 /* Chart */
@@ -71,16 +69,23 @@ tr.diff-row td.diff-neg{color:#b91c1c}
 .ctrl-lbl{font-size:11px;font-weight:600;color:var(--text-sec);margin-right:2px}
 .status-box{padding:40px;text-align:center;color:var(--text-sec);font-size:14px}
 .status-box.error{color:#ff3b30}
-
-/* Фільтр магазинів — щоб ТТ і ТОТАЛ не ховались */
+/* Правка 2 — фільтр магазинів, щоб ТТ і ТОТАЛ було видно */
 #storePills {
-  flex-wrap: nowrap !important;
-  overflow-x: auto !important;
-  -webkit-overflow-scrolling: touch;
-  gap: 4px;
-  padding: 4px 8px;
-  min-width: 100%;
-  scroll-padding: 10px;
+  display:flex !important;
+  flex-wrap:nowrap !important;
+  overflow-x:auto !important;
+  -webkit-overflow-scrolling:touch !important;
+  gap:4px !important;
+  padding:6px 12px !important;
+  scroll-padding:12px !important;
+  scrollbar-width:thin !important;
+}
+#storePills::-webkit-scrollbar {
+  height:6px;
+}
+#storePills::-webkit-scrollbar-thumb {
+  background:#c1c1c1;
+  border-radius:3px;
 }
 </style>
 </head>
@@ -119,20 +124,23 @@ tr.diff-row td.diff-neg{color:#b91c1c}
 <div id="tabContent">
   <div class="table-card"><div class="status-box">Завантаження…</div></div>
 </div>
+
 <script>
+// ── CONSTANTS ──
 const CSV_URL='https://docs.google.com/spreadsheets/d/e/2PACX-1vRnVyY9d_BjUGvXWa3VUFsdMoBwZH-MINuS8b91-lgNqeNMx-6UsE5oRJ66x6XVmK_JhXcGTbSK9Emx/pub?output=csv';
 const MONTHS_UK=['Січень','Лютий','Березень','Квітень','Травень','Червень','Липень','Серпень','Вересень','Жовтень','Листопад','Грудень'];
 const DOW_WE=["пт","сб","нд","субота","неділя","friday","saturday","sunday","пятниця"];
 const STORE_HDR=['#1a56db','#0e7490','#6b21a8','#9d174d','#065f46','#92400e','#1e40af','#7c3aed'];
 const STORE_BG=['#eff6ff','#ecfeff','#faf5ff','#fdf2f8','#ecfdf5','#fffbeb','#eff6ff','#f5f3ff'];
 
-// STATE
+// ── STATE ──
 let stores=[],dataRows=[],allYears=[],allMonths=[];
 let selYears=new Set(),selMonths=new Set(),selStores=new Set();
 let selSegments=new Set(['wd','we']);
 let activeTab='table',chartInstance=null;
 let selChartMode='store',selChartStore='',selChartPeriod='day',selChartMetric='delta';
 
+// ── UTILS ──
 function parseCSV(text){
     const res=[];let row=[],col='',inQ=false;
     for(let i=0;i<text.length;i++){
@@ -174,15 +182,41 @@ function isWeekend(dow){
     return DOW_WE.some(w=>String(dow).toLowerCase().trim()===w||String(dow).toLowerCase().includes(w));
 }
 
+// ── SKELETON ──
+function showSkel(){
+    const cont=document.getElementById('tabContent');
+    const card=document.createElement('div');card.className='table-card';
+    const wrap=document.createElement('div');
+    for(let i=0;i<14;i++){
+        const row=document.createElement('div');row.className='skel-row';
+        for(let j=0;j<6;j++){const c=document.createElement('div');c.className='skel-cell skel'+(j<2?' w':'');c.style.animationDelay=(i*.04+j*.015)+'s';row.appendChild(c);}
+        wrap.appendChild(row);
+    }
+    card.appendChild(wrap);cont.innerHTML='';cont.appendChild(card);
+}
+
+// ── DETECT ──
 function detect(rows){
-    let subRow=-1, storeRow=-1;
-    for(let i=0;i<Math.min(10,rows.length);i++){
+    let subRow=-1,storeRow=-1;
+    for(let i=0;i<Math.min(8,rows.length);i++){
         const r=rows[i].map(c=>(c||'').toLowerCase().trim());
-        if(r.some(c=>c.includes('фокс')) && r.some(c=>c.includes('комф'))){subRow=i;storeRow=i-1;break;}
+        const hasFoks=r.filter(c=>c==='фокстрот').length;
+        const hasKomf=r.filter(c=>c==='комфі').length;
+        if(hasFoks>=1&&hasKomf>=1){subRow=i;storeRow=i-1;break;}
+    }
+    if(subRow===-1){
+        for(let i=0;i<Math.min(8,rows.length);i++){
+            const r=rows[i].map(c=>(c||'').toLowerCase().trim());
+            if(r.some(c=>c.includes('фокс'))&&r.some(c=>c.includes('комф'))){
+                subRow=i;storeRow=i-1;break;
+            }
+        }
     }
     if(subRow===-1){subRow=3;storeRow=2;}
+
     const storeRowData=rows[storeRow]||[];
     const subRowData=rows[subRow]||[];
+
     stores=[];
     let curStore='';
     for(let i=7;i<Math.max(storeRowData.length,subRowData.length);i++){
@@ -192,37 +226,46 @@ function detect(rows){
         const sub=(subRowData[i]||'').toLowerCase().trim();
         if(!sub) continue;
         let type=null;
-        if(sub.includes('фокс')||sub==='фокстрот') type='foks';
-        else if(sub.includes('комф')||sub==='комфі') type='komf';
+        if(sub==='фокстрот'||sub.includes('фокс')) type='foks';
+        else if(sub==='комфі'||sub.includes('комф')) type='komf';
         else if(sub.includes('дельт')||sub.includes('delta')) type='delta';
         if(!type) continue;
         let st=stores.find(s=>s.name===curStore);
         if(!st){st={name:curStore,cols:[]};stores.push(st);}
         st.cols.push({type,colIdx:i});
     }
+
     const dataStart=subRow+1;
     dataRows=[];
     const yrs=new Set(),mos=new Set();
     for(let ri=dataStart;ri<rows.length;ri++){
         const row=rows[ri];
         if(!row.some(c=>c)) continue;
+
         const year=toN(row[0]);
         const week=toN(row[1]);
         const monthNum=toN(row[2]);
         const monthName=(row[3]||'').trim();
+        const dowNumRaw=toN(row[4]);
         const dowName=(row[5]||'').trim();
         const dateStr=(row[6]||'').trim();
+
         if(!year||!dateStr) continue;
+
         const mo=monthNum||(()=>{
             const lo=monthName.toLowerCase();
             const idx=MONTHS_UK.findIndex(m=>lo.includes(m.slice(0,3).toLowerCase()));
             return idx>=0?idx+1:null;
         })();
         if(!mo) continue;
-        let dowNum=0;
-        const dowLo=dowName.toLowerCase();
-        const dowMap={понеділок:1,пн:1,вівторок:2,вт:2,середа:3,ср:3,четвер:4,чт:4,"п'ятниця":5,пятниця:5,пт:5,субота:6,сб:6,неділя:7,нд:7};
-        for(const[k,v]of Object.entries(dowMap)){if(dowLo===k||dowLo.startsWith(k)){dowNum=v;break;}}
+
+        let dowNum=dowNumRaw||0;
+        if(!dowNum){
+            const dowLo=dowName.toLowerCase();
+            const dowMap={понеділок:1,пн:1,вівторок:2,вт:2,середа:3,ср:3,четвер:4,чт:4,"п'ятниця":5,пятниця:5,пт:5,субота:6,сб:6,неділя:7,нд:7};
+            for(const[k,v]of Object.entries(dowMap)){if(dowLo===k||dowLo.startsWith(k)){dowNum=v;break;}}
+        }
+
         const storeVals={};
         stores.forEach(st=>{
             const fCol=st.cols.find(c=>c.type==='foks');
@@ -234,6 +277,7 @@ function detect(rows){
             if(dv===null&&fv!=null&&kv!=null&&fv!==0) dv=kv/fv;
             storeVals[st.name]={foks:fv,komf:kv,delta:dv};
         });
+
         const isWE=dowNum>=5||(dowNum===0&&isWeekend(dowName));
         dataRows.push({year,month:mo,week,dowName,dowNum,date:dateStr,storeVals,isWE});
         yrs.add(year);mos.add(mo);
@@ -254,7 +298,7 @@ function activeData(){
 }
 function activeStores(){return stores.filter(s=>selStores.has(s.name));}
 
-// FILTERS
+// ── FILTERS ──
 function mkPill(text,active,cls,onclick){
     const b=document.createElement('button');
     b.className='pill'+(active?' active':'')+(cls?' '+cls:'');
@@ -265,93 +309,94 @@ function mkPill(text,active,cls,onclick){
 function renderFilters(){
     const yp=document.getElementById('yearPills');yp.innerHTML='';
     const allYA=allYears.every(y=>selYears.has(y));
-    const baY=mkPill('Всі',allYA,'pill-all',()=>{if(allYA)allYears.forEach(y=>selYears.delete(y));else allYears.forEach(y=>selYears.add(y));renderFilters();render();});
+    const baY=mkPill('Всі',allYA,'pill-all',()=>{
+        if(allYA)allYears.forEach(y=>selYears.delete(y));else allYears.forEach(y=>selYears.add(y));
+        renderFilters();render();
+    });
     if(allYA)baY.style.background='#374151';
     yp.appendChild(baY);
     allYears.forEach(y=>{
         const a=selYears.has(y);
-        const b=mkPill(String(y),a,'',()=>{if(a){if(selYears.size>1)selYears.delete(y);}else selYears.add(y);renderFilters();render();});
+        const b=mkPill(String(y),a,'',()=>{
+            if(a){if(selYears.size>1)selYears.delete(y);}else selYears.add(y);
+            renderFilters();render();
+        });
         if(a){b.style.background='#1d1d1f';b.style.color='#fff';b.style.fontWeight='800';}
         yp.appendChild(b);
     });
+
     const mp=document.getElementById('monthPills');mp.innerHTML='';
     const availM=allMonths.filter(m=>dataRows.some(r=>selYears.has(r.year)&&r.month===m));
     const allMA=availM.every(m=>selMonths.has(m));
-    const baM=mkPill('Всі',allMA,'pill-all',()=>{if(allMA)availM.forEach(m=>selMonths.delete(m));else availM.forEach(m=>selMonths.add(m));renderFilters();render();});
+    const baM=mkPill('Всі',allMA,'pill-all',()=>{
+        if(allMA)availM.forEach(m=>selMonths.delete(m));else availM.forEach(m=>selMonths.add(m));
+        renderFilters();render();
+    });
     if(allMA)baM.style.background='#374151';
     mp.appendChild(baM);
     availM.forEach(m=>{
         const a=selMonths.has(m);
-        const b=mkPill(MONTHS_UK[m-1].slice(0,3),a,'',()=>{if(a){if(selMonths.size>1)selMonths.delete(m);}else selMonths.add(m);renderFilters();render();});
+        const b=mkPill(MONTHS_UK[m-1].slice(0,3),a,'',()=>{
+            if(a){if(selMonths.size>1)selMonths.delete(m);}else selMonths.add(m);
+            renderFilters();render();
+        });
         if(a){b.style.background='#1d1d1f';b.style.color='#fff';}
         mp.appendChild(b);
     });
+
     const sp=document.getElementById('storePills');sp.innerHTML='';
     const allSA=stores.every(s=>selStores.has(s.name));
-    const baS=mkPill('Всі',allSA,'pill-all',()=>{if(allSA)stores.forEach(s=>selStores.delete(s.name));else stores.forEach(s=>selStores.add(s.name));renderFilters();render();});
+    const baS=mkPill('Всі',allSA,'pill-all',()=>{
+        if(allSA)stores.forEach(s=>selStores.delete(s.name));else stores.forEach(s=>selStores.add(s.name));
+        renderFilters();render();
+    });
     if(allSA)baS.style.background='#374151';
     sp.appendChild(baS);
     stores.forEach(s=>{
         const a=selStores.has(s.name);
-        const b=mkPill(s.name.split(' ').slice(1,4).join(' '),a,'',()=>{if(a){if(selStores.size>1)selStores.delete(s.name);}else selStores.add(s.name);renderFilters();render();});
+        const b=mkPill(s.name.split(' ').slice(1,4).join(' '),a,'',()=>{
+            if(a){if(selStores.size>1)selStores.delete(s.name);}else selStores.add(s.name);
+            renderFilters();render();
+        });
         b.title=s.name;
         if(a){b.style.background='#1d1d1f';b.style.color='#fff';}
         sp.appendChild(b);
     });
+
     const segp=document.getElementById('segmentPills');segp.innerHTML='';
     const segDefs=[{key:'wd',lbl:'Пн–Чт'},{key:'we',lbl:'Пт–Сб'}];
     const allSeg=segDefs.every(s=>selSegments.has(s.key));
-    const baSeg=mkPill('Всі',allSeg,'pill-all',()=>{if(allSeg)segDefs.forEach(s=>selSegments.delete(s.key));else segDefs.forEach(s=>selSegments.add(s.key));renderFilters();render();});
+    const baSeg=mkPill('Всі',allSeg,'pill-all',()=>{
+        if(allSeg)segDefs.forEach(s=>selSegments.delete(s.key));else segDefs.forEach(s=>selSegments.add(s.key));
+        renderFilters();render();
+    });
     if(allSeg)baSeg.style.background='#374151';
     segp.appendChild(baSeg);
     segDefs.forEach(s=>{
         const a=selSegments.has(s.key);
-        const b=mkPill(s.lbl,a,'',()=>{if(a){if(selSegments.size>1)selSegments.delete(s.key);}else selSegments.add(s.key);renderFilters();render();});
+        const b=mkPill(s.lbl,a,'',()=>{
+            if(a){if(selSegments.size>1)selSegments.delete(s.key);}else selSegments.add(s.key);
+            renderFilters();render();
+        });
         if(a){b.style.background='#1d1d1f';b.style.color='#fff';}
         segp.appendChild(b);
     });
     document.getElementById('filtersWrap').style.display='';
 }
 
-// HELPERS
-function deltaClass(d){
-    if(d===null||d===undefined)return'';
-    if(d<0.8)return'd5';if(d<0.95)return'd4';if(d<=1.05)return'd3';if(d<=1.25)return'd2';return'd1';
-}
-function mkTh(text,cls,sty){
-    const t=document.createElement('th');t.textContent=text;
-    if(cls)t.className=cls;if(sty)Object.assign(t.style,sty);return t;
-}
-function mkTd(text,cls,sty){
-    const t=document.createElement('td');
-    t.textContent=(text===null||text===undefined)?'—':text;
-    if(cls)t.className=cls;if(sty)Object.assign(t.style,sty);return t;
-}
-
-// SKELETON
-function showSkel(){
-    const cont=document.getElementById('tabContent');
-    const card=document.createElement('div');card.className='table-card';
-    const wrap=document.createElement('div');
-    for(let i=0;i<14;i++){
-        const row=document.createElement('div');row.className='skel-row';
-        for(let j=0;j<6;j++){const c=document.createElement('div');c.className='skel-cell skel'+(j<2?' w':'');c.style.animationDelay=(i*.04+j*.015)+'s';row.appendChild(c);}
-        wrap.appendChild(row);
-    }
-    card.appendChild(wrap);cont.innerHTML='';cont.appendChild(card);
-}
-
-// TABLE TAB
+// ── TABLE ──
 function renderTable(){
     const cont=document.getElementById('tabContent');
     const data=activeData();
     const sts=activeStores();
     if(!data.length){cont.innerHTML='<div class="table-card"><div class="status-box">Немає даних для обраного фільтру</div></div>';return;}
+
     const card=document.createElement('div');card.className='table-card';
     const hint=document.createElement('div');hint.className='table-hint';
     hint.innerHTML='Пн–Чт — будні | Пт–Нд — <b style="color:#b45309">вихідні</b> | Δ: <span class="d5">&#60;0.8</span> <span class="d4">0.8–0.95</span> <span class="d3">~1</span> <span class="d2">1.05–1.25</span> <span class="d1">&#62;1.25</span>';
     card.appendChild(hint);
     const wrap=document.createElement('div');wrap.className='table-wrap';
+
     const tbl=document.createElement('table');
     const thead=document.createElement('thead');
     const trG=document.createElement('tr');
@@ -371,6 +416,7 @@ function renderTable(){
         });
     });
     thead.appendChild(trH);tbl.appendChild(thead);
+
     const tbody=document.createElement('tbody');
     let prevWeek=null;
     data.forEach(r=>{
@@ -406,16 +452,155 @@ function renderTable(){
     cont.innerHTML='';cont.appendChild(card);
 }
 
-// AGGREGATE
-function aggRows(rows,sts){
-    const r={};
-    sts.forEach(st=>{
-        let f=0,k=0;
-        rows.forEach(row=>{const v=row.storeVals[st.name]||{};if(v.foks!=null)f+=v.foks;if(v.komf!=null)k+=v.komf;});
-        r[st.name]={f,k,d:f>0?k/f:null};
-    });
-    return r;
+function deltaClass(d){
+    if(d===null||d===undefined)return'';
+    if(d<0.8)return'd5';if(d<0.95)return'd4';if(d<=1.05)return'd3';if(d<=1.25)return'd2';return'd1';
 }
+
+// ── WEEKDAY (з фільтром сегментів) ──
+function renderWeekday(){
+    const cont=document.getElementById('tabContent');
+    const data=activeData();
+    const sts=activeStores();
+    if(!data.length){cont.innerHTML='<div class="table-card"><div class="status-box">Немає даних</div></div>';return;}
+
+    const wMap=new Map();
+    data.forEach(r=>{
+        if(!r.week)return;
+        const k=r.year+'_W'+String(r.week).padStart(2,'0');
+        if(!wMap.has(k))wMap.set(k,{label:k,year:r.year,week:r.week,wd:[],we:[],rows:[]});
+        const w=wMap.get(k);
+        w.rows.push(r);
+        if(r.isWE)w.we.push(r);else w.wd.push(r);
+    });
+
+    const card=document.createElement('div');card.className='table-card';
+    const hint=document.createElement('div');hint.className='table-hint';
+    hint.innerHTML='<b>Пн–Чт</b> та <b>Пт–Сб</b> за кожен тиждень | ↔ — відхилення від попереднього тижня';
+    card.appendChild(hint);
+    const wrap=document.createElement('div');wrap.className='table-wrap';
+    const tbl=document.createElement('table');
+    const thead=document.createElement('thead');
+
+    const segDefs=[{key:'wd',lbl:'Пн–Чт'},{key:'we',lbl:'Пт–Сб'}];
+    const segsToShow=segDefs.filter(s=>selSegments.has(s.key));
+    if(segsToShow.length===0) segsToShow.push(...segDefs);
+
+    const trG=document.createElement('tr');
+    trG.appendChild(mkTh('Рік','c-l1',{background:'#374151',color:'#fff',rowSpan:3}));
+    trG.appendChild(mkTh('Тиж','c-l2',{background:'#374151',color:'#fff',rowSpan:3}));
+    sts.forEach((st,i)=>{
+        const c=STORE_HDR[i%STORE_HDR.length];
+        const th=mkTh(st.name,'grp',{background:c,borderLeft:i>0?'2px solid rgba(255,255,255,0.2)':''});
+        th.colSpan=segsToShow.length*3;th.title=st.name;trG.appendChild(th);
+    });
+    thead.appendChild(trG);
+
+    const trSeg=document.createElement('tr');
+    sts.forEach((st,i)=>{
+        const c=STORE_HDR[i%STORE_HDR.length];
+        segsToShow.forEach((sdef,jSeg)=>{
+            const bg=(sdef.key==='wd')?c:c+'99';
+            const th=mkTh(sdef.lbl,'grp',{background:bg,borderLeft:(i>0&&jSeg===0)?'2px solid rgba(255,255,255,0.2)':''});
+            th.colSpan=3;trSeg.appendChild(th);
+        });
+    });
+    thead.appendChild(trSeg);
+
+    const trH=document.createElement('tr');
+    sts.forEach((st,i)=>{
+        const c=STORE_HDR[i%STORE_HDR.length];
+        segsToShow.forEach((sdef,jSeg)=>{
+            const segBg=(sdef.key==='wd')?c:c+'99';
+            ['Фокс','Комфі','Δ'].forEach((l,k2)=>{
+                const bl=(k2===0&&i>0&&jSeg===0)?'2px solid rgba(255,255,255,0.2)':(k2===0&&jSeg>0)?'1px solid rgba(255,255,255,0.15)':'';
+                trH.appendChild(mkTh(l,'sub',{background:segBg,borderLeft:bl}));
+            });
+        });
+    });
+    thead.appendChild(trH);tbl.appendChild(thead);
+
+    const tbody=document.createElement('tbody');
+    const keys=[...wMap.keys()].sort();
+    keys.forEach((k,idx)=>{
+        const w=wMap.get(k);
+        const tr=document.createElement('tr');
+        tr.appendChild(mkTd(String(w.year),'c-l1'));
+        tr.appendChild(mkTd('T'+w.week,'c-l2'));
+        sts.forEach((st,i)=>{
+            const bg=STORE_BG[i%STORE_BG.length];
+            segsToShow.forEach((sdef,jSeg)=>{
+                const rowsForSeg=(sdef.key==='wd')?w.wd:w.we;
+                let f=0,kv=0;
+                rowsForSeg.forEach(r=>{const v=r.storeVals[st.name]||{};if(v.foks!=null)f+=v.foks;if(v.komf!=null)kv+=v.komf;});
+                const d=f>0?kv/f:null;
+                const bl=(jSeg===0&&i>0)?'2px solid #d0d0da':(jSeg>0?'1px solid #e8e8ec':'');
+                tr.appendChild(mkTd(fmt(f),'',{background:bg,borderLeft:bl}));
+                tr.appendChild(mkTd(fmt(kv),'',{background:bg}));
+                tr.appendChild(mkTd(d!=null?d.toFixed(2):null,deltaClass(d),{background:bg}));
+            });
+        });
+        tbody.appendChild(tr);
+
+        if(idx>0){
+            const prevK=keys[idx-1];
+            const prev=wMap.get(prevK);
+            const diffTr=document.createElement('tr');diffTr.className='diff-row';
+            diffTr.appendChild(mkTd('↔ vs T'+prev.week,'',{textAlign:'left',paddingLeft:'6px',color:'#92400e',fontWeight:'600',fontSize:'10px'}));
+            diffTr.appendChild(mkTd('',''));
+            sts.forEach((st,i)=>{
+                const bg=STORE_BG[i%STORE_BG.length];
+                segsToShow.forEach((sdef,jSeg)=>{
+                    const rowsForSeg=(sdef.key==='wd')?w.wd:w.we;
+                    const pRowsForSeg=(sdef.key==='wd')?prev.wd:prev.we;
+                    let cf=0,ck=0,pf=0,pk=0;
+                    rowsForSeg.forEach(r=>{const v=r.storeVals[st.name]||{};if(v.foks!=null)cf+=v.foks;if(v.komf!=null)ck+=v.komf;});
+                    pRowsForSeg.forEach(r=>{const v=r.storeVals[st.name]||{};if(v.foks!=null)pf+=v.foks;if(v.komf!=null)pk+=v.komf;});
+                    const df=cf-pf,dk=ck-pk;
+                    const dd=(pf>0&&cf>0)?(ck/cf)-(pk/pf):null;
+                    const bl=(jSeg===0&&i>0)?'2px solid #d0d0da':(jSeg>0?'1px solid #e8e8ec':'');
+                    diffTr.appendChild(mkTd((df>=0?'+':'')+fmt(Math.abs(df))+(df>=0?' ↑':' ↓'),df>=0?'diff-pos':'diff-neg',{background:bg,borderLeft:bl,fontSize:'10px'}));
+                    diffTr.appendChild(mkTd((dk>=0?'+':'')+fmt(Math.abs(dk))+(dk>=0?' ↑':' ↓'),dk>=0?'diff-pos':'diff-neg',{background:bg,fontSize:'10px'}));
+                    diffTr.appendChild(mkTd(dd!=null?(dd>=0?'+':'')+dd.toFixed(2):null,dd==null?'':(dd<=0?'diff-pos':'diff-neg'),{background:bg,fontSize:'10px'}));
+                });
+            });
+            tbody.appendChild(diffTr);
+        }
+    });
+    tbl.appendChild(tbody);wrap.appendChild(tbl);card.appendChild(wrap);
+    cont.innerHTML='';cont.appendChild(card);
+}
+
+// ── WEEKLY & MONTHLY ──
+function renderWeekly(){
+    const cont=document.getElementById('tabContent');
+    const data=activeData();const sts=activeStores();
+    if(!data.length){cont.innerHTML='<div class="table-card"><div class="status-box">Немає даних</div></div>';return;}
+    const gMap=new Map();
+    const keys=[];
+    data.forEach(r=>{
+        if(!r.week)return;
+        const k=r.year+'_W'+String(r.week).padStart(2,'0');
+        if(!gMap.has(k)){gMap.set(k,{label:k,rows:[]});keys.push(k);}
+        gMap.get(k).rows.push(r);
+    });
+    keys.sort().forEach((k,i)=>{gMap.get(k).prevKey=i>0?keys[i-1]:null;});
+    buildAggTable(cont,gMap,sts,'Рік','Тиждень',l=>'T'+(l.split('_W')[1]||''));
+}
+function renderMonthly(){
+    const cont=document.getElementById('tabContent');
+    const data=activeData();const sts=activeStores();
+    if(!data.length){cont.innerHTML='<div class="table-card"><div class="status-box">Немає даних</div></div>';return;}
+    const gMap=new Map();const keys=[];
+    data.forEach(r=>{
+        const k=r.year+'_'+String(r.month).padStart(2,'0');
+        if(!gMap.has(k)){gMap.set(k,{label:k,rows:[]});keys.push(k);}
+        gMap.get(k).rows.push(r);
+    });
+    keys.sort().forEach((k,i)=>{gMap.get(k).prevKey=i>0?keys[i-1]:null;});
+    buildAggTable(cont,gMap,sts,'Рік','Місяць',l=>{const m=parseInt(l.split('_')[1]);return MONTHS_UK[m-1]?.slice(0,3)||l;});
+}
+
 function buildAggTable(cont,groupMap,sts,col1Label,col2Label,col2fmt){
     const card=document.createElement('div');card.className='table-card';
     const wrap=document.createElement('div');wrap.className='table-wrap';
@@ -477,149 +662,26 @@ function buildAggTable(cont,groupMap,sts,col1Label,col2Label,col2fmt){
     cont.innerHTML='';cont.appendChild(card);
 }
 
-// WEEKDAY TAB
-function renderWeekday(){
-    const cont=document.getElementById('tabContent');
-    const data=activeData();
-    const sts=activeStores();
-    if(!data.length){cont.innerHTML='<div class="table-card"><div class="status-box">Немає даних</div></div>';return;}
-    const wMap=new Map();
-    data.forEach(r=>{
-        if(!r.week)return;
-        const k=r.year+'_W'+String(r.week).padStart(2,'0');
-        if(!wMap.has(k))wMap.set(k,{label:k,year:r.year,week:r.week,wd:[],we:[],rows:[]});
-        const w=wMap.get(k);
-        w.rows.push(r);
-        if(r.isWE)w.we.push(r);else w.wd.push(r);
+function aggRows(rows,sts){
+    const r={};
+    sts.forEach(st=>{
+        let f=0,k=0;
+        rows.forEach(row=>{const v=row.storeVals[st.name]||{};if(v.foks!=null)f+=v.foks;if(v.komf!=null)k+=v.komf;});
+        r[st.name]={f,k,d:f>0?k/f:null};
     });
-    const card=document.createElement('div');card.className='table-card';
-    const hint=document.createElement('div');hint.className='table-hint';
-    hint.innerHTML='<b>Пн–Чт</b> та <b>Пт–Сб</b> за кожен тиждень | ↔ — відхилення від попереднього тижня';
-    card.appendChild(hint);
-    const wrap=document.createElement('div');wrap.className='table-wrap';
-    const tbl=document.createElement('table');
-    const thead=document.createElement('thead');
-    const segDefs=[{key:'wd',lbl:'Пн–Чт'},{key:'we',lbl:'Пт–Сб'}];
-    const segsToShow=segDefs.filter(s=>selSegments.has(s.key));
-    if(segsToShow.length===0) segsToShow.push(...segDefs);
-    const trG=document.createElement('tr');
-    trG.appendChild(mkTh('Рік','c-l1',{background:'#374151',color:'#fff',rowSpan:3}));
-    trG.appendChild(mkTh('Тиж','c-l2',{background:'#374151',color:'#fff',rowSpan:3}));
-    sts.forEach((st,i)=>{
-        const c=STORE_HDR[i%STORE_HDR.length];
-        const th=mkTh(st.name,'grp',{background:c,borderLeft:i>0?'2px solid rgba(255,255,255,0.2)':''});
-        th.colSpan=segsToShow.length*3;th.title=st.name;trG.appendChild(th);
-    });
-    thead.appendChild(trG);
-    const trSeg=document.createElement('tr');
-    sts.forEach((st,i)=>{
-        const c=STORE_HDR[i%STORE_HDR.length];
-        segsToShow.forEach((sdef,jSeg)=>{
-            const th=mkTh(sdef.lbl,'grp',{background:(sdef.key==='wd')?c:c+'99',borderLeft:(i>0&&jSeg===0)?'2px solid rgba(255,255,255,0.2)':''});
-            th.colSpan=3;trSeg.appendChild(th);
-        });
-    });
-    thead.appendChild(trSeg);
-    const trH=document.createElement('tr');
-    sts.forEach((st,i)=>{
-        const c=STORE_HDR[i%STORE_HDR.length];
-        segsToShow.forEach((sdef,jSeg)=>{
-            const segBg=(sdef.key==='wd')?c:c+'99';
-            ['Фокс','Комфі','Δ'].forEach((l,k2)=>{
-                const bl=(k2===0&&i>0&&jSeg===0)?'2px solid rgba(255,255,255,0.2)':(k2===0&&jSeg>0)?'1px solid rgba(255,255,255,0.15):':'';
-                trH.appendChild(mkTh(l,'sub',{background:segBg,borderLeft:bl}));
-            });
-        });
-    });
-    thead.appendChild(trH);tbl.appendChild(thead);
-    const tbody=document.createElement('tbody');
-    const keys=[...wMap.keys()].sort();
-    keys.forEach((k,idx)=>{
-        const w=wMap.get(k);
-        const tr=document.createElement('tr');
-        tr.appendChild(mkTd(String(w.year),'c-l1'));
-        tr.appendChild(mkTd('T'+w.week,'c-l2'));
-        sts.forEach((st,i)=>{
-            const bg=STORE_BG[i%STORE_BG.length];
-            segsToShow.forEach((sdef,jSeg)=>{
-                const rowsForSeg=(sdef.key==='wd')?w.wd:w.we;
-                let f=0,kv=0;
-                rowsForSeg.forEach(r=>{const v=r.storeVals[st.name]||{};if(v.foks!=null)f+=v.foks;if(v.komf!=null)kv+=v.komf;});
-                const d=f>0?kv/f:null;
-                const bl=(jSeg===0&&i>0)?'2px solid #d0d0da':(jSeg>0?'1px solid #e8e8ec':'');
-                tr.appendChild(mkTd(fmt(f),'',{background:bg,borderLeft:bl}));
-                tr.appendChild(mkTd(fmt(kv),'',{background:bg}));
-                tr.appendChild(mkTd(d!=null?d.toFixed(2):null,deltaClass(d),{background:bg}));
-            });
-        });
-        tbody.appendChild(tr);
-        if(idx>0){
-            const prevK=keys[idx-1];
-            const prev=wMap.get(prevK);
-            const diffTr=document.createElement('tr');diffTr.className='diff-row';
-            diffTr.appendChild(mkTd('↔ vs T'+prev.week,'',{textAlign:'left',paddingLeft:'6px',color:'#92400e',fontWeight:'600',fontSize:'10px'}));
-            diffTr.appendChild(mkTd('',''));
-            sts.forEach((st,i)=>{
-                const bg=STORE_BG[i%STORE_BG.length];
-                segsToShow.forEach((sdef,jSeg)=>{
-                    const rowsForSeg=(sdef.key==='wd')?w.wd:w.we;
-                    const pRowsForSeg=(sdef.key==='wd')?prev.wd:prev.we;
-                    let cf=0,ck=0,pf=0,pk=0;
-                    rowsForSeg.forEach(r=>{const v=r.storeVals[st.name]||{};if(v.foks!=null)cf+=v.foks;if(v.komf!=null)ck+=v.komf;});
-                    pRowsForSeg.forEach(r=>{const v=r.storeVals[st.name]||{};if(v.foks!=null)pf+=v.foks;if(v.komf!=null)pk+=v.komf;});
-                    const df=cf-pf,dk=ck-pk;
-                    const dd=(pf>0&&cf>0)?(ck/cf)-(pk/pf):null;
-                    const bl=(jSeg===0&&i>0)?'2px solid #d0d0da':(jSeg>0?'1px solid #e8e8ec':'');
-                    diffTr.appendChild(mkTd((df>=0?'+':'')+fmt(Math.abs(df))+(df>=0?' ↑':' ↓'),df>=0?'diff-pos':'diff-neg',{background:bg,borderLeft:bl,fontSize:'10px'}));
-                    diffTr.appendChild(mkTd((dk>=0?'+':'')+fmt(Math.abs(dk))+(dk>=0?' ↑':' ↓'),dk>=0?'diff-pos':'diff-neg',{background:bg,fontSize:'10px'}));
-                    diffTr.appendChild(mkTd(dd!=null?(dd>=0?'+':'')+dd.toFixed(2):null,dd==null?'':(dd<=0?'diff-pos':'diff-neg'),{background:bg,fontSize:'10px'}));
-                });
-            });
-            tbody.appendChild(diffTr);
-        }
-    });
-    tbl.appendChild(tbody);wrap.appendChild(tbl);card.appendChild(wrap);
-    cont.innerHTML='';cont.appendChild(card);
+    return r;
 }
 
-// WEEKLY & MONTHLY
-function renderWeekly(){
-    const cont=document.getElementById('tabContent');
-    const data=activeData();const sts=activeStores();
-    if(!data.length){cont.innerHTML='<div class="table-card"><div class="status-box">Немає даних</div></div>';return;}
-    const gMap=new Map();
-    const keys=[];
-    data.forEach(r=>{
-        if(!r.week)return;
-        const k=r.year+'_W'+String(r.week).padStart(2,'0');
-        if(!gMap.has(k)){gMap.set(k,{label:k,rows:[]});keys.push(k);}
-        gMap.get(k).rows.push(r);
-    });
-    keys.sort().forEach((k,i)=>{gMap.get(k).prevKey=i>0?keys[i-1]:null;});
-    buildAggTable(cont,gMap,sts,'Рік','Тиждень',l=>'T'+(l.split('_W')[1]||''));
-}
-function renderMonthly(){
-    const cont=document.getElementById('tabContent');
-    const data=activeData();const sts=activeStores();
-    if(!data.length){cont.innerHTML='<div class="table-card"><div class="status-box">Немає даних</div></div>';return;}
-    const gMap=new Map();const keys=[];
-    data.forEach(r=>{
-        const k=r.year+'_'+String(r.month).padStart(2,'0');
-        if(!gMap.has(k)){gMap.set(k,{label:k,rows:[]});keys.push(k);}
-        gMap.get(k).rows.push(r);
-    });
-    keys.sort().forEach((k,i)=>{gMap.get(k).prevKey=i>0?keys[i-1]:null;});
-    buildAggTable(cont,gMap,sts,'Рік','Місяць',l=>{const m=parseInt(l.split('_')[1]);return MONTHS_UK[m-1]?.slice(0,3)||l;});
-}
-
-// CHART TAB (з правкою — цифри не перекривають)
+// ── CHART (правка 1 — цифри не перекривають) ──
 function renderChart(){
     const cont=document.getElementById('tabContent');
     const data=activeData();
     if(!data.length){cont.innerHTML='<div class="chart-card"><div class="status-box">Немає даних</div></div>';return;}
     const sts=activeStores();
     if(!selChartStore||!sts.find(s=>s.name===selChartStore))selChartStore=sts[0]?.name||'';
+
     const card=document.createElement('div');card.className='chart-card';
+
     const c0=document.createElement('div');c0.className='ctrl-row';
     c0.appendChild(Object.assign(document.createElement('span'),{className:'ctrl-lbl',textContent:'Режим:'}));
     [{v:'store',l:'Один магазин, всі дні'},{v:'allstores',l:'Всі магазини, один період'}].forEach(m=>{
@@ -628,6 +690,7 @@ function renderChart(){
         b.onclick=()=>{selChartMode=m.v;renderChart();};c0.appendChild(b);
     });
     card.appendChild(c0);
+
     const c1=document.createElement('div');c1.className='ctrl-row';
     c1.appendChild(Object.assign(document.createElement('span'),{className:'ctrl-lbl',textContent:'Групування:'}));
     [{v:'day',l:'День'},{v:'week',l:'Тиждень'},{v:'month',l:'Місяць'}].forEach(p=>{
@@ -636,6 +699,7 @@ function renderChart(){
         b.onclick=()=>{selChartPeriod=p.v;renderChart();};c1.appendChild(b);
     });
     card.appendChild(c1);
+
     const c2=document.createElement('div');c2.className='ctrl-row';
     c2.appendChild(Object.assign(document.createElement('span'),{className:'ctrl-lbl',textContent:'Показник:'}));
     [{v:'delta',l:'Δ Дельта'},{v:'foks',l:'Фокстрот'},{v:'komf',l:'Комфі'}].forEach(m=>{
@@ -653,6 +717,7 @@ function renderChart(){
         });
     }
     card.appendChild(c2);
+
     function getVal(rows,stName){
         let f=0,k=0;
         rows.forEach(r=>{const v=r.storeVals[stName]||{};if(v.foks!=null)f+=v.foks;if(v.komf!=null)k+=v.komf;});
@@ -660,6 +725,7 @@ function renderChart(){
         if(selChartMetric==='foks')return f||null;
         return k||null;
     }
+
     const gMap=new Map();
     data.forEach(r=>{
         let k;
@@ -674,38 +740,47 @@ function renderChart(){
         if(selChartPeriod==='week'){const p=k.split('_W');return'T'+p[1]+(p[0]?' '+String(p[0]).slice(2):'');}
         const p=k.split('_');const m=parseInt(p[1]);return MONTHS_UK[m-1]?.slice(0,3)+(p[0]?' '+String(p[0]).slice(2):'');
     });
+
     const datasets=[];
     const CHART_COLORS=['#1a56db','#0e7490','#6b21a8','#9d174d','#065f46','#92400e'];
-    const isSmallDataset=sortedKeys.length<=40;
+
     if(selChartMode==='store'){
         const vals=sortedKeys.map(k=>getVal(gMap.get(k),selChartStore));
         const color=selChartMetric==='delta'?'#6b21a8':selChartMetric==='foks'?'#1a56db':'#0e7490';
         const isBar=selChartMetric==='delta';
+        const isSmall=vals.length<=40;
         datasets.push({
             type:isBar?'bar':'line',
             label:selChartStore.split(' ').slice(1,3).join(' '),
             data:vals,
-            backgroundColor:isBar?vals.map(v=>{if(v===null)return'rgba(200,200,200,0.3)';if(v<0.8)return'rgba(21,128,61,0.7)';if(v<0.95)return'rgba(22,163,74,0.6)';if(v<=1.05)return'rgba(107,114,128,0.5)';if(v<=1.25)return'rgba(194,65,12,0.6)';return'rgba(185,28,28,0.7)';}):color+'33',
+            backgroundColor:isBar?vals.map(v=>{
+                if(v===null)return'rgba(200,200,200,0.4)';
+                if(v<0.8)return'rgba(21,128,61,0.75)';
+                if(v<0.95)return'rgba(22,163,74,0.65)';
+                if(v<=1.05)return'rgba(107,114,128,0.55)';
+                if(v<=1.25)return'rgba(194,65,12,0.65)';
+                return'rgba(185,28,28,0.8)';
+            }):color+'44',
             borderColor:color,
-            borderWidth:isBar?0:2.5,
-            pointRadius:isSmallDataset?4:2,
-            pointHoverRadius:7,
-            tension:0.25,
+            borderWidth:isBar?0:3,
+            pointRadius:isSmall?5:3,
+            pointHoverRadius:9,
+            tension:0.3,
             fill:!isBar,
             spanGaps:true,
             datalabels:{
                 display:true,
                 color:'#1d1d1f',
-                backgroundColor:'rgba(255,255,255,0.95)',
-                borderRadius:6,
+                backgroundColor:'rgba(255,255,255,0.97)',
+                borderRadius:8,
                 borderWidth:2,
-                borderColor:color+'99',
-                padding:8,
-                font:{size:11,weight:'700'},
-                formatter:(value)=>value===null?'':(selChartMetric==='delta'?value.toFixed(2):fmt(value)),
+                borderColor:color+'aa',
+                padding:10,
+                font:{size:12,weight:'bold'},
+                formatter:value=>value===null?'':(selChartMetric==='delta'?value.toFixed(2):fmt(value)),
                 anchor:isBar?'end':'end',
                 align:isBar?'top':'top',
-                offset:isBar?10:12,
+                offset:isBar?14:16,
                 clamp:true,
                 clip:false
             }
@@ -719,40 +794,42 @@ function renderChart(){
                 label:st.name.split(' ').slice(1,3).join(' '),
                 data:vals,
                 borderColor:color,
-                backgroundColor:color+'22',
-                borderWidth:2.5,
-                pointRadius:isSmallDataset?4:2,
-                pointHoverRadius:7,
-                tension:0.25,
+                backgroundColor:color+'33',
+                borderWidth:3,
+                pointRadius:vals.length<=40?5:3,
+                pointHoverRadius:9,
+                tension:0.3,
                 fill:false,
                 spanGaps:true,
                 datalabels:{
                     display:true,
                     color:'#1d1d1f',
-                    backgroundColor:'rgba(255,255,255,0.95)',
-                    borderRadius:6,
+                    backgroundColor:'rgba(255,255,255,0.97)',
+                    borderRadius:8,
                     borderWidth:2,
-                    borderColor:color+'99',
-                    padding:8,
-                    font:{size:11,weight:'700'},
-                    formatter:(value)=>value===null?'':(selChartMetric==='delta'?value.toFixed(2):fmt(value)),
+                    borderColor:color+'aa',
+                    padding:10,
+                    font:{size:12,weight:'bold'},
+                    formatter:value=>value===null?'':(selChartMetric==='delta'?value.toFixed(2):fmt(value)),
+                    clamp:true,
                     clip:false
                 }
             });
         });
     }
+
     const wrap=document.createElement('div');wrap.className='chart-wrap';
     const canvas=document.createElement('canvas');canvas.id='dailyChart';
     wrap.appendChild(canvas);card.appendChild(wrap);
     cont.innerHTML='';cont.appendChild(card);
+
     if(chartInstance){chartInstance.destroy();chartInstance=null;}
     const ctx=canvas.getContext('2d');
     chartInstance=new Chart(ctx,{
         plugins:[ChartDataLabels],
         data:{labels,datasets},
         options:{
-            responsive:true,
-            maintainAspectRatio:false,
+            responsive:true,maintainAspectRatio:false,
             interaction:{mode:'index',intersect:false},
             plugins:{
                 legend:{display:datasets.length>1,position:'top',labels:{font:{size:11},boxWidth:18,padding:10}},
@@ -761,19 +838,21 @@ function renderChart(){
                 datalabels:{clip:false}
             },
             scales:{
-                x:{grid:{color:'#f0f0f0'},ticks:{font:{size:9},color:'#86868b',maxTicksLimit:24,maxRotation:45}},
-                y:{grid:{color:'#f0f0f0'},ticks:{font:{size:10},color:'#86868b',callback:v=>selChartMetric==='delta'?v.toFixed(2):fmt(v)},...(selChartMetric==='delta'?{suggestedMin:0.5,suggestedMax:1.5}:{})}
+                x:{grid:{color:'#f0f0f0'},ticks:{font:{size:10},color:'#86868b',maxTicksLimit:24,maxRotation:45}},
+                y:{grid:{color:'#f0f0f0'},ticks:{font:{size:11},color:'#86868b',
+                    callback:v=>selChartMetric==='delta'?v.toFixed(2):fmt(v)},
+                    ...(selChartMetric==='delta'?{suggestedMin:0.4,suggestedMax:1.6}:{})}
             }
         }
     });
 }
 
-// SWITCH
+// ── SWITCH & RENDER ──
 function switchTab(tab){
     activeTab=tab;
     document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
     document.querySelectorAll('.tab').forEach(b=>{
-        if((tab==='table'&&b.textContent.includes('Таблиця'))||(tab==='weekday'&&b.textContent.includes('Пн–Чт'))||(tab==='weekly'&&b.textContent.includes('По тижнях'))||(tab==='monthly'&&b.textContent.includes('По місяцях'))||(tab==='chart'&&b.textContent.includes('Динаміка'))){
+        if(b.textContent.includes(tab==='table'?'Таблиця':tab==='weekday'?'Пн–Чт':tab==='weekly'?'По тижнях':tab==='monthly'?'По місяцях':'Динаміка')){
             b.classList.add('active');
         }
     });
@@ -787,7 +866,7 @@ function render(){
     else renderChart();
 }
 
-// INIT
+// ── INIT ──
 async function init(){
     showSkel();
     try{
