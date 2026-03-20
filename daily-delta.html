@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <title>Дельта щоденна</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <style>
+        :root{--bg:#f5f5f7;--text:#1d1d1f;--text-sec:#6e6e73;--accent:#0071e3;--border:#d2d2d7;--card:#fff;--shadow:0 4px 20px rgba(0,0,0,0.06);}
+        *{box-sizing:border-box;margin:0;padding:0}
+        body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);padding:8px 10px 60px}
+        @keyframes shimmer{0%{background-position:-600px 0}100%{background-position:600px 0}}
+        .skel{background:linear-gradient(90deg,#eaeaed 25%,#f5f5f7 50%,#eaeaed 75%);background-size:600px 100%;animation:shimmer 1.4s ease-in-out infinite;border-radius:7px}
+        .skel-row{display:flex;gap:8px;padding:9px 10px;border-bottom:1px solid #f2f2f4}
+        .skel-cell{height:11px;border-radius:5px;flex:1}.skel-cell.w{flex:2}
+
+        /* TOP */
+        .top-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:10px;flex-wrap:wrap}
+        .back-link{color:var(--accent);text-decoration:none;font-weight:600;font-size:14px}
+        .page-title{font-size:20px;font-weight:700}
+
+        /* TABS */
+        .tabs{display:flex;gap:2px;background:#e5e5ea;border-radius:12px;padding:3px;margin-bottom:12px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+        .tab{border:none;background:transparent;padding:6px 14px;border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;color:var(--text-sec);font-family:inherit;transition:all .2s;white-space:nowrap}
+        .tab.active{background:white;color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.12)}
+
+        /* FILTERS */
+        .filters-wrap{background:var(--card);border-radius:14px;box-shadow:var(--shadow);margin-bottom:12px;overflow:hidden;border:1px solid rgba(0,0,0,0.06)}
+        .filter-row{display:flex;align-items:flex-start;flex-wrap:wrap;gap:4px;padding:8px 12px;border-bottom:1px solid #f0f0f2}
+        .filter-row:last-child{border-bottom:none}
+        .filter-label{font-size:10px;font-weight:700;color:#a0a0ab;text-transform:uppercase;letter-spacing:.06em;padding-top:5px;margin-right:6px;white-space:nowrap}
+        .pill{border:none;background:transparent;padding:4px 8px;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;color:#6e6e73;transition:all .15s;white-space:nowrap}
+        .pill:hover{background:#f2f2f7;color:#1d1d1f}
+        .pill.active{background:#1d1d1f;color:#fff}
+
+        /* TABLE */
+        .table-card{background:var(--card);border-radius:16px;box-shadow:var(--shadow);overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:14px}
+        .table-hint{font-size:11px;color:var(--text-sec);padding:8px 12px;border-bottom:1px solid #f2f2f4;background:#fafafa;border-radius:16px 16px 0 0}
+        .table-hint .hl{color:var(--accent);font-weight:600}
+        table{border-collapse:collapse;width:100%}
+        th,td{padding:4px 6px;border-bottom:1px solid #f2f2f4;font-size:11px;text-align:right;white-space:nowrap}
+        th{background:white;font-size:9px;font-weight:700;color:var(--text-sec);text-transform:uppercase;border-bottom:2px solid var(--border);position:sticky;top:0;z-index:10}
+        /* Frozen date cols */
+        td.c-fix,th.c-fix{position:sticky;background:white;z-index:5;text-align:left}
+        th.c-fix{z-index:11}
+        td.c-date{left:0;min-width:70px;font-size:10px;font-weight:600;color:var(--text-sec)}
+        th.c-date{left:0}
+        td.c-dow{left:70px;min-width:46px;font-size:10px;color:var(--text-sec);border-right:1px solid #e8e8ec;box-shadow:4px 0 8px -2px rgba(0,0,0,.06)}
+        th.c-dow{left:70px;border-right:1px solid #e8e8ec}
+        /* Group headers */
+        th.grp{text-align:center;background:#f2f2f7;font-size:9px;font-weight:800;letter-spacing:.06em;color:#666;border-bottom:1px solid #e0e0e8}
+        th.grp.sticky-grp{position:sticky;top:0;z-index:10}
+        th.grp-sep,td.grp-sep{border-left:2px solid #d0d0da!important}
+        /* Delta coloring */
+        .dpos{color:#1a7f37;font-weight:700}
+        .dneg{color:#c0392b;font-weight:700}
+        /* Weekend rows */
+        tr.weekend td{background:#fff8f0}
+        tr.weekend td.c-fix{background:#fff8f0}
+        /* Week separator */
+        tr.week-start td{border-top:2px solid #d0d0da!important}
+        /* Total row */
+        tr.total-row td{background:#f0f4ff;font-weight:700;border-top:2px solid #b0c0e0}
+
+        .status-box{padding:40px;text-align:center;color:var(--text-sec);font-size:14px}
+        .status-box.error{color:#ff3b30}
+
+        /* SUMMARY TABS STYLES */
+        .summary-card{background:var(--card);border-radius:16px;box-shadow:var(--shadow);overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:14px}
+        .section-title{font-size:13px;font-weight:700;color:var(--text-sec);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;padding:0 2px}
+        .badge-wd{background:rgba(0,113,227,.10);color:#1a50b8;padding:2px 6px;border-radius:5px;font-size:10px;font-weight:700}
+        .badge-we{background:rgba(255,149,0,.12);color:#b85000;padding:2px 6px;border-radius:5px;font-size:10px;font-weight:700}
+        .badge-wk{background:rgba(88,86,214,.10);color:#4342a8;padding:2px 6px;border-radius:5px;font-size:10px;font-weight:700}
+    </style>
+</head>
+<body>
+<div class="top-bar">
+    <div style="display:flex;align-items:center;gap:14px">
+        <a href="index.html" class="back-link">← Назад</a>
+        <div class="page-title">Дельта щоденна</div>
+    </div>
+</div>
+
+<div class="tabs">
+    <button class="tab active" onclick="switchTab('table')">📋 Таблиця</button>
+    <button class="tab" onclick="switchTab('weekday')">📅 Пн–Чт / Пт–Нд</button>
+    <button class="tab" onclick="switchTab('weekly')">📆 По тижнях</button>
+</div>
+
+<div class="filters-wrap" id="filtersWrap" style="display:none">
+    <div class="filter-row" id="filterYearRow">
+        <span class="filter-label">Рік</span>
+        <div id="yearPills" style="display:flex;gap:3px;flex-wrap:wrap"></div>
+    </div>
+    <div class="filter-row" id="filterMonthRow">
+        <span class="filter-label">Місяць</span>
+        <div id="monthPills" style="display:flex;gap:3px;flex-wrap:wrap"></div>
+    </div>
+    <div class="filter-row" id="filterStoreRow">
+        <span class="filter-label">Магазин</span>
+        <div id="storePills" style="display:flex;gap:3px;flex-wrap:wrap"></div>
+    </div>
+</div>
+
+<div id="tabContent">
+    <div class="table-card"><div class="status-box">Завантаження…</div></div>
+</div>
+
+<script>
+const CSV_URL='https://docs.google.com/spreadsheets/d/e/2PACX-1vRnVyY9d_BjUGvXWa3VUFsdMoBwZH-MINuS8b91-lgNqeNMx-6UsE5oRJ66x6XVmK_JhXcGTbSK9Emx/pub?output=csv';
+const MONTHS_UK=['Січень','Лютий','Березень','Квітень','Травень','Червень','Липень','Серпень','Вересень','Жовтень','Листопад','Грудень'];
+const DOW_WE=['пт','сб','нд','п\'ятниця','субота','неділя','friday','saturday','sunday','5','6','7'];
+
+// STATE
+let stores=[];   // [{name, cols:[{type:'foks'|'komf'|'delta', colIdx}]}]
+let dataRows=[]; // [{year,month,week,dow,dowNum,date,storeVals:{storeName:{foks,komf,delta}}}]
+let allYears=[],allMonths=[];
+let selYears=new Set(),selMonths=new Set(),selStores=new Set();
+let activeTab='table';
+
+function parseCSV(text){
+    const res=[];let row=[],col='',inQ=false;
+    for(let i=0;i<text.length;i++){
+        const c=text[i];
+        if(c==='"'&&text[i+1]==='"'){col+='"';i++;}
+        else if(c==='"')inQ=!inQ;
+        else if(c===','&&!inQ){row.push(col.trim());col='';}
+        else if((c==='\n'||c==='\r')&&!inQ){if(c==='\r'&&text[i+1]==='\n')i++;row.push(col.trim());res.push(row);row=[];col='';}
+        else col+=c;
+    }
+    if(col||row.length){row.push(col.trim());res.push(row);}
+    return res.filter(r=>r.some(c=>c));
+}
+function toN(v){
+    if(!v&&v!==0)return null;
+    const s=String(v).replace(/\s|\u00a0/g,'').replace(',','.').replace('%','');
+    if(['#div/0!','#value!','#n/a','#ref!'].includes(s.toLowerCase()))return null;
+    const n=parseFloat(s);return isNaN(n)?null:n;
+}
+function fmt(v){
+    if(v===null||v===undefined)return'—';
+    const n=Number(v);if(isNaN(n))return'—';
+    if(Math.abs(n)>=1000000)return(n/1000000).toFixed(2)+'М';
+    if(Math.abs(n)>=1000)return(n/1000).toFixed(1)+'К';
+    if(n%1!==0)return n.toFixed(2);
+    return n.toLocaleString('uk-UA');
+}
+function fmtDate(d){
+    if(!d)return'';
+    // try parse DD.MM.YYYY or YYYY-MM-DD
+    const parts=d.replace(/\//g,'.').split('.');
+    if(parts.length===3){
+        const [a,b,c]=parts;
+        if(a.length===4)return`${c}.${b}`;// YYYY.MM.DD → DD.MM
+        return`${a}.${b}`;// DD.MM.YYYY → DD.MM
+    }
+    return d;
+}
+function isWeekend(dow){
+    return DOW_WE.some(w=>String(dow).toLowerCase().trim()===w||String(dow).toLowerCase().includes(w));
+}
+
+function detect(rows){
+    // Row 0: sparse — year/month info headers (cols 0-6 are date fields)
+    // Row 1 (index 1) or 2: store names (repeated for each store's 3 cols)
+    // Row 2 or 3: sub-col headers: Фокстрот, Комфі, Дельта день
+    // Rows 3+: data
+    // We need to find which row has store names and which has sub-col names
+
+    // Find header rows: look for row containing 'фокстрот' or 'комфі'
+    let storeRow=-1,subRow=-1;
+    for(let i=0;i<Math.min(6,rows.length);i++){
+        const r=rows[i].map(c=>(c||'').toLowerCase());
+        if(r.some(c=>c.includes('фокс')||c.includes('комф')||c.includes('дельт'))){
+            if(storeRow===-1&&r.filter(c=>c.includes('фокс')||c.includes('комф')).length>0){
+                // Check if this is the sub-col row or store row
+                // Sub-col row has 'фокстрот','комфі','дельта' repeating
+                // Store row has store names
+                const hasFoksAsStoreOrSub=r.filter(c=>c==='фокстрот'||c.includes('фокс')).length;
+                if(hasFoksAsStoreOrSub>1&&r.filter(c=>c==='комфі').length>0){
+                    subRow=i;
+                } else {
+                    if(storeRow===-1)storeRow=i;
+                }
+            }
+        }
+    }
+    // If only one header row found, use it as sub-col row
+    if(subRow===-1&&storeRow>-1){subRow=storeRow;storeRow=storeRow-1;}
+    if(subRow===-1)subRow=2;
+    if(storeRow===-1)storeRow=1;
+
+    // Parse store names and sub-cols
+    const storeRowData=rows[storeRow]||[];
+    const subRowData=rows[subRow]||[];
+    stores=[];
+    let curStore='';
+    for(let i=7;i<subRowData.length;i++){
+        const sn=(storeRowData[i]||'').trim();
+        if(sn)curStore=sn;
+        const sub=(subRowData[i]||'').toLowerCase().trim();
+        if(!curStore||!sub)continue;
+        let type=null;
+        if(sub.includes('фокс'))type='foks';
+        else if(sub.includes('комф'))type='komf';
+        else if(sub.includes('дельт')||sub.includes('delta'))type='delta';
+        if(!type)continue;
+        let st=stores.find(s=>s.name===curStore);
+        if(!st){st={name:curStore,cols:[]};stores.push(st);}
+        st.cols.push({type,colIdx:i});
+    }
+
+    const dataStart=subRow+1;
+    dataRows=[];
+    const yrs=new Set(),mos=new Set();
+    for(let ri=dataStart;ri<rows.length;ri++){
+        const row=rows[ri];
+        if(!row.some(c=>c))continue;
+        const year=toN(row[0]);
+        const week=toN(row[1]);
+        const monthNum=toN(row[2]);
+        const monthName=(row[3]||'').trim();
+        const dowName=(row[4]||row[5]||'').trim();
+        const dateStr=(row[6]||'').trim();
+        if(!year||!dateStr)continue;
+
+        const mo=monthNum||(()=>{
+            const lo=monthName.toLowerCase();
+            const idx=MONTHS_UK.findIndex(m=>lo.includes(m.slice(0,3).toLowerCase()));
+            return idx>=0?idx+1:null;
+        })();
+        if(!mo)continue;
+
+        // Parse day of week number
+        let dowNum=0;
+        const dowLo=dowName.toLowerCase();
+        const dowMap={понеділок:1,пн:1,вівторок:2,вт:2,середа:3,ср:3,четвер:4,чт:4,пятниця:5,"п'ятниця":5,пт:5,субота:6,сб:6,неділя:7,нд:7,monday:1,tuesday:2,wednesday:3,thursday:4,friday:5,saturday:6,sunday:7};
+        for(const[k,v]of Object.entries(dowMap)){if(dowLo.includes(k)){dowNum=v;break;}}
+        // Also try numeric
+        if(!dowNum){const n=toN(row[5]);if(n>=1&&n<=7)dowNum=n;}
+
+        const storeVals={};
+        stores.forEach(st=>{
+            const fCol=st.cols.find(c=>c.type==='foks');
+            const kCol=st.cols.find(c=>c.type==='komf');
+            const dCol=st.cols.find(c=>c.type==='delta');
+            const fv=fCol?toN(row[fCol.colIdx]):null;
+            const kv=kCol?toN(row[kCol.colIdx]):null;
+            let dv=dCol?toN(row[dCol.colIdx]):null;
+            // Calc delta if missing but foks+komf available
+            if(dv===null&&fv!=null&&kv!=null&&fv!==0)dv=kv/fv;
+            storeVals[st.name]={foks:fv,komf:kv,delta:dv};
+        });
+
+        dataRows.push({year,month:mo,week,dowName,dowNum,date:dateStr,storeVals,
+            isWE:dowNum>=5||isWeekend(dowName)});
+        yrs.add(year);mos.add(mo);
+    }
+    allYears=[...yrs].sort((a,b)=>a-b);
+    allMonths=[...mos].sort((a,b)=>a-b);
+    selYears=new Set(allYears);
+    selMonths=new Set(allMonths);
+    selStores=new Set(stores.map(s=>s.name));
+}
+
+function activeData(){
+    return dataRows.filter(r=>selYears.has(r.year)&&selMonths.has(r.month));
+}
+function activeStores(){
+    return stores.filter(s=>selStores.has(s.name));
+}
+
+// ── FILTERS ──
+function renderFilters(){
+    renderPills('yearPills',allYears,selYears,'#1d1d1f',y=>String(y),(y)=>{
+        if(selYears.has(y)){if(selYears.size>1)selYears.delete(y);}else selYears.add(y);
+        renderFilters();render();
+    });
+    renderPills('monthPills',allMonths,selMonths,'#1d1d1f',m=>MONTHS_UK[m-1].slice(0,3),(m)=>{
+        if(selMonths.has(m)){if(selMonths.size>1)selMonths.delete(m);}else selMonths.add(m);
+        renderFilters();render();
+    });
+    renderPills('storePills',stores.map(s=>s.name),selStores,'#0071e3',n=>n,(n)=>{
+        if(selStores.has(n)){if(selStores.size>1)selStores.delete(n);}else selStores.add(n);
+        renderFilters();render();
+    });
+    document.getElementById('filtersWrap').style.display='';
+}
+function renderPills(id,items,selSet,color,label,onclick){
+    const el=document.getElementById(id);el.innerHTML='';
+    items.forEach(item=>{
+        const act=selSet.has(item);
+        const b=document.createElement('button');b.className='pill'+(act?' active':'');
+        b.textContent=label(item);
+        if(act){b.style.background=color;b.style.color='#fff';}
+        b.onclick=()=>onclick(item);
+        el.appendChild(b);
+    });
+}
+
+// ── TABLE TAB ──
+function renderTable(){
+    const cont=document.getElementById('tabContent');
+    const data=activeData();
+    const sts=activeStores();
+    if(!data.length){cont.innerHTML='<div class="table-card"><div class="status-box">Немає даних</div></div>';return;}
+
+    const card=document.createElement('div');card.className='table-card';
+    const hint=document.createElement('div');hint.className='table-hint';
+    hint.innerHTML='Пн–Чт — <span class="hl">звичайні дні</span> | Пт–Нд — <span style="color:#ff9500;font-weight:600">вихідні</span>';
+    card.appendChild(hint);
+    const wrap=document.createElement('div');wrap.style.cssText='overflow-x:auto;-webkit-overflow-scrolling:touch;';
+    card.appendChild(wrap);
+
+    const tbl=document.createElement('table');
+    const thead=document.createElement('thead');
+
+    // Row 1: group headers
+    const trG=document.createElement('tr');
+    const thD=document.createElement('th');thD.className='c-fix c-date grp sticky-grp';thD.rowSpan=2;thD.textContent='Дата';trG.appendChild(thD);
+    const thW=document.createElement('th');thW.className='c-fix c-dow grp sticky-grp';thW.rowSpan=2;thW.textContent='День';trG.appendChild(thW);
+    sts.forEach((st,i)=>{
+        const th=document.createElement('th');th.className='grp sticky-grp';th.colSpan=3;th.textContent=st.name;
+        if(i>0)th.classList.add('grp-sep');trG.appendChild(th);
+    });
+    // Total grp
+    const thT=document.createElement('th');thT.className='grp sticky-grp grp-sep';thT.colSpan=3;thT.textContent='ЗАГАЛОМ';trG.appendChild(thT);
+    thead.appendChild(trG);
+
+    // Row 2: sub-col headers
+    const trH=document.createElement('tr');
+    sts.forEach((st,i)=>{
+        ['Фокс','Комфі','Δ'].forEach((lbl,j)=>{
+            const th=document.createElement('th');th.textContent=lbl;
+            if(j===0&&i>0)th.classList.add('grp-sep');trH.appendChild(th);
+        });
+    });
+    ['Фокс','Комфі','Δ'].forEach((lbl,j)=>{
+        const th=document.createElement('th');th.textContent=lbl;
+        if(j===0)th.classList.add('grp-sep');trH.appendChild(th);
+    });
+    thead.appendChild(trH);tbl.appendChild(thead);
+
+    const tbody=document.createElement('tbody');
+    let prevWeek=null;
+    // Totals
+    let totFoks=0,totKomf=0;
+
+    data.forEach(r=>{
+        const tr=document.createElement('tr');
+        if(r.isWE)tr.classList.add('weekend');
+        if(r.week&&r.week!==prevWeek){tr.classList.add('week-start');prevWeek=r.week;}
+
+        const tdD=document.createElement('td');tdD.className='c-fix c-date';tdD.textContent=fmtDate(r.date);tr.appendChild(tdD);
+        const tdW=document.createElement('td');tdW.className='c-fix c-dow';
+        tdW.textContent=r.dowName?r.dowName.slice(0,2):'';tr.appendChild(tdW);
+
+        let rowFoks=0,rowKomf=0;
+        sts.forEach((st,i)=>{
+            const v=r.storeVals[st.name]||{};
+            const f=v.foks??null,k=v.komf??null;
+            const d=(f!=null&&k!=null&&f!==0)?k/f:v.delta;
+            if(f!=null)rowFoks+=f;if(k!=null)rowKomf+=k;
+            const tdF=document.createElement('td');tdF.textContent=fmt(f);if(i>0)tdF.classList.add('grp-sep');tr.appendChild(tdF);
+            const tdK=document.createElement('td');tdK.textContent=fmt(k);tr.appendChild(tdK);
+            const tdD2=document.createElement('td');
+            if(d!=null){tdD2.textContent=d.toFixed(2);tdD2.className=d>1?'dpos':d<1?'dneg':'';}else tdD2.textContent='—';
+            tr.appendChild(tdD2);
+        });
+        totFoks+=rowFoks;totKomf+=rowKomf;
+        // Total cols
+        const totD=rowFoks>0?rowKomf/rowFoks:null;
+        const tfF=document.createElement('td');tfF.textContent=fmt(rowFoks);tfF.classList.add('grp-sep');tr.appendChild(tfF);
+        const tfK=document.createElement('td');tfK.textContent=fmt(rowKomf);tr.appendChild(tfK);
+        const tfD=document.createElement('td');
+        if(totD!=null){tfD.textContent=totD.toFixed(2);tfD.className=totD>1?'dpos':totD<1?'dneg':'';}else tfD.textContent='—';
+        tr.appendChild(tfD);
+
+        tbody.appendChild(tr);
+    });
+
+    // Total row
+    const trTot=document.createElement('tr');trTot.className='total-row';
+    const tdTotDate=document.createElement('td');tdTotDate.className='c-fix c-date';tdTotDate.textContent='РАЗОМ';trTot.appendChild(tdTotDate);
+    const tdTotDow=document.createElement('td');tdTotDow.className='c-fix c-dow';trTot.appendChild(tdTotDow);
+    // Per store totals
+    sts.forEach((st,i)=>{
+        let sf=0,sk=0;
+        data.forEach(r=>{const v=r.storeVals[st.name]||{};if(v.foks!=null)sf+=v.foks;if(v.komf!=null)sk+=v.komf;});
+        const sd=sf>0?sk/sf:null;
+        const t1=document.createElement('td');t1.textContent=fmt(sf);if(i>0)t1.classList.add('grp-sep');trTot.appendChild(t1);
+        const t2=document.createElement('td');t2.textContent=fmt(sk);trTot.appendChild(t2);
+        const t3=document.createElement('td');if(sd!=null){t3.textContent=sd.toFixed(2);t3.className=sd>1?'dpos':sd<1?'dneg':'';}else t3.textContent='—';trTot.appendChild(t3);
+    });
+    const gd=totFoks>0?totKomf/totFoks:null;
+    const g1=document.createElement('td');g1.textContent=fmt(totFoks);g1.classList.add('grp-sep');trTot.appendChild(g1);
+    const g2=document.createElement('td');g2.textContent=fmt(totKomf);trTot.appendChild(g2);
+    const g3=document.createElement('td');if(gd!=null){g3.textContent=gd.toFixed(2);g3.className=gd>1?'dpos':gd<1?'dneg':'';}else g3.textContent='—';trTot.appendChild(g3);
+    tbody.appendChild(trTot);
+
+    tbl.appendChild(tbody);wrap.appendChild(tbl);
+    cont.innerHTML='';cont.appendChild(card);
+}
+
+// ── WEEKDAY TAB (Пн–Чт / Пт–Нд per week) ──
+function renderWeekday(){
+    const cont=document.getElementById('tabContent');
+    const data=activeData();
+    const sts=activeStores();
+    if(!data.length){cont.innerHTML='<div class="table-card"><div class="status-box">Немає даних</div></div>';return;}
+
+    // Group by year+week
+    const weekMap=new Map();
+    data.forEach(r=>{
+        if(!r.week)return;
+        const wk=r.year+'_W'+String(r.week).padStart(2,'0');
+        if(!weekMap.has(wk))weekMap.set(wk,{year:r.year,week:r.week,wd:[],we:[]});
+        const wData=weekMap.get(wk);
+        if(r.isWE)wData.we.push(r);else wData.wd.push(r);
+    });
+
+    const card=document.createElement('div');card.className='table-card';
+    const hint=document.createElement('div');hint.className='table-hint';
+    hint.innerHTML='<span class="badge-wd">Пн–Чт</span> та <span class="badge-we">Пт–Нд</span> — суми за кожен тиждень';
+    card.appendChild(hint);
+    const wrap=document.createElement('div');wrap.style.cssText='overflow-x:auto;-webkit-overflow-scrolling:touch;';
+
+    const tbl=document.createElement('table');
+    const thead=document.createElement('thead');
+    const trG=document.createElement('tr');
+    // Fixed cols
+    const thYr=document.createElement('th');thYr.className='c-fix c-date grp sticky-grp';thYr.rowSpan=2;thYr.textContent='Рік';trG.appendChild(thYr);
+    const thWk=document.createElement('th');thWk.className='c-fix c-dow grp sticky-grp';thWk.rowSpan=2;thWk.textContent='Тиж';trG.appendChild(thWk);
+    // Groups for each store × 2 segments
+    sts.forEach((st,i)=>{
+        ['Пн–Чт','Пт–Нд'].forEach((seg,j)=>{
+            const th=document.createElement('th');th.className='grp sticky-grp';th.colSpan=3;
+            th.textContent=st.name+' '+seg;
+            if(i>0&&j===0)th.classList.add('grp-sep');
+            trG.appendChild(th);
+        });
+    });
+    // Total
+    ['Пн–Чт','Пт–Нд'].forEach((seg,j)=>{
+        const th=document.createElement('th');th.className='grp sticky-grp';th.colSpan=3;th.textContent='РАЗОМ '+seg;
+        if(j===0)th.classList.add('grp-sep');trG.appendChild(th);
+    });
+    thead.appendChild(trG);
+    const trH=document.createElement('tr');
+    const addSubCols=(n)=>{for(let i=0;i<n;i++)['Фокс','Комфі','Δ'].forEach(l=>{const th=document.createElement('th');th.textContent=l;trH.appendChild(th);});};
+    addSubCols(sts.length*2+2);
+    thead.appendChild(trH);tbl.appendChild(thead);
+
+    const tbody=document.createElement('tbody');
+    const sortedWeeks=[...weekMap.keys()].sort();
+    sortedWeeks.forEach(wk=>{
+        const {year,week,wd,we}=weekMap.get(wk);
+        const tr=document.createElement('tr');
+        const tdY=document.createElement('td');tdY.className='c-fix c-date';tdY.textContent=year;tr.appendChild(tdY);
+        const tdW=document.createElement('td');tdW.className='c-fix c-dow';tdW.textContent='T'+week;tr.appendChild(tdW);
+
+        const calc=(rows,stName)=>{
+            let f=0,k=0;
+            rows.forEach(r=>{const v=r.storeVals[stName]||{};if(v.foks!=null)f+=v.foks;if(v.komf!=null)k+=v.komf;});
+            return{f,k,d:f>0?k/f:null};
+        };
+        const addCell=(val,cls,first,grpSep)=>{
+            const td=document.createElement('td');
+            if(val!=null){td.textContent=typeof val==='number'&&!Number.isInteger(val)?val.toFixed(2):fmt(val);}else td.textContent='—';
+            if(cls)td.className=cls;if(grpSep)td.classList.add('grp-sep');
+            tr.appendChild(td);
+        };
+
+        let totWdF=0,totWdK=0,totWeF=0,totWeK=0;
+        sts.forEach((st,i)=>{
+            const r1=calc(wd,st.name);const r2=calc(we,st.name);
+            totWdF+=r1.f;totWdK+=r1.k;totWeF+=r2.f;totWeK+=r2.k;
+            addCell(r1.f,'',(i===0),i>0);addCell(r1.k);
+            addCell(r1.d,r1.d!=null?(r1.d>1?'dpos':r1.d<1?'dneg':''):'');
+            addCell(r2.f);addCell(r2.k);
+            addCell(r2.d,r2.d!=null?(r2.d>1?'dpos':r2.d<1?'dneg':''):'');
+        });
+        const td1=totWdF>0?totWdK/totWdF:null,td2=totWeF>0?totWeK/totWeF:null;
+        addCell(totWdF,'',false,true);addCell(totWdK);addCell(td1,td1!=null?(td1>1?'dpos':td1<1?'dneg':''):'');
+        addCell(totWeF);addCell(totWeK);addCell(td2,td2!=null?(td2>1?'dpos':td2<1?'dneg':''):'');
+
+        tbody.appendChild(tr);
+    });
+    tbl.appendChild(tbody);wrap.appendChild(tbl);card.appendChild(wrap);
+    cont.innerHTML='';cont.appendChild(card);
+}
+
+// ── WEEKLY TAB ──
+function renderWeekly(){
+    const cont=document.getElementById('tabContent');
+    const data=activeData();
+    const sts=activeStores();
+    if(!data.length){cont.innerHTML='<div class="table-card"><div class="status-box">Немає даних</div></div>';return;}
+
+    // Group by year+week
+    const weekMap=new Map();
+    data.forEach(r=>{
+        if(!r.week)return;
+        const wk=r.year+'_W'+String(r.week).padStart(2,'0');
+        if(!weekMap.has(wk))weekMap.set(wk,{year:r.year,week:r.week,rows:[]});
+        weekMap.get(wk).rows.push(r);
+    });
+
+    const card=document.createElement('div');card.className='table-card';
+    const hint=document.createElement('div');hint.className='table-hint';
+    hint.innerHTML='<span class="badge-wk">Тиждень</span> — загальна сума за весь тиждень по кожному магазину';
+    card.appendChild(hint);
+    const wrap=document.createElement('div');wrap.style.cssText='overflow-x:auto;-webkit-overflow-scrolling:touch;';
+
+    const tbl=document.createElement('table');
+    const thead=document.createElement('thead');
+    const trG=document.createElement('tr');
+    const thYr=document.createElement('th');thYr.className='c-fix c-date grp sticky-grp';thYr.rowSpan=2;thYr.textContent='Рік';trG.appendChild(thYr);
+    const thWk=document.createElement('th');thWk.className='c-fix c-dow grp sticky-grp';thWk.rowSpan=2;thWk.textContent='Тиж';trG.appendChild(thWk);
+    sts.forEach((st,i)=>{
+        const th=document.createElement('th');th.className='grp sticky-grp';th.colSpan=3;th.textContent=st.name;
+        if(i>0)th.classList.add('grp-sep');trG.appendChild(th);
+    });
+    const thT=document.createElement('th');thT.className='grp sticky-grp grp-sep';thT.colSpan=3;thT.textContent='ЗАГАЛОМ';trG.appendChild(thT);
+    thead.appendChild(trG);
+    const trH=document.createElement('tr');
+    [...sts,{name:'total'}].forEach((st,i)=>{
+        ['Фокс','Комфі','Δ'].forEach((l,j)=>{
+            const th=document.createElement('th');th.textContent=l;
+            if(j===0&&i>0)th.classList.add('grp-sep');trH.appendChild(th);
+        });
+    });
+    thead.appendChild(trH);tbl.appendChild(thead);
+
+    const tbody=document.createElement('tbody');
+    [...weekMap.keys()].sort().forEach(wk=>{
+        const {year,week,rows}=weekMap.get(wk);
+        const tr=document.createElement('tr');
+        const tdY=document.createElement('td');tdY.className='c-fix c-date';tdY.textContent=year;tr.appendChild(tdY);
+        const tdW=document.createElement('td');tdW.className='c-fix c-dow';tdW.textContent='T'+week;tr.appendChild(tdW);
+        let totF=0,totK=0;
+        sts.forEach((st,i)=>{
+            let f=0,k=0;
+            rows.forEach(r=>{const v=r.storeVals[st.name]||{};if(v.foks!=null)f+=v.foks;if(v.komf!=null)k+=v.komf;});
+            totF+=f;totK+=k;
+            const d=f>0?k/f:null;
+            const t1=document.createElement('td');t1.textContent=fmt(f);if(i>0)t1.classList.add('grp-sep');tr.appendChild(t1);
+            const t2=document.createElement('td');t2.textContent=fmt(k);tr.appendChild(t2);
+            const t3=document.createElement('td');if(d!=null){t3.textContent=d.toFixed(2);t3.className=d>1?'dpos':d<1?'dneg':'';}else t3.textContent='—';tr.appendChild(t3);
+        });
+        const gd=totF>0?totK/totF:null;
+        const g1=document.createElement('td');g1.textContent=fmt(totF);g1.classList.add('grp-sep');tr.appendChild(g1);
+        const g2=document.createElement('td');g2.textContent=fmt(totK);tr.appendChild(g2);
+        const g3=document.createElement('td');if(gd!=null){g3.textContent=gd.toFixed(2);g3.className=gd>1?'dpos':gd<1?'dneg':'';}else g3.textContent='—';tr.appendChild(g3);
+        tbody.appendChild(tr);
+    });
+    tbl.appendChild(tbody);wrap.appendChild(tbl);card.appendChild(wrap);
+    cont.innerHTML='';cont.appendChild(card);
+}
+
+function render(){
+    if(activeTab==='table')renderTable();
+    else if(activeTab==='weekday')renderWeekday();
+    else renderWeekly();
+}
+
+function switchTab(tab){
+    activeTab=tab;
+    document.querySelectorAll('.tab').forEach((b,i)=>{
+        b.classList.toggle('active',['table','weekday','weekly'][i]===tab);
+    });
+    render();
+}
+
+function showSkel(){
+    const cont=document.getElementById('tabContent');
+    const card=document.createElement('div');card.className='table-card';
+    const wrap=document.createElement('div');
+    for(let i=0;i<14;i++){
+        const row=document.createElement('div');row.className='skel-row';
+        for(let j=0;j<6;j++){const c=document.createElement('div');c.className='skel-cell skel'+(j<2?' w':'');c.style.animationDelay=(i*.04+j*.015)+'s';row.appendChild(c);}
+        wrap.appendChild(row);
+    }
+    card.appendChild(wrap);cont.innerHTML='';cont.appendChild(card);
+}
+
+async function init(){
+    showSkel();
+    try{
+        const res=await fetch(CSV_URL+'&t='+Date.now());
+        if(!res.ok)throw new Error('HTTP '+res.status);
+        const text=await res.text();
+        const rows=parseCSV(text);
+        if(!rows.length)throw new Error('Порожній файл');
+        detect(rows);
+        if(!stores.length)throw new Error('Не знайдено магазини');
+        renderFilters();
+        render();
+    }catch(e){
+        document.getElementById('tabContent').innerHTML=`<div class="table-card"><div class="status-box error">❌ ${e.message}</div></div>`;
+        console.error(e);
+    }
+}
+init();
+</script>
+</body>
+</html>
