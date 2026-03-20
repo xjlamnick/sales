@@ -161,50 +161,50 @@ function isWeekend(dow){
 }
 
 function detect(rows){
-    // Row 0: sparse — year/month info headers (cols 0-6 are date fields)
-    // Row 1 (index 1) or 2: store names (repeated for each store's 3 cols)
-    // Row 2 or 3: sub-col headers: Фокстрот, Комфі, Дельта день
-    // Rows 3+: data
-    // We need to find which row has store names and which has sub-col names
+    // Структура CSV (зі скріншота):
+    // Row 0 (idx 0): порожні A-F, потім загальні суми (TOTAL рядок 1)
+    // Row 1 (idx 1): TOTAL, YEAR, PERIOD у перших колонках + числа сум
+    // Row 2 (idx 2): назви магазинів (починаючи з col 7/H), з пробілами між магазинами
+    // Row 3 (idx 3): підколонки — Фокстрот, Комфі, Дельта день (повторюється)
+    // Row 4+ : дані — рік(0), тиждень(1), №місяця(2), місяць(3), деньЦифра(4), деньНазва(5), дата(6)
 
-    // Find header rows: look for row containing 'фокстрот' or 'комфі'
-    let storeRow=-1,subRow=-1;
-    for(let i=0;i<Math.min(6,rows.length);i++){
-        const r=rows[i].map(c=>(c||'').toLowerCase());
-        if(r.some(c=>c.includes('фокс')||c.includes('комф')||c.includes('дельт'))){
-            if(storeRow===-1&&r.filter(c=>c.includes('фокс')||c.includes('комф')).length>0){
-                // Check if this is the sub-col row or store row
-                // Sub-col row has 'фокстрот','комфі','дельта' repeating
-                // Store row has store names
-                const hasFoksAsStoreOrSub=r.filter(c=>c==='фокстрот'||c.includes('фокс')).length;
-                if(hasFoksAsStoreOrSub>1&&r.filter(c=>c==='комфі').length>0){
-                    subRow=i;
-                } else {
-                    if(storeRow===-1)storeRow=i;
-                }
+    // Знаходимо рядок з підколонками (містить 'фокстрот' і 'комфі' як окремі значення)
+    let subRow=-1, storeRow=-1;
+    for(let i=0;i<Math.min(8,rows.length);i++){
+        const r=rows[i].map(c=>(c||'').toLowerCase().trim());
+        const hasFoks=r.filter(c=>c==='фокстрот').length;
+        const hasKomf=r.filter(c=>c==='комфі').length;
+        if(hasFoks>=1&&hasKomf>=1){subRow=i;storeRow=i-1;break;}
+    }
+    if(subRow===-1){
+        // Fallback: шукаємо рядок де є 'фокс' і 'комф'
+        for(let i=0;i<Math.min(8,rows.length);i++){
+            const r=rows[i].map(c=>(c||'').toLowerCase().trim());
+            if(r.some(c=>c.includes('фокс'))&&r.some(c=>c.includes('комф'))){
+                subRow=i;storeRow=i-1;break;
             }
         }
     }
-    // If only one header row found, use it as sub-col row
-    if(subRow===-1&&storeRow>-1){subRow=storeRow;storeRow=storeRow-1;}
-    if(subRow===-1)subRow=2;
-    if(storeRow===-1)storeRow=1;
+    if(subRow===-1){subRow=3;storeRow=2;}
 
-    // Parse store names and sub-cols
     const storeRowData=rows[storeRow]||[];
     const subRowData=rows[subRow]||[];
+
+    // Парсимо магазини: назва магазину в storeRowData, підколонки в subRowData
+    // Назва магазину може займати 3 колонки (Фокс+Комфі+Дельта), між магазинами порожні колонки
     stores=[];
     let curStore='';
-    for(let i=7;i<subRowData.length;i++){
+    for(let i=7;i<Math.max(storeRowData.length,subRowData.length);i++){
         const sn=(storeRowData[i]||'').trim();
-        if(sn)curStore=sn;
+        if(sn) curStore=sn;
+        if(!curStore) continue;
         const sub=(subRowData[i]||'').toLowerCase().trim();
-        if(!curStore||!sub)continue;
+        if(!sub) continue;
         let type=null;
-        if(sub.includes('фокс'))type='foks';
-        else if(sub.includes('комф'))type='komf';
-        else if(sub.includes('дельт')||sub.includes('delta'))type='delta';
-        if(!type)continue;
+        if(sub==='фокстрот'||sub.includes('фокс')) type='foks';
+        else if(sub==='комфі'||sub.includes('комф')) type='komf';
+        else if(sub.includes('дельт')||sub.includes('delta')) type='delta';
+        if(!type) continue;
         let st=stores.find(s=>s.name===curStore);
         if(!st){st={name:curStore,cols:[]};stores.push(st);}
         st.cols.push({type,colIdx:i});
@@ -215,29 +215,34 @@ function detect(rows){
     const yrs=new Set(),mos=new Set();
     for(let ri=dataStart;ri<rows.length;ri++){
         const row=rows[ri];
-        if(!row.some(c=>c))continue;
+        if(!row.some(c=>c)) continue;
+
+        // Визначаємо поля дати: рік(0),тиждень(1),№міс(2),місяць(3),деньЦифра(4),деньНазва(5),дата(6)
         const year=toN(row[0]);
         const week=toN(row[1]);
         const monthNum=toN(row[2]);
         const monthName=(row[3]||'').trim();
-        const dowName=(row[4]||row[5]||'').trim();
+        const dowNumRaw=toN(row[4]);  // цифра дня тижня
+        const dowName=(row[5]||'').trim(); // назва дня тижня
         const dateStr=(row[6]||'').trim();
-        if(!year||!dateStr)continue;
 
+        if(!year||!dateStr) continue;
+
+        // Місяць
         const mo=monthNum||(()=>{
             const lo=monthName.toLowerCase();
             const idx=MONTHS_UK.findIndex(m=>lo.includes(m.slice(0,3).toLowerCase()));
             return idx>=0?idx+1:null;
         })();
-        if(!mo)continue;
+        if(!mo) continue;
 
-        // Parse day of week number
-        let dowNum=0;
-        const dowLo=dowName.toLowerCase();
-        const dowMap={понеділок:1,пн:1,вівторок:2,вт:2,середа:3,ср:3,четвер:4,чт:4,пятниця:5,"п'ятниця":5,пт:5,субота:6,сб:6,неділя:7,нд:7,monday:1,tuesday:2,wednesday:3,thursday:4,friday:5,saturday:6,sunday:7};
-        for(const[k,v]of Object.entries(dowMap)){if(dowLo.includes(k)){dowNum=v;break;}}
-        // Also try numeric
-        if(!dowNum){const n=toN(row[5]);if(n>=1&&n<=7)dowNum=n;}
+        // День тижня (1=Пн...7=Нд)
+        let dowNum=dowNumRaw||0;
+        if(!dowNum){
+            const dowLo=dowName.toLowerCase();
+            const dowMap={понеділок:1,пн:1,вівторок:2,вт:2,середа:3,ср:3,четвер:4,чт:4,"п'ятниця":5,пятниця:5,пт:5,субота:6,сб:6,неділя:7,нд:7};
+            for(const[k,v]of Object.entries(dowMap)){if(dowLo===k||dowLo.startsWith(k)){dowNum=v;break;}}
+        }
 
         const storeVals={};
         stores.forEach(st=>{
@@ -247,13 +252,12 @@ function detect(rows){
             const fv=fCol?toN(row[fCol.colIdx]):null;
             const kv=kCol?toN(row[kCol.colIdx]):null;
             let dv=dCol?toN(row[dCol.colIdx]):null;
-            // Calc delta if missing but foks+komf available
-            if(dv===null&&fv!=null&&kv!=null&&fv!==0)dv=kv/fv;
+            if(dv===null&&fv!=null&&kv!=null&&fv!==0) dv=kv/fv;
             storeVals[st.name]={foks:fv,komf:kv,delta:dv};
         });
 
-        dataRows.push({year,month:mo,week,dowName,dowNum,date:dateStr,storeVals,
-            isWE:dowNum>=5||isWeekend(dowName)});
+        const isWE=dowNum>=5||(dowNum===0&&isWeekend(dowName));
+        dataRows.push({year,month:mo,week,dowName,dowNum,date:dateStr,storeVals,isWE});
         yrs.add(year);mos.add(mo);
     }
     allYears=[...yrs].sort((a,b)=>a-b);
