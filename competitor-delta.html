@@ -241,8 +241,22 @@ function detectStructure(csvRows){
     allYears=[...yrs].sort((a,b)=>a-b);
     allMonths=[...mos].sort((a,b)=>a-b);
     dataRows.forEach(r=>selectedPeriods.add(r.key));
-    // Debug: log all columns
-    console.log('[allCols]', allCols.map(c=>({group:c.group, sub:c.sub, isDelta:c.isDelta, key:c.key})));
+    // Debug: show columns on page
+    setTimeout(()=>{
+        const db=document.createElement('div');
+        db.id='debug-cols';
+        db.style.cssText='background:#1d1d1f;color:#0f0;font-family:monospace;font-size:11px;padding:12px;border-radius:8px;margin:10px;white-space:pre;overflow-x:auto;max-height:300px;overflow-y:auto';
+        const deltaC=allCols.filter(c=>c.isDelta);
+        const nonDelta=allCols.filter(c=>!c.isDelta);
+        let txt='=== DELTA COLS ===\n';
+        deltaC.forEach(c=>txt+=`group="${c.group}" sub="${c.sub}"\n`);
+        txt+='\n=== ALL GROUPS ===\n';
+        [...new Set(allCols.map(c=>c.group))].forEach(g=>txt+=`"${g}"\n`);
+        txt+='\n=== NON-DELTA sub names ===\n';
+        nonDelta.forEach(c=>txt+=`group="${c.group}" sub="${c.sub}"\n`);
+        db.textContent=txt;
+        document.body.insertBefore(db,document.body.firstChild);
+    },1500);
     return dataRows.length>0;
 }
 
