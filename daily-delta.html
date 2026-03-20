@@ -765,8 +765,8 @@ function renderChart(){
     const sortedKeys=[...gMap.keys()].sort();
     const labels=sortedKeys.map(k=>{
         if(selChartPeriod==='day')return fmtDate(k);
-        if(selChartPeriod==='week'){const p=k.split('_W');return'T'+p[1]+(p[0]?' ''+String(p[0]).slice(2):'');}
-        const p=k.split('_');const m=parseInt(p[1]);return MONTHS_UK[m-1]?.slice(0,3)+(p[0]?' ''+String(p[0]).slice(2):'');
+        if(selChartPeriod==='week'){const p=k.split('_W');return'T'+p[1]+(p[0]?' '+String(p[0]).slice(2):'');}
+        const p=k.split('_');const m=parseInt(p[1]);return MONTHS_UK[m-1]?.slice(0,3)+(p[0]?' '+String(p[0]).slice(2):'');
     });
 
     const datasets=[];
