@@ -261,34 +261,67 @@ function mkPill(text,active,onclick){
 
 function renderPillsFor(containerId,periodsSet,color){
     const yp=document.getElementById(containerId);yp.innerHTML='';
+    // Відслідковуємо який рік розгорнутий (accordion)
+    if(!yp._openYear) yp._openYear=null;
     allYears.forEach(y=>{
         const availM=allMonths.filter(m=>dataRows.some(r=>r.year===y&&r.month===m));
         if(!availM.length)return;
-        const allYA=availM.every(m=>periodsSet.has(y+'_'+m));
-        // Рядок для одного року
-        const yearRow=document.createElement('div');
-        yearRow.style.cssText='display:flex;align-items:center;flex-wrap:wrap;gap:2px;width:100%;padding:1px 0;';
+        const selCount=availM.filter(m=>periodsSet.has(y+'_'+m)).length;
+        const allYA=selCount===availM.length;
+        const isOpen=yp._openYear===y;
+
+        const block=document.createElement('div');
+        block.style.cssText='border-bottom:1px solid #f0f0f2;';
+
+        // Header рядок: рік + лічильник + стрілка
+        const header=document.createElement('div');
+        header.style.cssText='display:flex;align-items:center;gap:6px;padding:5px 2px;cursor:pointer;user-select:none;';
+
         const yBtn=document.createElement('button');
-        yBtn.className='pill'+(allYA?' active':'');
-        yBtn.textContent=y;yBtn.style.fontWeight='800';yBtn.style.minWidth='44px';
-        if(allYA){yBtn.style.background=color;yBtn.style.color='#fff';}
-        yBtn.onclick=()=>{
+        yBtn.style.cssText=`font-size:11px;font-weight:800;padding:3px 8px;border-radius:6px;border:none;cursor:pointer;font-family:inherit;background:${allYA?color:'#f0f0f5'};color:${allYA?'#fff':'#555'};`;
+        yBtn.textContent=y;
+        yBtn.onclick=(e)=>{
+            e.stopPropagation();
             if(allYA)availM.forEach(m=>periodsSet.delete(y+'_'+m));
             else availM.forEach(m=>periodsSet.add(y+'_'+m));
             renderFilters();refreshAll();
         };
-        yearRow.appendChild(yBtn);
-        availM.forEach(m=>{
-            const k=y+'_'+m,act=periodsSet.has(k);
-            const b=mkPill(MONTHS_UK[m-1].slice(0,3),act,()=>{
-                if(periodsSet.has(k))periodsSet.delete(k);else periodsSet.add(k);
-                renderFilters();refreshAll();
+
+        const counter=document.createElement('span');
+        counter.style.cssText=`font-size:10px;color:${selCount>0?color:'#aaa'};font-weight:600;flex:1;`;
+        counter.textContent=selCount>0?selCount+' міс.':'не вибрано';
+
+        const arrow=document.createElement('span');
+        arrow.style.cssText='font-size:10px;color:#aaa;transition:transform .15s;';
+        arrow.textContent=isOpen?'▲':'▼';
+
+        header.appendChild(yBtn);
+        header.appendChild(counter);
+        header.appendChild(arrow);
+        header.onclick=()=>{
+            yp._openYear=isOpen?null:y;
+            renderFilters();refreshAll();
+        };
+        block.appendChild(header);
+
+        // Місяці — тільки якщо розгорнуто
+        if(isOpen){
+            const moRow=document.createElement('div');
+            moRow.style.cssText='display:grid;grid-template-columns:repeat(6,1fr);gap:3px;padding:4px 0 6px;';
+            availM.forEach(m=>{
+                const k=y+'_'+m,act=periodsSet.has(k);
+                const b=document.createElement('button');
+                b.style.cssText=`font-size:10px;padding:4px 2px;border-radius:5px;border:none;cursor:pointer;font-family:inherit;font-weight:600;text-align:center;background:${act?color:'#f0f0f5'};color:${act?'#fff':'#666'};`;
+                b.textContent=MONTHS_UK[m-1].slice(0,3);
+                b.onclick=()=>{
+                    if(periodsSet.has(k))periodsSet.delete(k);else periodsSet.add(k);
+                    renderFilters();refreshAll();
+                };
+                moRow.appendChild(b);
             });
-            b.dataset.period=k;
-            if(act){b.style.background=color;b.style.color='#fff';}
-            yearRow.appendChild(b);
-        });
-        yp.appendChild(yearRow);
+            block.appendChild(moRow);
+        }
+        yp.appendChild(block);
     });
 }
 
@@ -299,39 +332,54 @@ function renderFilters(){
         return;
     }
     const yp=document.getElementById('pills1');yp.innerHTML='';
-    // "Всі" row
-    const allPairs=getAllPairs();
-    const allAct=allPairs.every(p=>selectedPeriods.has(p.key));
-    const allRow=document.createElement('div');allRow.style.cssText='display:flex;align-items:center;flex-wrap:wrap;gap:2px;width:100%;padding:1px 0;';
-    const ba=mkPill('Всі',allAct,()=>{allPairs.forEach(p=>selectedPeriods.add(p.key));renderFilters();refreshAll();});
-    allRow.appendChild(ba);yp.appendChild(allRow);
+    // Normal mode — такий самий accordion
+    if(!yp._openYear) yp._openYear=null;
+    const color='#1d1d1f';
     allYears.forEach(y=>{
         const availM=allMonths.filter(m=>dataRows.some(r=>r.year===y&&r.month===m));
         if(!availM.length)return;
-        const allYA=availM.every(m=>selectedPeriods.has(y+'_'+m));
-        const yearRow=document.createElement('div');
-        yearRow.style.cssText='display:flex;align-items:center;flex-wrap:wrap;gap:2px;width:100%;padding:1px 0;';
+        const selCount=availM.filter(m=>selectedPeriods.has(y+'_'+m)).length;
+        const allYA=selCount===availM.length;
+        const isOpen=yp._openYear===y;
+        const block=document.createElement('div');
+        block.style.cssText='border-bottom:1px solid #f0f0f2;';
+        const header=document.createElement('div');
+        header.style.cssText='display:flex;align-items:center;gap:6px;padding:5px 2px;cursor:pointer;user-select:none;';
         const yBtn=document.createElement('button');
-        yBtn.className='pill'+(allYA?' active':'');
-        yBtn.textContent=y;yBtn.style.fontWeight='800';yBtn.style.minWidth='44px';
-        if(allYA){yBtn.style.background='#1d1d1f';yBtn.style.color='#fff';}
-        yBtn.onclick=()=>{
+        yBtn.style.cssText=`font-size:11px;font-weight:800;padding:3px 8px;border-radius:6px;border:none;cursor:pointer;font-family:inherit;background:${allYA?color:'#f0f0f5'};color:${allYA?'#fff':'#555'};`;
+        yBtn.textContent=y;
+        yBtn.onclick=(e)=>{
+            e.stopPropagation();
             if(allYA)availM.forEach(m=>{if(selectedPeriods.size>1)selectedPeriods.delete(y+'_'+m);});
             else availM.forEach(m=>selectedPeriods.add(y+'_'+m));
             renderFilters();refreshAll();
         };
-        yearRow.appendChild(yBtn);
-        availM.forEach(m=>{
-            const k=y+'_'+m,act=selectedPeriods.has(k);
-            const b=mkPill(MONTHS_UK[m-1].slice(0,3),act,()=>{
-                if(selectedPeriods.has(k)){if(selectedPeriods.size>1)selectedPeriods.delete(k);}else selectedPeriods.add(k);
-                renderFilters();refreshAll();
+        const counter=document.createElement('span');
+        counter.style.cssText=`font-size:10px;color:${selCount>0?'#1d1d1f':'#aaa'};font-weight:600;flex:1;`;
+        counter.textContent=selCount>0?selCount+' міс.':'не вибрано';
+        const arrow=document.createElement('span');
+        arrow.style.cssText='font-size:10px;color:#aaa;';
+        arrow.textContent=isOpen?'▲':'▼';
+        header.appendChild(yBtn);header.appendChild(counter);header.appendChild(arrow);
+        header.onclick=()=>{yp._openYear=isOpen?null:y;renderFilters();refreshAll();};
+        block.appendChild(header);
+        if(isOpen){
+            const moRow=document.createElement('div');
+            moRow.style.cssText='display:grid;grid-template-columns:repeat(6,1fr);gap:3px;padding:4px 0 6px;';
+            availM.forEach(m=>{
+                const k=y+'_'+m,act=selectedPeriods.has(k);
+                const b=document.createElement('button');
+                b.style.cssText=`font-size:10px;padding:4px 2px;border-radius:5px;border:none;cursor:pointer;font-family:inherit;font-weight:600;text-align:center;background:${act?color:'#f0f0f5'};color:${act?'#fff':'#666'};`;
+                b.textContent=MONTHS_UK[m-1].slice(0,3);
+                b.onclick=()=>{
+                    if(selectedPeriods.has(k)){if(selectedPeriods.size>1)selectedPeriods.delete(k);}else selectedPeriods.add(k);
+                    renderFilters();refreshAll();
+                };
+                moRow.appendChild(b);
             });
-            b.dataset.period=k;
-            if(act){b.style.background='#1d1d1f';b.style.color='#fff';}
-            yearRow.appendChild(b);
-        });
-        yp.appendChild(yearRow);
+            block.appendChild(moRow);
+        }
+        yp.appendChild(block);
     });
 }
 
