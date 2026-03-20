@@ -71,6 +71,13 @@ tr.diff-row td.diff-neg{color:#b91c1c}
 .ctrl-lbl{font-size:11px;font-weight:600;color:var(--text-sec);margin-right:2px}
 .status-box{padding:40px;text-align:center;color:var(--text-sec);font-size:14px}
 .status-box.error{color:#ff3b30}
+
+/* Додатковий стиль для видимості всіх магазинів */
+#storePills {
+  flex-wrap: nowrap !important;
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch;
+}
 </style>
 </head>
 <body>
@@ -98,7 +105,11 @@ tr.diff-row td.diff-neg{color:#b91c1c}
   </div>
   <div class="filter-row">
     <span class="filter-label">Магазин</span>
-    <div id="storePills" style="display:flex;gap:3px;flex-wrap:wrap"></div>
+    <div id="storePills" style="display:flex;gap:3px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch"></div>
+  </div>
+  <div class="filter-row">
+    <span class="filter-label">ДНІ</span>
+    <div id="segmentPills" style="display:flex;gap:3px;flex-wrap:wrap"></div>
   </div>
 </div>
 <div id="tabContent">
@@ -114,6 +125,7 @@ const STORE_BG=['#eff6ff','#ecfeff','#faf5ff','#fdf2f8','#ecfdf5','#fffbeb','#ef
 // STATE
 let stores=[],dataRows=[],allYears=[],allMonths=[];
 let selYears=new Set(),selMonths=new Set(),selStores=new Set();
+let selSegments=new Set(['wd','we']);
 let activeTab='table',chartInstance=null;
 let selChartMode='store',selChartStore='',selChartPeriod='day',selChartMetric='delta';
 
@@ -340,6 +352,25 @@ function renderFilters(){
         b.title=s.name;
         if(a){b.style.background='#1d1d1f';b.style.color='#fff';}
         sp.appendChild(b);
+    });
+    // Segments (новий фільтр)
+    const segp=document.getElementById('segmentPills');segp.innerHTML='';
+    const segDefs=[{key:'wd',lbl:'Пн–Чт'},{key:'we',lbl:'Пт–Сб'}];
+    const allSeg=segDefs.every(s=>selSegments.has(s.key));
+    const baSeg=mkPill('Всі',allSeg,'pill-all',()=>{
+        if(allSeg)segDefs.forEach(s=>selSegments.delete(s.key));else segDefs.forEach(s=>selSegments.add(s.key));
+        renderFilters();render();
+    });
+    if(allSeg)baSeg.style.background='#374151';
+    segp.appendChild(baSeg);
+    segDefs.forEach(s=>{
+        const a=selSegments.has(s.key);
+        const b=mkPill(s.lbl,a,'',()=>{
+            if(a){if(selSegments.size>1)selSegments.delete(s.key);}else selSegments.add(s.key);
+            renderFilters();render();
+        });
+        if(a){b.style.background='#1d1d1f';b.style.color='#fff';}
+        segp.appendChild(b);
     });
     document.getElementById('filtersWrap').style.display='';
 }
@@ -584,55 +615,89 @@ function renderWeekday(){
     const wrap=document.createElement('div');wrap.className='table-wrap';
     const tbl=document.createElement('table');
     const thead=document.createElement('thead');
+
+    // === НОВА СТРУКТУРА ЗАГОЛОВКА (правка 1 + правка 3) ===
+    // segDefs для динамічного вибору через фільтр
+    const segDefs = [
+        {key:'wd', lbl:'Пн–Чт'},
+        {key:'we', lbl:'Пт–Сб'}
+    ];
+    const segsToShow = segDefs.filter(s => selSegments.has(s.key));
+    if(segsToShow.length === 0) segsToShow.push(...segDefs); // fallback
+
+    // Row1: Рік + Тиж + магазини (store name spanning all selected segments)
     const trG=document.createElement('tr');
-    trG.appendChild(mkTh('Рік','c-l1',{background:'#374151',color:'#fff',rowSpan:2}));
-    trG.appendChild(mkTh('Тиж','c-l2',{background:'#374151',color:'#fff',rowSpan:2}));
-    const segs=['Пн–Чт','Пт–Нд'];
+    trG.appendChild(mkTh('Рік','c-l1',{background:'#374151',color:'#fff',rowSpan:3}));
+    trG.appendChild(mkTh('Тиж','c-l2',{background:'#374151',color:'#fff',rowSpan:3}));
     sts.forEach((st,i)=>{
-        segs.forEach((seg,j)=>{
-            const c=STORE_HDR[i%STORE_HDR.length];
-            const darker=c+'dd';
-            const th=mkTh(seg==='Пн–Чт'?st.name+' (буд)':st.name+' (вих)','grp',{
-                background:j===0?c:c+'99',
-                borderLeft:(i>0&&j===0)?'2px solid rgba(255,255,255,0.2)':j===1?'1px solid rgba(255,255,255,0.15)':''
-            });
-            th.colSpan=3;th.title=st.name;trG.appendChild(th);
-        });
+        const c=STORE_HDR[i%STORE_HDR.length];
+        const th=mkTh(st.name,'grp',{background:c,borderLeft:i>0?'2px solid rgba(255,255,255,0.2)':''});
+        th.colSpan = segsToShow.length * 3;
+        th.title=st.name;
+        trG.appendChild(th);
     });
     thead.appendChild(trG);
+
+    // Row2: сегменти (Пн–Чт / Пт–Сб)
+    const trSeg=document.createElement('tr');
+    sts.forEach((st,i)=>{
+        const c=STORE_HDR[i%STORE_HDR.length];
+        segsToShow.forEach((sdef,jSeg)=>{
+            const isFirstForStore = jSeg===0;
+            const bg = (sdef.key==='wd') ? c : c+'99';
+            const th=mkTh(sdef.lbl,'grp',{
+                background:bg,
+                borderLeft:(i>0 && isFirstForStore)?'2px solid rgba(255,255,255,0.2)': ''
+            });
+            th.colSpan=3;
+            trSeg.appendChild(th);
+        });
+    });
+    thead.appendChild(trSeg);
+
+    // Row3: Фокс Комфі Δ
     const trH=document.createElement('tr');
     sts.forEach((st,i)=>{
-        segs.forEach((seg,j)=>{
-            const c=STORE_HDR[i%STORE_HDR.length];
+        const c=STORE_HDR[i%STORE_HDR.length];
+        segsToShow.forEach((sdef,jSeg)=>{
+            const segBg = (sdef.key==='wd') ? c : c+'99';
             ['Фокс','Комфі','Δ'].forEach((l,k2)=>{
-                const bl=(k2===0&&i>0&&j===0)?'2px solid rgba(255,255,255,0.2)':k2===0&&j===1?'1px solid rgba(255,255,255,0.15)':'';
-                trH.appendChild(mkTh(l,'sub',{background:j===0?c:c+'99',borderLeft:bl}));
+                const isFirstMetric = k2===0;
+                const isFirstSeg = jSeg===0;
+                let bl = '';
+                if(isFirstMetric && i>0 && isFirstSeg) bl = '2px solid rgba(255,255,255,0.2)';
+                else if(isFirstMetric && jSeg>0) bl = '1px solid rgba(255,255,255,0.15)';
+                trH.appendChild(mkTh(l,'sub',{background:segBg,borderLeft:bl}));
             });
         });
     });
-    thead.appendChild(trH);tbl.appendChild(thead);
+    thead.appendChild(trH);
+    tbl.appendChild(thead);
+
     const tbody=document.createElement('tbody');
     const keys=[...wMap.keys()].sort();
     keys.forEach((k,idx)=>{
-        const{year,week,wd,we}=wMap.get(k);
+        const w = wMap.get(k);
         const tr=document.createElement('tr');
-        tr.appendChild(mkTd(String(year),'c-l1'));
-        tr.appendChild(mkTd('T'+week,'c-l2'));
+        tr.appendChild(mkTd(String(w.year),'c-l1'));
+        tr.appendChild(mkTd('T'+w.week,'c-l2'));
         sts.forEach((st,i)=>{
             const bg=STORE_BG[i%STORE_BG.length];
-            const bgD=bg;
-            [wd,we].forEach((rows,j)=>{
+            segsToShow.forEach((sdef,jSeg)=>{
+                const rowsForSeg = (sdef.key==='wd') ? w.wd : w.we;
                 let f=0,kv=0;
-                rows.forEach(r=>{const v=r.storeVals[st.name]||{};if(v.foks!=null)f+=v.foks;if(v.komf!=null)kv+=v.komf;});
+                rowsForSeg.forEach(r=>{const v=r.storeVals[st.name]||{};if(v.foks!=null)f+=v.foks;if(v.komf!=null)kv+=v.komf;});
                 const d=f>0?kv/f:null;
-                const bl=(j===0&&i>0)?'2px solid #d0d0da':j===1?'1px solid #e8e8ec':'';
+                const isFirstSeg = jSeg===0;
+                const bl = (isFirstSeg && i>0) ? '2px solid #d0d0da' : (jSeg>0 ? '1px solid #e8e8ec' : '');
                 tr.appendChild(mkTd(fmt(f),'',{background:bg,borderLeft:bl}));
                 tr.appendChild(mkTd(fmt(kv),'',{background:bg}));
                 tr.appendChild(mkTd(d!=null?d.toFixed(2):null,deltaClass(d),{background:bg}));
             });
         });
         tbody.appendChild(tr);
-        // Diff vs previous week
+
+        // Diff vs previous week (тільки для показаних сегментів)
         if(idx>0){
             const prevK=keys[idx-1];
             const prev=wMap.get(prevK);
@@ -641,15 +706,17 @@ function renderWeekday(){
             diffTr.appendChild(mkTd('',''));
             sts.forEach((st,i)=>{
                 const bg=STORE_BG[i%STORE_BG.length];
-                [wd,we].forEach((rows,j)=>{
-                    const pRows=j===0?prev.wd:prev.we;
+                segsToShow.forEach((sdef,jSeg)=>{
+                    const rowsForSeg = (sdef.key==='wd') ? w.wd : w.we;
+                    const pRowsForSeg = (sdef.key==='wd') ? prev.wd : prev.we;
                     let cf=0,ck=0,pf=0,pk=0;
-                    rows.forEach(r=>{const v=r.storeVals[st.name]||{};if(v.foks!=null)cf+=v.foks;if(v.komf!=null)ck+=v.komf;});
-                    pRows.forEach(r=>{const v=r.storeVals[st.name]||{};if(v.foks!=null)pf+=v.foks;if(v.komf!=null)pk+=v.komf;});
+                    rowsForSeg.forEach(r=>{const v=r.storeVals[st.name]||{};if(v.foks!=null)cf+=v.foks;if(v.komf!=null)ck+=v.komf;});
+                    pRowsForSeg.forEach(r=>{const v=r.storeVals[st.name]||{};if(v.foks!=null)pf+=v.foks;if(v.komf!=null)pk+=v.komf;});
                     const df=cf-pf,dk=ck-pk;
                     const pd=pf>0?pk/pf:null,cd=cf>0?ck/cf:null;
                     const dd=pd!=null&&cd!=null?cd-pd:null;
-                    const bl=(j===0&&i>0)?'2px solid #d0d0da':j===1?'1px solid #e8e8ec':'';
+                    const isFirstSeg = jSeg===0;
+                    const bl = (isFirstSeg && i>0) ? '2px solid #d0d0da' : (jSeg>0 ? '1px solid #e8e8ec' : '');
                     diffTr.appendChild(mkTd((df>=0?'+':'')+fmt(Math.abs(df))+(df>=0?' ↑':' ↓'),df>=0?'diff-pos':'diff-neg',{background:bg,borderLeft:bl,fontSize:'10px'}));
                     diffTr.appendChild(mkTd((dk>=0?'+':'')+fmt(Math.abs(dk))+(dk>=0?' ↑':' ↓'),dk>=0?'diff-pos':'diff-neg',{background:bg,fontSize:'10px'}));
                     diffTr.appendChild(mkTd(dd!=null?(dd>=0?'+':'')+dd.toFixed(2):null,dd==null?'':(dd<=0?'diff-pos':'diff-neg'),{background:bg,fontSize:'10px'}));
@@ -720,7 +787,7 @@ function renderChart(){
     c1.appendChild(Object.assign(document.createElement('span'),{className:'ctrl-lbl',textContent:'Групування:'}));
     [{v:'day',l:'День'},{v:'week',l:'Тиждень'},{v:'month',l:'Місяць'}].forEach(p=>{
         const b=document.createElement('button');b.className='pill'+(selChartPeriod===p.v?' active':'');
-        b.textContent=p.l;if(selChartPeriod===p.v){b.style.background='#0071e3';b.style.color='#fff';}
+        b.textContent=p.l;if(selChartPeriod===p.v){b.style.background='#0071e3';b.style.color:'#fff';}
         b.onclick=()=>{selChartPeriod=p.v;renderChart();};c1.appendChild(b);
     });
     card.appendChild(c1);
