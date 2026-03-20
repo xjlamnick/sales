@@ -8,84 +8,224 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
 <style>
-:root{--bg:#f5f5f7;--text:#1d1d1f;--text-sec:#6e6e73;--accent:#0071e3;--border:#d2d2d7;--card:#fff;--shadow:0 4px 20px rgba(0,0,0,0.06);}
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);padding:8px 10px 60px}
-@keyframes shimmer{0%{background-position:-600px 0}100%{background-position:600px 0}}
-.skel{background:linear-gradient(90deg,#eaeaed 25%,#f5f5f7 50%,#eaeaed 75%);background-size:600px 100%;animation:shimmer 1.4s ease-in-out infinite;border-radius:7px}
-.skel-row{display:flex;gap:8px;padding:9px 10px;border-bottom:1px solid #f2f2f4}
-.skel-cell{height:11px;border-radius:5px;flex:1}.skel-cell.w{flex:2}
-.top-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:10px;flex-wrap:wrap}
-.back-link{color:var(--accent);text-decoration:none;font-weight:600;font-size:14px}
-.page-title{font-size:20px;font-weight:700}
-.tabs{display:flex;gap:2px;background:#e5e5ea;border-radius:12px;padding:3px;margin-bottom:12px;overflow-x:auto;-webkit-overflow-scrolling:touch}
-.tab{border:none;background:transparent;padding:6px 14px;border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;color:var(--text-sec);font-family:inherit;transition:all .2s;white-space:nowrap}
-.tab.active{background:white;color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.12)}
-.filters-wrap{background:var(--card);border-radius:14px;box-shadow:var(--shadow);margin-bottom:12px;overflow:hidden;border:1px solid rgba(0,0,0,0.06)}
-.filter-row{display:flex;align-items:flex-start;flex-wrap:wrap;gap:4px;padding:7px 12px;border-bottom:1px solid #f0f0f2}
-.filter-row:last-child{border-bottom:none}
-.filter-label{font-size:10px;font-weight:700;color:#a0a0ab;text-transform:uppercase;letter-spacing:.06em;padding-top:4px;margin-right:6px;white-space:nowrap}
-.pill{border:none;background:transparent;padding:3px 7px;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;color:#6e6e73;transition:all .15s;white-space:nowrap}
-.pill:hover{background:#f2f2f7;color:#1d1d1f}
-.pill.active{background:#1d1d1f;color:#fff}
-.pill-all{border:1px solid #d2d2d7;color:#555}
-.pill-all.active{background:#374151;border-color:#374151;color:#fff}
-/* TABLE */
-.table-card{background:var(--card);border-radius:16px;box-shadow:var(--shadow);margin-bottom:14px;overflow:hidden}
-.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;max-height:70vh;overflow-y:auto}
-.table-hint{font-size:11px;color:var(--text-sec);padding:7px 12px;border-bottom:1px solid #f2f2f4;background:#fafafa}
-table{border-collapse:collapse;min-width:100%}
-th,td{padding:4px 7px;border-bottom:1px solid #f2f2f4;font-size:11px;text-align:right;white-space:nowrap}
-/* Sticky 2-row header */
-thead{position:sticky;top:0;z-index:30}
-th.grp{text-align:center;font-size:9px;font-weight:800;letter-spacing:.05em;color:#fff;border-bottom:1px solid rgba(255,255,255,0.15);height:22px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px}
-th.sub{font-size:9px;font-weight:700;color:rgba(255,255,255,0.9);text-transform:uppercase;height:20px;border-bottom:2px solid rgba(0,0,0,0.2)}
-/* Frozen left cols */
-th.c-l1,td.c-l1{position:sticky;left:0;z-index:31;text-align:left;min-width:52px;width:52px;font-size:10px;font-weight:600;background:var(--card)}
-th.c-l2,td.c-l2{position:sticky;left:52px;z-index:30;text-align:left;min-width:34px;width:34px;font-size:10px;background:var(--card);border-right:2px solid rgba(0,0,0,0.1);box-shadow:3px 0 5px -2px rgba(0,0,0,.07)}
-th.c-l1,th.c-l2{background:#374151;color:#fff}
-/* Weekend */
-tr.weekend td{background:#fff8f0!important}
-tr.weekend td.c-l1,tr.weekend td.c-l2{background:#fff0e0!important}
-/* Week separator */
-tr.wk-sep td{border-top:2px solid #c8c8d0!important}
-/* Total row */
-tr.tot td{background:#f0f4ff!important;font-weight:700;border-top:2px solid #b0c0e0}
-tr.tot td.c-l1,tr.tot td.c-l2{background:#e0e8ff!important}
-/* Delta 5-level color scale (less=better) */
-.d5{color:#15803d;font-weight:700;background:rgba(21,128,61,.08);border-radius:3px;padding:1px 3px}
-.d4{color:#16a34a;font-weight:600}
-.d3{color:#6b7280;font-weight:600}
-.d2{color:#c2410c;font-weight:600}
-.d1{color:#b91c1c;font-weight:700;background:rgba(185,28,28,.08);border-radius:3px;padding:1px 3px}
-/* Diff rows — правка 3: щоб vs-рядки йшли під фіксованими колонками */
-tr.diff-row td{background:#fefce8;font-size:10px;color:#7c2d12;border-bottom:1px solid #fde68a;position:relative;z-index:20}
-tr.diff-row td.diff-pos{color:#15803d}
-tr.diff-row td.diff-neg{color:#b91c1c}
-/* Chart */
-.chart-card{background:var(--card);border-radius:16px;box-shadow:var(--shadow);padding:16px;margin-bottom:14px}
-.chart-wrap{position:relative;height:360px}
-.ctrl-row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
-.ctrl-lbl{font-size:11px;font-weight:600;color:var(--text-sec);margin-right:2px}
-.status-box{padding:40px;text-align:center;color:var(--text-sec);font-size:14px}
-.status-box.error{color:#ff3b30}
-/* Правка 2 — фільтр магазинів, щоб ТТ і ТОТАЛ було видно */
+:root {
+  --bg: #f5f5f7;
+  --text: #1d1d1f;
+  --text-sec: #6e6e73;
+  --accent: #0071e3;
+  --border: #d2d2d7;
+  --card: #fff;
+  --shadow: 0 4px 20px rgba(0,0,0,0.06);
+}
+* { box-sizing: border-box; margin:0; padding:0; }
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  padding: 8px 10px 60px;
+}
+@keyframes shimmer {
+  0% { background-position: -600px 0; }
+  100% { background-position: 600px 0; }
+}
+.skel {
+  background: linear-gradient(90deg, #eaeaed 25%, #f5f5f7 50%, #eaeaed 75%);
+  background-size: 600px 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+  border-radius: 7px;
+}
+.skel-row { display: flex; gap: 8px; padding: 9px 10px; border-bottom: 1px solid #f2f2f4; }
+.skel-cell { height: 11px; border-radius: 5px; flex: 1; }
+.skel-cell.w { flex: 2; }
+.top-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; gap: 10px; flex-wrap: wrap; }
+.back-link { color: var(--accent); text-decoration: none; font-weight: 600; font-size: 14px; }
+.page-title { font-size: 20px; font-weight: 700; }
+.tabs {
+  display: flex;
+  gap: 2px;
+  background: #e5e5ea;
+  border-radius: 12px;
+  padding: 3px;
+  margin-bottom: 12px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.tab {
+  border: none;
+  background: transparent;
+  padding: 6px 14px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--text-sec);
+  font-family: inherit;
+  transition: all .2s;
+  white-space: nowrap;
+}
+.tab.active {
+  background: white;
+  color: var(--text);
+  box-shadow: 0 1px 4px rgba(0,0,0,.12);
+}
+.filters-wrap {
+  background: var(--card);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  margin-bottom: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(0,0,0,0.06);
+}
+.filter-row {
+  display: flex;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 7px 12px;
+  border-bottom: 1px solid #f0f0f2;
+}
+.filter-row:last-child { border-bottom: none; }
+.filter-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #a0a0ab;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  padding-top: 4px;
+  margin-right: 6px;
+  white-space: nowrap;
+}
+.pill {
+  border: none;
+  background: transparent;
+  padding: 3px 7px;
+  border-radius: 7px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  color: #6e6e73;
+  transition: all .15s;
+  white-space: nowrap;
+}
+.pill:hover { background: #f2f2f7; color: #1d1d1f; }
+.pill.active { background: #1d1d1f; color: #fff; }
+.pill-all { border: 1px solid #d2d2d7; color: #555; }
+.pill-all.active { background: #374151; border-color: #374151; color: #fff; }
+.table-card {
+  background: var(--card);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  margin-bottom: 14px;
+  overflow: hidden;
+}
+.table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+.table-hint {
+  font-size: 11px;
+  color: var(--text-sec);
+  padding: 7px 12px;
+  border-bottom: 1px solid #f2f2f4;
+  background: #fafafa;
+}
+table { border-collapse: collapse; min-width: 100%; }
+th, td {
+  padding: 4px 7px;
+  border-bottom: 1px solid #f2f2f4;
+  font-size: 11px;
+  text-align: right;
+  white-space: nowrap;
+}
+thead { position: sticky; top: 0; z-index: 30; }
+th.grp {
+  text-align: center;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .05em;
+  color: #fff;
+  border-bottom: 1px solid rgba(255,255,255,0.15);
+  height: 22px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 120px;
+}
+th.sub {
+  font-size: 9px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.9);
+  text-transform: uppercase;
+  height: 20px;
+  border-bottom: 2px solid rgba(0,0,0,0.2);
+}
+th.c-l1, td.c-l1 {
+  position: sticky;
+  left: 0;
+  z-index: 5;
+  text-align: left;
+  min-width: 52px;
+  width: 52px;
+  font-size: 10px;
+  font-weight: 600;
+  background: var(--card);
+}
+th.c-l1 { z-index: 31; }
+th.c-l2, td.c-l2 {
+  position: sticky;
+  left: 52px;
+  z-index: 5;
+  text-align: left;
+  min-width: 34px;
+  width: 34px;
+  font-size: 10px;
+  background: var(--card);
+  border-right: 2px solid rgba(0,0,0,0.1);
+  box-shadow: 3px 0 5px -2px rgba(0,0,0,.07);
+}
+th.c-l2 { z-index: 31; }
+th.c-l1, th.c-l2 { background: #374151; color: #fff; }
+tr.weekend td { background: #fff8f0 !important; }
+tr.weekend td.c-l1, tr.weekend td.c-l2 { background: #fff0e0 !important; }
+tr.wk-sep td { border-top: 2px solid #c8c8d0 !important; }
+tr.tot td {
+  background: #f0f4ff !important;
+  font-weight: 700;
+  border-top: 2px solid #b0c0e0;
+}
+tr.tot td.c-l1, tr.tot td.c-l2 { background: #e0e8ff !important; }
+.d5 { color: #15803d; font-weight: 700; background: rgba(21,128,61,.08); border-radius: 3px; padding: 1px 3px; }
+.d4 { color: #16a34a; font-weight: 600; }
+.d3 { color: #6b7280; font-weight: 600; }
+.d2 { color: #c2410c; font-weight: 600; }
+.d1 { color: #b91c1c; font-weight: 700; background: rgba(185,28,28,.08); border-radius: 3px; padding: 1px 3px; }
+tr.diff-row td {
+  background: #fefce8;
+  font-size: 10px;
+  color: #7c2d12;
+  border-bottom: 1px solid #fde68a;
+}
+tr.diff-row td.diff-pos { color: #15803d; }
+tr.diff-row td.diff-neg { color: #b91c1c; }
+.chart-card {
+  background: var(--card);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  padding: 16px;
+  margin-bottom: 14px;
+}
+.chart-wrap { position: relative; height: 360px; }
+.ctrl-row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
+.ctrl-lbl { font-size: 11px; font-weight: 600; color: var(--text-sec); margin-right: 2px; }
+.status-box { padding: 40px; text-align: center; color: var(--text-sec); font-size: 14px; }
+.status-box.error { color: #ff3b30; }
 #storePills {
-  display:flex !important;
-  flex-wrap:nowrap !important;
-  overflow-x:auto !important;
-  -webkit-overflow-scrolling:touch !important;
-  gap:4px !important;
-  padding:6px 12px !important;
-  scroll-padding:12px !important;
-  scrollbar-width:thin !important;
-}
-#storePills::-webkit-scrollbar {
-  height:6px;
-}
-#storePills::-webkit-scrollbar-thumb {
-  background:#c1c1c1;
-  border-radius:3px;
+  flex-wrap: nowrap !important;
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch;
 }
 </style>
 </head>
@@ -124,763 +264,899 @@ tr.diff-row td.diff-neg{color:#b91c1c}
 <div id="tabContent">
   <div class="table-card"><div class="status-box">Завантаження…</div></div>
 </div>
-
 <script>
-// ── CONSTANTS ──
-const CSV_URL='https://docs.google.com/spreadsheets/d/e/2PACX-1vRnVyY9d_BjUGvXWa3VUFsdMoBwZH-MINuS8b91-lgNqeNMx-6UsE5oRJ66x6XVmK_JhXcGTbSK9Emx/pub?output=csv';
-const MONTHS_UK=['Січень','Лютий','Березень','Квітень','Травень','Червень','Липень','Серпень','Вересень','Жовтень','Листопад','Грудень'];
-const DOW_WE=["пт","сб","нд","субота","неділя","friday","saturday","sunday","пятниця"];
-const STORE_HDR=['#1a56db','#0e7490','#6b21a8','#9d174d','#065f46','#92400e','#1e40af','#7c3aed'];
-const STORE_BG=['#eff6ff','#ecfeff','#faf5ff','#fdf2f8','#ecfdf5','#fffbeb','#eff6ff','#f5f3ff'];
-
-// ── STATE ──
-let stores=[],dataRows=[],allYears=[],allMonths=[];
-let selYears=new Set(),selMonths=new Set(),selStores=new Set();
-let selSegments=new Set(['wd','we']);
-let activeTab='table',chartInstance=null;
-let selChartMode='store',selChartStore='',selChartPeriod='day',selChartMetric='delta';
-
-// ── UTILS ──
-function parseCSV(text){
-    const res=[];let row=[],col='',inQ=false;
-    for(let i=0;i<text.length;i++){
-        const c=text[i];
-        if(c==='"'&&text[i+1]==='"'){col+='"';i++;}
-        else if(c==='"')inQ=!inQ;
-        else if(c===','&&!inQ){row.push(col.trim());col='';}
-        else if((c==='\n'||c==='\r')&&!inQ){if(c==='\r'&&text[i+1]==='\n')i++;row.push(col.trim());res.push(row);row=[];col='';}
-        else col+=c;
+// ──────────────────────────────────────────────
+// КОНСТАНТИ
+// ──────────────────────────────────────────────
+const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRnVyY9d_BjUGvXWa3VUFsdMoBwZH-MINuS8b91-lgNqeNMx-6UsE5oRJ66x6XVmK_JhXcGTbSK9Emx/pub?output=csv';
+const MONTHS_UK = ['Січень','Лютий','Березень','Квітень','Травень','Червень','Липень','Серпень','Вересень','Жовтень','Листопад','Грудень'];
+const DOW_WE = ["пт","сб","нд","субота","неділя","friday","saturday","sunday","пятниця"];
+const STORE_HDR = ['#1a56db','#0e7490','#6b21a8','#9d174d','#065f46','#92400e','#1e40af','#7c3aed'];
+const STORE_BG = ['#eff6ff','#ecfeff','#faf5ff','#fdf2f8','#ecfdf5','#fffbeb','#eff6ff','#f5f3ff'];
+// ──────────────────────────────────────────────
+// СТАН
+// ──────────────────────────────────────────────
+let stores = [], dataRows = [], allYears = [], allMonths = [];
+let selYears = new Set(), selMonths = new Set(), selStores = new Set();
+let selSegments = new Set(['wd','we']);
+let activeTab = 'table', chartInstance = null;
+let selChartMode = 'store', selChartStore = '', selChartPeriod = 'day', selChartMetric = 'delta';
+// ──────────────────────────────────────────────
+// УТИЛІТИ
+// ──────────────────────────────────────────────
+function parseCSV(text) {
+    const res = []; let row = [], col = '', inQ = false;
+    for (let i = 0; i < text.length; i++) {
+        const c = text[i];
+        if (c === '"' && text[i+1] === '"') { col += '"'; i++; }
+        else if (c === '"') inQ = !inQ;
+        else if (c === ',' && !inQ) { row.push(col.trim()); col = ''; }
+        else if ((c === '\n' || c === '\r') && !inQ) {
+            if (c === '\r' && text[i+1] === '\n') i++;
+            row.push(col.trim()); res.push(row); row = []; col = '';
+        }
+        else col += c;
     }
-    if(col||row.length){row.push(col.trim());res.push(row);}
-    return res.filter(r=>r.some(c=>c));
+    if (col || row.length) { row.push(col.trim()); res.push(row); }
+    return res.filter(r => r.some(c => c));
 }
-function toN(v){
-    if(!v&&v!==0)return null;
-    const s=String(v).replace(/\s|\u00a0/g,'').replace(',','.').replace('%','');
-    if(['#div/0!','#value!','#n/a','#ref!'].includes(s.toLowerCase()))return null;
-    const n=parseFloat(s);return isNaN(n)?null:n;
+function toN(v) {
+    if (!v && v !== 0) return null;
+    const s = String(v).replace(/\s|\u00a0/g,'').replace(',','.').replace('%','');
+    if (['#div/0!','#value!','#n/a','#ref!'].includes(s.toLowerCase())) return null;
+    const n = parseFloat(s); return isNaN(n) ? null : n;
 }
-function fmt(v){
-    if(v===null||v===undefined)return'—';
-    const n=Number(v);if(isNaN(n))return'—';
-    if(Math.abs(n)>=1000000)return(n/1000000).toFixed(2)+'М';
-    if(Math.abs(n)>=1000)return(n/1000).toFixed(1)+'К';
-    if(n%1!==0)return n.toFixed(2);
+function fmt(v) {
+    if (v === null || v === undefined) return '—';
+    const n = Number(v); if (isNaN(n)) return '—';
+    if (Math.abs(n) >= 1000000) return (n/1000000).toFixed(2) + 'М';
+    if (Math.abs(n) >= 1000) return (n/1000).toFixed(1) + 'К';
+    if (n % 1 !== 0) return n.toFixed(2);
     return n.toLocaleString('uk-UA');
 }
-function fmtDate(d){
-    if(!d)return'';
-    const parts=d.replace(/\//g,'.').split('.');
-    if(parts.length===3){
-        const [a,b,c]=parts;
-        if(a.length===4)return`${c}.${b}`;
-        return`${a}.${b}`;
+function fmtDate(d) {
+    if (!d) return '';
+    const parts = d.replace(/\//g,'.').split('.');
+    if (parts.length === 3) {
+        const [a,b,c] = parts;
+        if (a.length === 4) return `${c}.${b}`;
+        return `${a}.${b}`;
     }
     return d;
 }
-function isWeekend(dow){
-    return DOW_WE.some(w=>String(dow).toLowerCase().trim()===w||String(dow).toLowerCase().includes(w));
+function isWeekend(dow) {
+    return DOW_WE.some(w => String(dow).toLowerCase().trim() === w || String(dow).toLowerCase().includes(w));
 }
-
-// ── SKELETON ──
-function showSkel(){
-    const cont=document.getElementById('tabContent');
-    const card=document.createElement('div');card.className='table-card';
-    const wrap=document.createElement('div');
-    for(let i=0;i<14;i++){
-        const row=document.createElement('div');row.className='skel-row';
-        for(let j=0;j<6;j++){const c=document.createElement('div');c.className='skel-cell skel'+(j<2?' w':'');c.style.animationDelay=(i*.04+j*.015)+'s';row.appendChild(c);}
+// ──────────────────────────────────────────────
+// SKELETON ЗАВАНТАЖЕННЯ
+// ──────────────────────────────────────────────
+function showSkel() {
+    const cont = document.getElementById('tabContent');
+    const card = document.createElement('div'); card.className = 'table-card';
+    const wrap = document.createElement('div');
+    for (let i = 0; i < 14; i++) {
+        const row = document.createElement('div'); row.className = 'skel-row';
+        for (let j = 0; j < 6; j++) {
+            const c = document.createElement('div');
+            c.className = 'skel-cell skel' + (j < 2 ? ' w' : '');
+            c.style.animationDelay = (i * .04 + j * .015) + 's';
+            row.appendChild(c);
+        }
         wrap.appendChild(row);
     }
-    card.appendChild(wrap);cont.innerHTML='';cont.appendChild(card);
+    card.appendChild(wrap);
+    cont.innerHTML = '';
+    cont.appendChild(card);
 }
-
-// ── DETECT ──
-function detect(rows){
-    let subRow=-1,storeRow=-1;
-    for(let i=0;i<Math.min(8,rows.length);i++){
-        const r=rows[i].map(c=>(c||'').toLowerCase().trim());
-        const hasFoks=r.filter(c=>c==='фокстрот').length;
-        const hasKomf=r.filter(c=>c==='комфі').length;
-        if(hasFoks>=1&&hasKomf>=1){subRow=i;storeRow=i-1;break;}
-    }
-    if(subRow===-1){
-        for(let i=0;i<Math.min(8,rows.length);i++){
-            const r=rows[i].map(c=>(c||'').toLowerCase().trim());
-            if(r.some(c=>c.includes('фокс'))&&r.some(c=>c.includes('комф'))){
-                subRow=i;storeRow=i-1;break;
-            }
+// ──────────────────────────────────────────────
+// ПАРСИНГ ДАНИХ З CSV
+// ──────────────────────────────────────────────
+function detect(rows) {
+    let subRow = -1, storeRow = -1;
+    for (let i = 0; i < Math.min(10, rows.length); i++) {
+        const r = rows[i].map(c => (c || '').toLowerCase().trim());
+        if (r.filter(c => c.includes('фокстрот') || c === 'фокс').length >= 1 &&
+            r.filter(c => c.includes('комфі') || c === 'комф').length >= 1) {
+            subRow = i;
+            storeRow = i - 1;
+            break;
         }
     }
-    if(subRow===-1){subRow=3;storeRow=2;}
-
-    const storeRowData=rows[storeRow]||[];
-    const subRowData=rows[subRow]||[];
-
-    stores=[];
-    let curStore='';
-    for(let i=7;i<Math.max(storeRowData.length,subRowData.length);i++){
-        const sn=(storeRowData[i]||'').trim();
-        if(sn) curStore=sn;
-        if(!curStore) continue;
-        const sub=(subRowData[i]||'').toLowerCase().trim();
-        if(!sub) continue;
-        let type=null;
-        if(sub==='фокстрот'||sub.includes('фокс')) type='foks';
-        else if(sub==='комфі'||sub.includes('комф')) type='komf';
-        else if(sub.includes('дельт')||sub.includes('delta')) type='delta';
-        if(!type) continue;
-        let st=stores.find(s=>s.name===curStore);
-        if(!st){st={name:curStore,cols:[]};stores.push(st);}
-        st.cols.push({type,colIdx:i});
+    if (subRow === -1) { subRow = 3; storeRow = 2; }
+    const storeRowData = rows[storeRow] || [];
+    const subRowData = rows[subRow] || [];
+    stores = [];
+    let curStore = '';
+    for (let i = 7; i < Math.max(storeRowData.length, subRowData.length); i++) {
+        const sn = (storeRowData[i] || '').trim();
+        if (sn) curStore = sn;
+        if (!curStore) continue;
+        const sub = (subRowData[i] || '').toLowerCase().trim();
+        if (!sub) continue;
+        let type = null;
+        if (sub.includes('фокс') || sub === 'фокстрот') type = 'foks';
+        else if (sub.includes('комф') || sub === 'комфі') type = 'komf';
+        else if (sub.includes('дельт') || sub.includes('delta')) type = 'delta';
+        if (!type) continue;
+        let st = stores.find(s => s.name === curStore);
+        if (!st) { st = { name: curStore, cols: [] }; stores.push(st); }
+        st.cols.push({ type, colIdx: i });
     }
-
-    const dataStart=subRow+1;
-    dataRows=[];
-    const yrs=new Set(),mos=new Set();
-    for(let ri=dataStart;ri<rows.length;ri++){
-        const row=rows[ri];
-        if(!row.some(c=>c)) continue;
-
-        const year=toN(row[0]);
-        const week=toN(row[1]);
-        const monthNum=toN(row[2]);
-        const monthName=(row[3]||'').trim();
-        const dowNumRaw=toN(row[4]);
-        const dowName=(row[5]||'').trim();
-        const dateStr=(row[6]||'').trim();
-
-        if(!year||!dateStr) continue;
-
-        const mo=monthNum||(()=>{
-            const lo=monthName.toLowerCase();
-            const idx=MONTHS_UK.findIndex(m=>lo.includes(m.slice(0,3).toLowerCase()));
-            return idx>=0?idx+1:null;
+    const dataStart = subRow + 1;
+    dataRows = [];
+    const yrs = new Set(), mos = new Set();
+    for (let ri = dataStart; ri < rows.length; ri++) {
+        const row = rows[ri];
+        if (!row.some(c => c)) continue;
+        const year = toN(row[0]);
+        const week = toN(row[1]);
+        const monthNum = toN(row[2]);
+        const monthName = (row[3] || '').trim();
+        const dowName = (row[5] || '').trim();
+        const dateStr = (row[6] || '').trim();
+        if (!year || !dateStr) continue;
+        const mo = monthNum || (function() {
+            const lo = monthName.toLowerCase();
+            const idx = MONTHS_UK.findIndex(m => lo.includes(m.slice(0,3).toLowerCase()));
+            return idx >= 0 ? idx + 1 : null;
         })();
-        if(!mo) continue;
-
-        let dowNum=dowNumRaw||0;
-        if(!dowNum){
-            const dowLo=dowName.toLowerCase();
-            const dowMap={понеділок:1,пн:1,вівторок:2,вт:2,середа:3,ср:3,четвер:4,чт:4,"п'ятниця":5,пятниця:5,пт:5,субота:6,сб:6,неділя:7,нд:7};
-            for(const[k,v]of Object.entries(dowMap)){if(dowLo===k||dowLo.startsWith(k)){dowNum=v;break;}}
+        if (!mo) continue;
+        let dowNum = 0;
+        const dowLo = dowName.toLowerCase();
+        const dowMap = {понеділок:1,пн:1,вівторок:2,вт:2,середа:3,ср:3,четвер:4,чт:4,"п'ятниця":5,пятниця:5,пт:5,субота:6,сб:6,неділя:7,нд:7};
+        for (const [k,v] of Object.entries(dowMap)) {
+            if (dowLo === k || dowLo.startsWith(k)) { dowNum = v; break; }
         }
-
-        const storeVals={};
-        stores.forEach(st=>{
-            const fCol=st.cols.find(c=>c.type==='foks');
-            const kCol=st.cols.find(c=>c.type==='komf');
-            const dCol=st.cols.find(c=>c.type==='delta');
-            const fv=fCol?toN(row[fCol.colIdx]):null;
-            const kv=kCol?toN(row[kCol.colIdx]):null;
-            let dv=dCol?toN(row[dCol.colIdx]):null;
-            if(dv===null&&fv!=null&&kv!=null&&fv!==0) dv=kv/fv;
-            storeVals[st.name]={foks:fv,komf:kv,delta:dv};
+        const storeVals = {};
+        stores.forEach(st => {
+            const fCol = st.cols.find(c => c.type === 'foks');
+            const kCol = st.cols.find(c => c.type === 'komf');
+            const dCol = st.cols.find(c => c.type === 'delta');
+            const fv = fCol ? toN(row[fCol.colIdx]) : null;
+            const kv = kCol ? toN(row[kCol.colIdx]) : null;
+            let dv = dCol ? toN(row[dCol.colIdx]) : null;
+            if (dv === null && fv != null && kv != null && fv !== 0) dv = kv / fv;
+            storeVals[st.name] = { foks: fv, komf: kv, delta: dv };
         });
-
-        const isWE=dowNum>=5||(dowNum===0&&isWeekend(dowName));
-        dataRows.push({year,month:mo,week,dowName,dowNum,date:dateStr,storeVals,isWE});
-        yrs.add(year);mos.add(mo);
+        const isWE = dowNum >= 5 || (dowNum === 0 && isWeekend(dowName));
+        dataRows.push({ year, month: mo, week, dowName, dowNum, date: dateStr, storeVals, isWE });
+        yrs.add(year);
+        mos.add(mo);
     }
-    allYears=[...yrs].sort((a,b)=>a-b);
-    allMonths=[...mos].sort((a,b)=>a-b);
-    selYears=new Set(allYears);
-    selMonths=new Set(allMonths);
-    selStores=new Set(stores.map(s=>s.name));
+    allYears = [...yrs].sort((a,b) => a - b);
+    allMonths = [...mos].sort((a,b) => a - b);
+    selYears = new Set(allYears);
+    selMonths = new Set(allMonths);
+    selStores = new Set(stores.map(s => s.name));
 }
-
-function activeData(){
-    return dataRows.filter(r=>{
-        if(!selYears.has(r.year)||!selMonths.has(r.month))return false;
-        const sts=activeStores();
-        return sts.some(st=>{const v=r.storeVals[st.name]||{};return v.foks!=null||v.komf!=null;});
+function activeData() {
+    return dataRows.filter(r => {
+        if (!selYears.has(r.year) || !selMonths.has(r.month)) return false;
+        const sts = activeStores();
+        return sts.some(st => {
+            const v = r.storeVals[st.name] || {};
+            return v.foks != null || v.komf != null;
+        });
     });
 }
-function activeStores(){return stores.filter(s=>selStores.has(s.name));}
-
-// ── FILTERS ──
-function mkPill(text,active,cls,onclick){
-    const b=document.createElement('button');
-    b.className='pill'+(active?' active':'')+(cls?' '+cls:'');
-    b.textContent=text;b.onclick=onclick;
-    if(active){b.style.background='#1d1d1f';b.style.color='#fff';}
+function activeStores() {
+    return stores.filter(s => selStores.has(s.name));
+}
+// ──────────────────────────────────────────────
+// ФІЛЬТРИ
+// ──────────────────────────────────────────────
+function mkPill(text, active, cls, onclick) {
+    const b = document.createElement('button');
+    b.className = 'pill' + (active ? ' active' : '') + (cls ? ' ' + cls : '');
+    b.textContent = text;
+    b.onclick = onclick;
+    if (active) { b.style.background = '#1d1d1f'; b.style.color = '#fff'; }
     return b;
 }
-function renderFilters(){
-    const yp=document.getElementById('yearPills');yp.innerHTML='';
-    const allYA=allYears.every(y=>selYears.has(y));
-    const baY=mkPill('Всі',allYA,'pill-all',()=>{
-        if(allYA)allYears.forEach(y=>selYears.delete(y));else allYears.forEach(y=>selYears.add(y));
-        renderFilters();render();
+function renderFilters() {
+    const yp = document.getElementById('yearPills'); yp.innerHTML = '';
+    const allYA = allYears.every(y => selYears.has(y));
+    const baY = mkPill('Всі', allYA, 'pill-all', () => {
+        if (allYA) allYears.forEach(y => selYears.delete(y));
+        else allYears.forEach(y => selYears.add(y));
+        renderFilters(); render();
     });
-    if(allYA)baY.style.background='#374151';
+    if (allYA) baY.style.background = '#374151';
     yp.appendChild(baY);
-    allYears.forEach(y=>{
-        const a=selYears.has(y);
-        const b=mkPill(String(y),a,'',()=>{
-            if(a){if(selYears.size>1)selYears.delete(y);}else selYears.add(y);
-            renderFilters();render();
+    allYears.forEach(y => {
+        const a = selYears.has(y);
+        const b = mkPill(String(y), a, '', () => {
+            if (a) { if (selYears.size > 1) selYears.delete(y); }
+            else selYears.add(y);
+            renderFilters(); render();
         });
-        if(a){b.style.background='#1d1d1f';b.style.color='#fff';b.style.fontWeight='800';}
+        if (a) { b.style.background = '#1d1d1f'; b.style.color = '#fff'; b.style.fontWeight = '800'; }
         yp.appendChild(b);
     });
-
-    const mp=document.getElementById('monthPills');mp.innerHTML='';
-    const availM=allMonths.filter(m=>dataRows.some(r=>selYears.has(r.year)&&r.month===m));
-    const allMA=availM.every(m=>selMonths.has(m));
-    const baM=mkPill('Всі',allMA,'pill-all',()=>{
-        if(allMA)availM.forEach(m=>selMonths.delete(m));else availM.forEach(m=>selMonths.add(m));
-        renderFilters();render();
+    const mp = document.getElementById('monthPills'); mp.innerHTML = '';
+    const availM = allMonths.filter(m => dataRows.some(r => selYears.has(r.year) && r.month === m));
+    const allMA = availM.every(m => selMonths.has(m));
+    const baM = mkPill('Всі', allMA, 'pill-all', () => {
+        if (allMA) availM.forEach(m => selMonths.delete(m));
+        else availM.forEach(m => selMonths.add(m));
+        renderFilters(); render();
     });
-    if(allMA)baM.style.background='#374151';
+    if (allMA) baM.style.background = '#374151';
     mp.appendChild(baM);
-    availM.forEach(m=>{
-        const a=selMonths.has(m);
-        const b=mkPill(MONTHS_UK[m-1].slice(0,3),a,'',()=>{
-            if(a){if(selMonths.size>1)selMonths.delete(m);}else selMonths.add(m);
-            renderFilters();render();
+    availM.forEach(m => {
+        const a = selMonths.has(m);
+        const b = mkPill(MONTHS_UK[m-1].slice(0,3), a, '', () => {
+            if (a) { if (selMonths.size > 1) selMonths.delete(m); }
+            else selMonths.add(m);
+            renderFilters(); render();
         });
-        if(a){b.style.background='#1d1d1f';b.style.color='#fff';}
+        if (a) { b.style.background = '#1d1d1f'; b.style.color = '#fff'; }
         mp.appendChild(b);
     });
-
-    const sp=document.getElementById('storePills');sp.innerHTML='';
-    const allSA=stores.every(s=>selStores.has(s.name));
-    const baS=mkPill('Всі',allSA,'pill-all',()=>{
-        if(allSA)stores.forEach(s=>selStores.delete(s.name));else stores.forEach(s=>selStores.add(s.name));
-        renderFilters();render();
+    const sp = document.getElementById('storePills'); sp.innerHTML = '';
+    const allSA = stores.every(s => selStores.has(s.name));
+    const baS = mkPill('Всі', allSA, 'pill-all', () => {
+        if (allSA) stores.forEach(s => selStores.delete(s.name));
+        else stores.forEach(s => selStores.add(s.name));
+        renderFilters(); render();
     });
-    if(allSA)baS.style.background='#374151';
+    if (allSA) baS.style.background = '#374151';
     sp.appendChild(baS);
-    stores.forEach(s=>{
-        const a=selStores.has(s.name);
-        const b=mkPill(s.name.split(' ').slice(1,4).join(' '),a,'',()=>{
-            if(a){if(selStores.size>1)selStores.delete(s.name);}else selStores.add(s.name);
-            renderFilters();render();
+    stores.forEach(s => {
+        const a = selStores.has(s.name);
+        const b = mkPill(s.name.split(' ').slice(1,4).join(' '), a, '', () => {
+            if (a) { if (selStores.size > 1) selStores.delete(s.name); }
+            else selStores.add(s.name);
+            renderFilters(); render();
         });
-        b.title=s.name;
-        if(a){b.style.background='#1d1d1f';b.style.color='#fff';}
+        b.title = s.name;
+        if (a) { b.style.background = '#1d1d1f'; b.style.color = '#fff'; }
         sp.appendChild(b);
     });
-
-    const segp=document.getElementById('segmentPills');segp.innerHTML='';
-    const segDefs=[{key:'wd',lbl:'Пн–Чт'},{key:'we',lbl:'Пт–Сб'}];
-    const allSeg=segDefs.every(s=>selSegments.has(s.key));
-    const baSeg=mkPill('Всі',allSeg,'pill-all',()=>{
-        if(allSeg)segDefs.forEach(s=>selSegments.delete(s.key));else segDefs.forEach(s=>selSegments.add(s.key));
-        renderFilters();render();
+    const segp = document.getElementById('segmentPills'); segp.innerHTML = '';
+    const segDefs = [{key:'wd', lbl:'Пн–Чт'}, {key:'we', lbl:'Пт–Сб'}];
+    const allSeg = segDefs.every(s => selSegments.has(s.key));
+    const baSeg = mkPill('Всі', allSeg, 'pill-all', () => {
+        if (allSeg) segDefs.forEach(s => selSegments.delete(s.key));
+        else segDefs.forEach(s => selSegments.add(s.key));
+        renderFilters(); render();
     });
-    if(allSeg)baSeg.style.background='#374151';
+    if (allSeg) baSeg.style.background = '#374151';
     segp.appendChild(baSeg);
-    segDefs.forEach(s=>{
-        const a=selSegments.has(s.key);
-        const b=mkPill(s.lbl,a,'',()=>{
-            if(a){if(selSegments.size>1)selSegments.delete(s.key);}else selSegments.add(s.key);
-            renderFilters();render();
+    segDefs.forEach(s => {
+        const a = selSegments.has(s.key);
+        const b = mkPill(s.lbl, a, '', () => {
+            if (a) { if (selSegments.size > 1) selSegments.delete(s.key); }
+            else selSegments.add(s.key);
+            renderFilters(); render();
         });
-        if(a){b.style.background='#1d1d1f';b.style.color='#fff';}
+        if (a) { b.style.background = '#1d1d1f'; b.style.color = '#fff'; }
         segp.appendChild(b);
     });
-    document.getElementById('filtersWrap').style.display='';
+    document.getElementById('filtersWrap').style.display = '';
 }
-
-// ── TABLE ──
-function renderTable(){
-    const cont=document.getElementById('tabContent');
-    const data=activeData();
-    const sts=activeStores();
-    if(!data.length){cont.innerHTML='<div class="table-card"><div class="status-box">Немає даних для обраного фільтру</div></div>';return;}
-
-    const card=document.createElement('div');card.className='table-card';
-    const hint=document.createElement('div');hint.className='table-hint';
-    hint.innerHTML='Пн–Чт — будні | Пт–Нд — <b style="color:#b45309">вихідні</b> | Δ: <span class="d5">&#60;0.8</span> <span class="d4">0.8–0.95</span> <span class="d3">~1</span> <span class="d2">1.05–1.25</span> <span class="d1">&#62;1.25</span>';
+// ──────────────────────────────────────────────
+// ДОПОМІЖНІ ФУНКЦІЇ ДЛЯ ТАБЛИЦЬ (були відсутні)
+// ──────────────────────────────────────────────
+function mkTh(text, cls, sty) {
+    const t = document.createElement('th');
+    t.textContent = text;
+    if (cls) t.className = cls;
+    if (sty) Object.assign(t.style, sty);
+    return t;
+}
+function mkTd(text, cls, sty) {
+    const t = document.createElement('td');
+    t.textContent = (text === null || text === undefined) ? '—' : text;
+    if (cls) t.className = cls;
+    if (sty) Object.assign(t.style, sty);
+    return t;
+}
+// ──────────────────────────────────────────────
+// РЕНДЕР ТАБЛИЦІ (звичайна вкладка)
+// ──────────────────────────────────────────────
+function renderTable() {
+    const cont = document.getElementById('tabContent');
+    const data = activeData();
+    const sts = activeStores();
+    if (!data.length) {
+        cont.innerHTML = '<div class="table-card"><div class="status-box">Немає даних для обраного фільтру</div></div>';
+        return;
+    }
+    const card = document.createElement('div'); card.className = 'table-card';
+    const hint = document.createElement('div'); hint.className = 'table-hint';
+    hint.innerHTML = 'Пн–Чт — будні | Пт–Нд — <b style="color:#b45309">вихідні</b> | Δ: <span class="d5"><0.8</span> <span class="d4">0.8–0.95</span> <span class="d3">~1</span> <span class="d2">1.05–1.25</span> <span class="d1">>1.25</span>';
     card.appendChild(hint);
-    const wrap=document.createElement('div');wrap.className='table-wrap';
-
-    const tbl=document.createElement('table');
-    const thead=document.createElement('thead');
-    const trG=document.createElement('tr');
-    trG.appendChild(mkTh('Дата','c-l1',{background:'#374151',color:'#fff',rowSpan:2}));
-    trG.appendChild(mkTh('','c-l2',{background:'#374151',color:'#fff',rowSpan:2}));
-    sts.forEach((st,i)=>{
-        const c=STORE_HDR[i%STORE_HDR.length];
-        const th=mkTh(st.name,'grp',{background:c,borderLeft:i>0?'2px solid rgba(255,255,255,0.2)':''});
-        th.colSpan=3;th.title=st.name;trG.appendChild(th);
+    const wrap = document.createElement('div'); wrap.className = 'table-wrap';
+    const tbl = document.createElement('table');
+    const thead = document.createElement('thead');
+    const trG = document.createElement('tr');
+    trG.appendChild(Object.assign(document.createElement('th'), {textContent: 'Дата', className: 'c-l1', style: 'background:#374151;color:#fff;', rowSpan: 2}));
+    trG.appendChild(Object.assign(document.createElement('th'), {textContent: '', className: 'c-l2', style: 'background:#374151;color:#fff;', rowSpan: 2}));
+    sts.forEach((st, i) => {
+        const c = STORE_HDR[i % STORE_HDR.length];
+        const th = document.createElement('th');
+        th.textContent = st.name;
+        th.className = 'grp';
+        th.style.background = c;
+        if (i > 0) th.style.borderLeft = '2px solid rgba(255,255,255,0.2)';
+        th.colSpan = 3;
+        th.title = st.name;
+        trG.appendChild(th);
     });
     thead.appendChild(trG);
-    const trH=document.createElement('tr');
-    sts.forEach((st,i)=>{
-        const c=STORE_HDR[i%STORE_HDR.length];
-        ['Фокс','Комфі','Δ'].forEach((l,j)=>{
-            trH.appendChild(mkTh(l,'sub',{background:c,borderLeft:j===0&&i>0?'2px solid rgba(255,255,255,0.2)':''}));
+    const trH = document.createElement('tr');
+    sts.forEach((st, i) => {
+        const c = STORE_HDR[i % STORE_HDR.length];
+        ['Фокс','Комфі','Δ'].forEach((l, j) => {
+            const th = document.createElement('th');
+            th.textContent = l;
+            th.className = 'sub';
+            th.style.background = c;
+            if (j === 0 && i > 0) th.style.borderLeft = '2px solid rgba(255,255,255,0.2)';
+            trH.appendChild(th);
         });
     });
-    thead.appendChild(trH);tbl.appendChild(thead);
-
-    const tbody=document.createElement('tbody');
-    let prevWeek=null;
-    data.forEach(r=>{
-        const tr=document.createElement('tr');
-        if(r.isWE)tr.classList.add('weekend');
-        if(r.week&&r.week!==prevWeek){tr.classList.add('wk-sep');prevWeek=r.week;}
-        tr.appendChild(mkTd(fmtDate(r.date),'c-l1'));
-        tr.appendChild(mkTd(r.dowName?r.dowName.slice(0,2):'','c-l2'));
-        sts.forEach((st,i)=>{
-            const bg=STORE_BG[i%STORE_BG.length];
-            const v=r.storeVals[st.name]||{};
-            const f=v.foks??null,k=v.komf??null;
-            const d=v.delta??((f!=null&&k!=null&&f!==0)?k/f:null);
-            tr.appendChild(mkTd(fmt(f),'',{background:bg,borderLeft:i>0?'2px solid #d0d0da':''}));
-            tr.appendChild(mkTd(fmt(k),'',{background:bg}));
-            tr.appendChild(mkTd(d!=null?d.toFixed(2):null,deltaClass(d),{background:bg}));
+    thead.appendChild(trH);
+    tbl.appendChild(thead);
+    const tbody = document.createElement('tbody');
+    let prevWeek = null;
+    data.forEach(r => {
+        const tr = document.createElement('tr');
+        if (r.isWE) tr.classList.add('weekend');
+        if (r.week && r.week !== prevWeek) { tr.classList.add('wk-sep'); prevWeek = r.week; }
+        const tdDate = document.createElement('td'); tdDate.textContent = fmtDate(r.date); tdDate.className = 'c-l1'; tr.appendChild(tdDate);
+        const tdDow = document.createElement('td'); tdDow.textContent = r.dowName ? r.dowName.slice(0,2) : ''; tdDow.className = 'c-l2'; tr.appendChild(tdDow);
+        sts.forEach((st, i) => {
+            const bg = STORE_BG[i % STORE_BG.length];
+            const v = r.storeVals[st.name] || {};
+            const f = v.foks ?? null;
+            const k = v.komf ?? null;
+            const d = v.delta ?? (f != null && k != null && f !== 0 ? k / f : null);
+            const tdF = document.createElement('td'); tdF.textContent = fmt(f); tdF.style.background = bg; if (i > 0) tdF.style.borderLeft = '2px solid #d0d0da'; tr.appendChild(tdF);
+            const tdK = document.createElement('td'); tdK.textContent = fmt(k); tdK.style.background = bg; tr.appendChild(tdK);
+            const tdD = document.createElement('td'); tdD.textContent = d != null ? d.toFixed(2) : null; tdD.className = deltaClass(d); tdD.style.background = bg; tr.appendChild(tdD);
         });
         tbody.appendChild(tr);
     });
-    const trTot=document.createElement('tr');trTot.className='tot';
-    trTot.appendChild(mkTd('РАЗОМ','c-l1'));trTot.appendChild(mkTd('','c-l2'));
-    sts.forEach((st,i)=>{
-        const bg=STORE_BG[i%STORE_BG.length];
-        let sf=0,sk=0;
-        data.forEach(r=>{const v=r.storeVals[st.name]||{};if(v.foks!=null)sf+=v.foks;if(v.komf!=null)sk+=v.komf;});
-        const sd=sf>0?sk/sf:null;
-        trTot.appendChild(mkTd(fmt(sf),'',{background:bg,borderLeft:i>0?'2px solid #d0d0da':'',fontWeight:'700'}));
-        trTot.appendChild(mkTd(fmt(sk),'',{background:bg,fontWeight:'700'}));
-        trTot.appendChild(mkTd(sd!=null?sd.toFixed(2):null,deltaClass(sd),{background:bg,fontWeight:'700'}));
+    // Тотал
+    const trTot = document.createElement('tr'); trTot.className = 'tot';
+    const tdTot = document.createElement('td'); tdTot.textContent = 'РАЗОМ'; tdTot.className = 'c-l1'; trTot.appendChild(tdTot);
+    trTot.appendChild(document.createElement('td')); // c-l2 пустий
+    sts.forEach((st, i) => {
+        const bg = STORE_BG[i % STORE_BG.length];
+        let sf = 0, sk = 0;
+        data.forEach(r => {
+            const v = r.storeVals[st.name] || {};
+            if (v.foks != null) sf += v.foks;
+            if (v.komf != null) sk += v.komf;
+        });
+        const sd = sf > 0 ? sk / sf : null;
+        const tdF = document.createElement('td'); tdF.textContent = fmt(sf); tdF.style.background = bg; if (i > 0) tdF.style.borderLeft = '2px solid #d0d0da'; trTot.appendChild(tdF);
+        const tdK = document.createElement('td'); tdK.textContent = fmt(sk); tdK.style.background = bg; trTot.appendChild(tdK);
+        const tdD = document.createElement('td'); tdD.textContent = sd != null ? sd.toFixed(2) : null; tdD.className = deltaClass(sd); tdD.style.background = bg; trTot.appendChild(tdD);
     });
     tbody.appendChild(trTot);
-    tbl.appendChild(tbody);wrap.appendChild(tbl);card.appendChild(wrap);
-    cont.innerHTML='';cont.appendChild(card);
+    tbl.appendChild(tbody);
+    wrap.appendChild(tbl);
+    card.appendChild(wrap);
+    cont.innerHTML = '';
+    cont.appendChild(card);
 }
-
-function deltaClass(d){
-    if(d===null||d===undefined)return'';
-    if(d<0.8)return'd5';if(d<0.95)return'd4';if(d<=1.05)return'd3';if(d<=1.25)return'd2';return'd1';
+function deltaClass(d) {
+    if (d === null || d === undefined) return '';
+    if (d < 0.8) return 'd5';
+    if (d < 0.95) return 'd4';
+    if (d <= 1.05) return 'd3';
+    if (d <= 1.25) return 'd2';
+    return 'd1';
 }
-
-// ── WEEKDAY (з фільтром сегментів) ──
-function renderWeekday(){
-    const cont=document.getElementById('tabContent');
-    const data=activeData();
-    const sts=activeStores();
-    if(!data.length){cont.innerHTML='<div class="table-card"><div class="status-box">Немає даних</div></div>';return;}
-
-    const wMap=new Map();
-    data.forEach(r=>{
-        if(!r.week)return;
-        const k=r.year+'_W'+String(r.week).padStart(2,'0');
-        if(!wMap.has(k))wMap.set(k,{label:k,year:r.year,week:r.week,wd:[],we:[],rows:[]});
-        const w=wMap.get(k);
+// ──────────────────────────────────────────────
+// ВКЛАДКА Пн–Чт / Пт–Нд
+// ──────────────────────────────────────────────
+function renderWeekday() {
+    const cont = document.getElementById('tabContent');
+    const data = activeData();
+    const sts = activeStores();
+    if (!data.length) {
+        cont.innerHTML = '<div class="table-card"><div class="status-box">Немає даних</div></div>';
+        return;
+    }
+    const wMap = new Map();
+    data.forEach(r => {
+        if (!r.week) return;
+        const k = r.year + '_W' + String(r.week).padStart(2, '0');
+        if (!wMap.has(k)) wMap.set(k, { label: k, year: r.year, week: r.week, wd: [], we: [], rows: [] });
+        const w = wMap.get(k);
         w.rows.push(r);
-        if(r.isWE)w.we.push(r);else w.wd.push(r);
+        if (r.isWE) w.we.push(r); else w.wd.push(r);
     });
-
-    const card=document.createElement('div');card.className='table-card';
-    const hint=document.createElement('div');hint.className='table-hint';
-    hint.innerHTML='<b>Пн–Чт</b> та <b>Пт–Сб</b> за кожен тиждень | ↔ — відхилення від попереднього тижня';
+    const card = document.createElement('div'); card.className = 'table-card';
+    const hint = document.createElement('div'); hint.className = 'table-hint';
+    hint.innerHTML = '<b>Пн–Чт</b> та <b>Пт–Сб</b> за кожен тиждень | ↔ — відхилення від попереднього тижня';
     card.appendChild(hint);
-    const wrap=document.createElement('div');wrap.className='table-wrap';
-    const tbl=document.createElement('table');
-    const thead=document.createElement('thead');
-
-    const segDefs=[{key:'wd',lbl:'Пн–Чт'},{key:'we',lbl:'Пт–Сб'}];
-    const segsToShow=segDefs.filter(s=>selSegments.has(s.key));
-    if(segsToShow.length===0) segsToShow.push(...segDefs);
-
-    const trG=document.createElement('tr');
-    trG.appendChild(mkTh('Рік','c-l1',{background:'#374151',color:'#fff',rowSpan:3}));
-    trG.appendChild(mkTh('Тиж','c-l2',{background:'#374151',color:'#fff',rowSpan:3}));
-    sts.forEach((st,i)=>{
-        const c=STORE_HDR[i%STORE_HDR.length];
-        const th=mkTh(st.name,'grp',{background:c,borderLeft:i>0?'2px solid rgba(255,255,255,0.2)':''});
-        th.colSpan=segsToShow.length*3;th.title=st.name;trG.appendChild(th);
+    const wrap = document.createElement('div'); wrap.className = 'table-wrap';
+    const tbl = document.createElement('table');
+    const thead = document.createElement('thead');
+    const segDefs = [{key:'wd', lbl:'Пн–Чт'}, {key:'we', lbl:'Пт–Сб'}];
+    const segsToShow = segDefs.filter(s => selSegments.has(s.key));
+    if (segsToShow.length === 0) segsToShow.push(...segDefs);
+    // Заголовок 1 рядок
+    const trG = document.createElement('tr');
+    trG.appendChild(Object.assign(document.createElement('th'), {textContent: 'Рік', className: 'c-l1', style: 'background:#374151;color:#fff;', rowSpan: 3}));
+    trG.appendChild(Object.assign(document.createElement('th'), {textContent: 'Тиж', className: 'c-l2', style: 'background:#374151;color:#fff;', rowSpan: 3}));
+    sts.forEach((st, i) => {
+        const c = STORE_HDR[i % STORE_HDR.length];
+        const th = document.createElement('th');
+        th.textContent = st.name;
+        th.className = 'grp';
+        th.style.background = c;
+        if (i > 0) th.style.borderLeft = '2px solid rgba(255,255,255,0.2)';
+        th.colSpan = segsToShow.length * 3;
+        th.title = st.name;
+        trG.appendChild(th);
     });
     thead.appendChild(trG);
-
-    const trSeg=document.createElement('tr');
-    sts.forEach((st,i)=>{
-        const c=STORE_HDR[i%STORE_HDR.length];
-        segsToShow.forEach((sdef,jSeg)=>{
-            const bg=(sdef.key==='wd')?c:c+'99';
-            const th=mkTh(sdef.lbl,'grp',{background:bg,borderLeft:(i>0&&jSeg===0)?'2px solid rgba(255,255,255,0.2)':''});
-            th.colSpan=3;trSeg.appendChild(th);
+    // Заголовок 2 рядок - сегменти
+    const trSeg = document.createElement('tr');
+    sts.forEach((st, i) => {
+        const c = STORE_HDR[i % STORE_HDR.length];
+        segsToShow.forEach((sdef, jSeg) => {
+            const th = document.createElement('th');
+            th.textContent = sdef.lbl;
+            th.className = 'grp';
+            th.style.background = (sdef.key === 'wd') ? c : c + '99';
+            if (i > 0 && jSeg === 0) th.style.borderLeft = '2px solid rgba(255,255,255,0.2)';
+            th.colSpan = 3;
+            trSeg.appendChild(th);
         });
     });
     thead.appendChild(trSeg);
-
-    const trH=document.createElement('tr');
-    sts.forEach((st,i)=>{
-        const c=STORE_HDR[i%STORE_HDR.length];
-        segsToShow.forEach((sdef,jSeg)=>{
-            const segBg=(sdef.key==='wd')?c:c+'99';
-            ['Фокс','Комфі','Δ'].forEach((l,k2)=>{
-                const bl=(k2===0&&i>0&&jSeg===0)?'2px solid rgba(255,255,255,0.2)':(k2===0&&jSeg>0)?'1px solid rgba(255,255,255,0.15)':'';
-                trH.appendChild(mkTh(l,'sub',{background:segBg,borderLeft:bl}));
+    // Заголовок 3 рядок - Фокс Комфі Δ
+    const trH = document.createElement('tr');
+    sts.forEach((st, i) => {
+        const c = STORE_HDR[i % STORE_HDR.length];
+        segsToShow.forEach((sdef, jSeg) => {
+            const segBg = (sdef.key === 'wd') ? c : c + '99';
+            ['Фокс','Комфі','Δ'].forEach((l, k2) => {
+                const th = document.createElement('th');
+                th.textContent = l;
+                th.className = 'sub';
+                th.style.background = segBg;
+                if (k2 === 0) {
+                    if (i > 0 && jSeg === 0) th.style.borderLeft = '2px solid rgba(255,255,255,0.2)';
+                    else if (jSeg > 0) th.style.borderLeft = '1px solid rgba(255,255,255,0.15)';
+                }
+                trH.appendChild(th);
             });
         });
     });
-    thead.appendChild(trH);tbl.appendChild(thead);
-
-    const tbody=document.createElement('tbody');
-    const keys=[...wMap.keys()].sort();
-    keys.forEach((k,idx)=>{
-        const w=wMap.get(k);
-        const tr=document.createElement('tr');
-        tr.appendChild(mkTd(String(w.year),'c-l1'));
-        tr.appendChild(mkTd('T'+w.week,'c-l2'));
-        sts.forEach((st,i)=>{
-            const bg=STORE_BG[i%STORE_BG.length];
-            segsToShow.forEach((sdef,jSeg)=>{
-                const rowsForSeg=(sdef.key==='wd')?w.wd:w.we;
-                let f=0,kv=0;
-                rowsForSeg.forEach(r=>{const v=r.storeVals[st.name]||{};if(v.foks!=null)f+=v.foks;if(v.komf!=null)kv+=v.komf;});
-                const d=f>0?kv/f:null;
-                const bl=(jSeg===0&&i>0)?'2px solid #d0d0da':(jSeg>0?'1px solid #e8e8ec':'');
-                tr.appendChild(mkTd(fmt(f),'',{background:bg,borderLeft:bl}));
-                tr.appendChild(mkTd(fmt(kv),'',{background:bg}));
-                tr.appendChild(mkTd(d!=null?d.toFixed(2):null,deltaClass(d),{background:bg}));
+    thead.appendChild(trH);
+    tbl.appendChild(thead);
+    const tbody = document.createElement('tbody');
+    const keys = [...wMap.keys()].sort();
+    keys.forEach((k, idx) => {
+        const w = wMap.get(k);
+        const tr = document.createElement('tr');
+        const tdYear = document.createElement('td'); tdYear.textContent = String(w.year); tdYear.className = 'c-l1'; tr.appendChild(tdYear);
+        const tdWeek = document.createElement('td'); tdWeek.textContent = 'T' + w.week; tdWeek.className = 'c-l2'; tr.appendChild(tdWeek);
+        sts.forEach((st, i) => {
+            const bg = STORE_BG[i % STORE_BG.length];
+            segsToShow.forEach((sdef, jSeg) => {
+                const rowsForSeg = (sdef.key === 'wd') ? w.wd : w.we;
+                let f = 0, kv = 0;
+                rowsForSeg.forEach(r => {
+                    const v = r.storeVals[st.name] || {};
+                    if (v.foks != null) f += v.foks;
+                    if (v.komf != null) kv += v.komf;
+                });
+                const d = f > 0 ? kv / f : null;
+                const isFirstSeg = jSeg === 0;
+                const bl = (isFirstSeg && i > 0) ? '2px solid #d0d0da' : (jSeg > 0 ? '1px solid #e8e8ec' : '');
+                const tdF = document.createElement('td'); tdF.textContent = fmt(f); tdF.style.background = bg; tdF.style.borderLeft = bl; tr.appendChild(tdF);
+                const tdK = document.createElement('td'); tdK.textContent = fmt(kv); tdK.style.background = bg; tr.appendChild(tdK);
+                const tdD = document.createElement('td'); tdD.textContent = d != null ? d.toFixed(2) : null; tdD.className = deltaClass(d); tdD.style.background = bg; tr.appendChild(tdD);
             });
         });
         tbody.appendChild(tr);
-
-        if(idx>0){
-            const prevK=keys[idx-1];
-            const prev=wMap.get(prevK);
-            const diffTr=document.createElement('tr');diffTr.className='diff-row';
-            diffTr.appendChild(mkTd('↔ vs T'+prev.week,'',{textAlign:'left',paddingLeft:'6px',color:'#92400e',fontWeight:'600',fontSize:'10px'}));
-            diffTr.appendChild(mkTd('',''));
-            sts.forEach((st,i)=>{
-                const bg=STORE_BG[i%STORE_BG.length];
-                segsToShow.forEach((sdef,jSeg)=>{
-                    const rowsForSeg=(sdef.key==='wd')?w.wd:w.we;
-                    const pRowsForSeg=(sdef.key==='wd')?prev.wd:prev.we;
-                    let cf=0,ck=0,pf=0,pk=0;
-                    rowsForSeg.forEach(r=>{const v=r.storeVals[st.name]||{};if(v.foks!=null)cf+=v.foks;if(v.komf!=null)ck+=v.komf;});
-                    pRowsForSeg.forEach(r=>{const v=r.storeVals[st.name]||{};if(v.foks!=null)pf+=v.foks;if(v.komf!=null)pk+=v.komf;});
-                    const df=cf-pf,dk=ck-pk;
-                    const dd=(pf>0&&cf>0)?(ck/cf)-(pk/pf):null;
-                    const bl=(jSeg===0&&i>0)?'2px solid #d0d0da':(jSeg>0?'1px solid #e8e8ec':'');
-                    diffTr.appendChild(mkTd((df>=0?'+':'')+fmt(Math.abs(df))+(df>=0?' ↑':' ↓'),df>=0?'diff-pos':'diff-neg',{background:bg,borderLeft:bl,fontSize:'10px'}));
-                    diffTr.appendChild(mkTd((dk>=0?'+':'')+fmt(Math.abs(dk))+(dk>=0?' ↑':' ↓'),dk>=0?'diff-pos':'diff-neg',{background:bg,fontSize:'10px'}));
-                    diffTr.appendChild(mkTd(dd!=null?(dd>=0?'+':'')+dd.toFixed(2):null,dd==null?'':(dd<=0?'diff-pos':'diff-neg'),{background:bg,fontSize:'10px'}));
+        // Рядок різниці
+        if (idx > 0) {
+            const prevK = keys[idx - 1];
+            const prev = wMap.get(prevK);
+            const diffTr = document.createElement('tr'); diffTr.className = 'diff-row';
+            const tdLabel = document.createElement('td'); tdLabel.textContent = '↔ vs T' + prev.week; tdLabel.style.textAlign = 'left'; tdLabel.style.paddingLeft = '6px'; tdLabel.style.color = '#92400e'; tdLabel.style.fontWeight = '600'; tdLabel.style.fontSize = '10px'; diffTr.appendChild(tdLabel);
+            diffTr.appendChild(document.createElement('td')); // пустий
+            sts.forEach((st, i) => {
+                const bg = STORE_BG[i % STORE_BG.length];
+                segsToShow.forEach((sdef, jSeg) => {
+                    const rowsForSeg = (sdef.key === 'wd') ? w.wd : w.we;
+                    const pRowsForSeg = (sdef.key === 'wd') ? prev.wd : prev.we;
+                    let cf = 0, ck = 0, pf = 0, pk = 0;
+                    rowsForSeg.forEach(r => { const v = r.storeVals[st.name] || {}; if (v.foks != null) cf += v.foks; if (v.komf != null) ck += v.komf; });
+                    pRowsForSeg.forEach(r => { const v = r.storeVals[st.name] || {}; if (v.foks != null) pf += v.foks; if (v.komf != null) pk += v.komf; });
+                    const df = cf - pf, dk = ck - pk;
+                    const dd = (pf > 0 && cf > 0) ? (ck / cf) - (pk / pf) : null;
+                    const isFirstSeg = jSeg === 0;
+                    const bl = (isFirstSeg && i > 0) ? '2px solid #d0d0da' : (jSeg > 0 ? '1px solid #e8e8ec' : '');
+                    const tdF = document.createElement('td'); tdF.textContent = (df >= 0 ? '+' : '') + fmt(Math.abs(df)) + (df >= 0 ? ' ↑' : ' ↓'); tdF.className = df >= 0 ? 'diff-pos' : 'diff-neg'; tdF.style.background = bg; tdF.style.borderLeft = bl; tdF.style.fontSize = '10px'; diffTr.appendChild(tdF);
+                    const tdK = document.createElement('td'); tdK.textContent = (dk >= 0 ? '+' : '') + fmt(Math.abs(dk)) + (dk >= 0 ? ' ↑' : ' ↓'); tdK.className = dk >= 0 ? 'diff-pos' : 'diff-neg'; tdK.style.background = bg; tdK.style.fontSize = '10px'; diffTr.appendChild(tdK);
+                    const tdD = document.createElement('td'); tdD.textContent = dd != null ? (dd >= 0 ? '+' : '') + dd.toFixed(2) : null; tdD.className = dd == null ? '' : (dd <= 0 ? 'diff-pos' : 'diff-neg'); tdD.style.background = bg; tdD.style.fontSize = '10px'; diffTr.appendChild(tdD);
                 });
             });
             tbody.appendChild(diffTr);
         }
     });
-    tbl.appendChild(tbody);wrap.appendChild(tbl);card.appendChild(wrap);
-    cont.innerHTML='';cont.appendChild(card);
+    tbl.appendChild(tbody);
+    wrap.appendChild(tbl);
+    card.appendChild(wrap);
+    cont.innerHTML = '';
+    cont.appendChild(card);
 }
-
-// ── WEEKLY & MONTHLY ──
-function renderWeekly(){
-    const cont=document.getElementById('tabContent');
-    const data=activeData();const sts=activeStores();
-    if(!data.length){cont.innerHTML='<div class="table-card"><div class="status-box">Немає даних</div></div>';return;}
-    const gMap=new Map();
-    const keys=[];
-    data.forEach(r=>{
-        if(!r.week)return;
-        const k=r.year+'_W'+String(r.week).padStart(2,'0');
-        if(!gMap.has(k)){gMap.set(k,{label:k,rows:[]});keys.push(k);}
+// ──────────────────────────────────────────────
+// ПО ТИЖНЯХ
+// ──────────────────────────────────────────────
+function renderWeekly() {
+    const cont = document.getElementById('tabContent');
+    const data = activeData();
+    const sts = activeStores();
+    if (!data.length) {
+        cont.innerHTML = '<div class="table-card"><div class="status-box">Немає даних</div></div>';
+        return;
+    }
+    const gMap = new Map();
+    const keys = [];
+    data.forEach(r => {
+        if (!r.week) return;
+        const k = r.year + '_W' + String(r.week).padStart(2, '0');
+        if (!gMap.has(k)) { gMap.set(k, {label: k, rows: []}); keys.push(k); }
         gMap.get(k).rows.push(r);
     });
-    keys.sort().forEach((k,i)=>{gMap.get(k).prevKey=i>0?keys[i-1]:null;});
-    buildAggTable(cont,gMap,sts,'Рік','Тиждень',l=>'T'+(l.split('_W')[1]||''));
+    keys.sort().forEach((k, i) => { gMap.get(k).prevKey = i > 0 ? keys[i-1] : null; });
+    buildAggTable(cont, gMap, sts, 'Рік', 'Тиждень', l => 'T' + (l.split('_W')[1] || ''));
 }
-function renderMonthly(){
-    const cont=document.getElementById('tabContent');
-    const data=activeData();const sts=activeStores();
-    if(!data.length){cont.innerHTML='<div class="table-card"><div class="status-box">Немає даних</div></div>';return;}
-    const gMap=new Map();const keys=[];
-    data.forEach(r=>{
-        const k=r.year+'_'+String(r.month).padStart(2,'0');
-        if(!gMap.has(k)){gMap.set(k,{label:k,rows:[]});keys.push(k);}
+// ──────────────────────────────────────────────
+// ПО МІСЯЦЯХ
+// ──────────────────────────────────────────────
+function renderMonthly() {
+    const cont = document.getElementById('tabContent');
+    const data = activeData();
+    const sts = activeStores();
+    if (!data.length) {
+        cont.innerHTML = '<div class="table-card"><div class="status-box">Немає даних</div></div>';
+        return;
+    }
+    const gMap = new Map();
+    const keys = [];
+    data.forEach(r => {
+        const k = r.year + '_' + String(r.month).padStart(2, '0');
+        if (!gMap.has(k)) { gMap.set(k, {label: k, rows: []}); keys.push(k); }
         gMap.get(k).rows.push(r);
     });
-    keys.sort().forEach((k,i)=>{gMap.get(k).prevKey=i>0?keys[i-1]:null;});
-    buildAggTable(cont,gMap,sts,'Рік','Місяць',l=>{const m=parseInt(l.split('_')[1]);return MONTHS_UK[m-1]?.slice(0,3)||l;});
+    keys.sort().forEach((k, i) => { gMap.get(k).prevKey = i > 0 ? keys[i-1] : null; });
+    buildAggTable(cont, gMap, sts, 'Рік', 'Місяць', l => {
+        const m = parseInt(l.split('_')[1]);
+        return MONTHS_UK[m-1]?.slice(0,3) || l;
+    });
 }
-
-function buildAggTable(cont,groupMap,sts,col1Label,col2Label,col2fmt){
-    const card=document.createElement('div');card.className='table-card';
-    const wrap=document.createElement('div');wrap.className='table-wrap';
-    const tbl=document.createElement('table');
-    const thead=document.createElement('thead');
-    const trG=document.createElement('tr');
-    const th1=mkTh(col1Label,'c-l1',{background:'#374151',color:'#fff'});th1.rowSpan=2;trG.appendChild(th1);
-    const th2=mkTh(col2Label,'c-l2',{background:'#374151',color:'#fff'});th2.rowSpan=2;trG.appendChild(th2);
-    sts.forEach((st,i)=>{
-        const c=STORE_HDR[i%STORE_HDR.length];
-        const th=mkTh(st.name,'grp',{background:c,borderLeft:i>0?'2px solid rgba(255,255,255,0.2)':''});
-        th.colSpan=3;th.title=st.name;trG.appendChild(th);
+function buildAggTable(cont, groupMap, sts, col1Label, col2Label, col2fmt) {
+    const card = document.createElement('div'); card.className = 'table-card';
+    const wrap = document.createElement('div'); wrap.className = 'table-wrap';
+    const tbl = document.createElement('table');
+    const thead = document.createElement('thead');
+    const trG = document.createElement('tr');
+    const th1 = document.createElement('th'); th1.textContent = col1Label; th1.className = 'c-l1'; th1.style.background = '#374151'; th1.style.color = '#fff'; trG.appendChild(th1);
+    const th2 = document.createElement('th'); th2.textContent = col2Label; th2.className = 'c-l2'; th2.style.background = '#374151'; th2.style.color = '#fff'; trG.appendChild(th2);
+    sts.forEach((st, i) => {
+        const c = STORE_HDR[i % STORE_HDR.length];
+        const th = document.createElement('th');
+        th.textContent = st.name;
+        th.className = 'grp';
+        th.style.background = c;
+        if (i > 0) th.style.borderLeft = '2px solid rgba(255,255,255,0.2)';
+        th.colSpan = 3;
+        th.title = st.name;
+        trG.appendChild(th);
     });
     thead.appendChild(trG);
-    const trH=document.createElement('tr');
-    sts.forEach((st,i)=>{
-        const c=STORE_HDR[i%STORE_HDR.length];
-        ['Фокс','Комфі','Δ'].forEach((l,j)=>{
-            trH.appendChild(mkTh(l,'sub',{background:c,borderLeft:j===0&&i>0?'2px solid rgba(255,255,255,0.2)':''}));
+    const trH = document.createElement('tr');
+    sts.forEach((st, i) => {
+        const c = STORE_HDR[i % STORE_HDR.length];
+        ['Фокс','Комфі','Δ'].forEach((l, j) => {
+            const th = document.createElement('th');
+            th.textContent = l;
+            th.className = 'sub';
+            th.style.background = c;
+            if (j === 0 && i > 0) th.style.borderLeft = '2px solid rgba(255,255,255,0.2)';
+            trH.appendChild(th);
         });
     });
-    thead.appendChild(trH);tbl.appendChild(thead);
-    const tbody=document.createElement('tbody');
-    const keys=[...groupMap.keys()].sort();
-    keys.forEach((k,idx)=>{
-        const{label,rows,prevKey}=groupMap.get(k);
-        const agg=aggRows(rows,sts);
-        const tr=document.createElement('tr');
-        tr.appendChild(mkTd(label.split('_')[0]||label,'c-l1'));
-        tr.appendChild(mkTd(col2fmt(label),'c-l2'));
-        sts.forEach((st,i)=>{
-            const bg=STORE_BG[i%STORE_BG.length];
-            const{f,k:kv,d}=agg[st.name]||{f:0,k:0,d:null};
-            tr.appendChild(mkTd(fmt(f),'',{background:bg,borderLeft:i>0?'2px solid #d0d0da':''}));
-            tr.appendChild(mkTd(fmt(kv),'',{background:bg}));
-            tr.appendChild(mkTd(d!=null?d.toFixed(2):null,deltaClass(d),{background:bg}));
+    thead.appendChild(trH);
+    tbl.appendChild(thead);
+    const tbody = document.createElement('tbody');
+    const keys = [...groupMap.keys()].sort();
+    keys.forEach(k => {
+        const {label, rows, prevKey} = groupMap.get(k);
+        const agg = aggRows(rows, sts);
+        const tr = document.createElement('tr');
+        const td1 = document.createElement('td'); td1.textContent = label.split('_')[0] || label; td1.className = 'c-l1'; tr.appendChild(td1);
+        const td2 = document.createElement('td'); td2.textContent = col2fmt(label); td2.className = 'c-l2'; tr.appendChild(td2);
+        sts.forEach((st, i) => {
+            const bg = STORE_BG[i % STORE_BG.length];
+            const {f, k: kv, d} = agg[st.name] || {f:0, k:0, d:null};
+            const tdF = document.createElement('td'); tdF.textContent = fmt(f); tdF.style.background = bg; if (i > 0) tdF.style.borderLeft = '2px solid #d0d0da'; tr.appendChild(tdF);
+            const tdK = document.createElement('td'); tdK.textContent = fmt(kv); tdK.style.background = bg; tr.appendChild(tdK);
+            const tdD = document.createElement('td'); tdD.textContent = d != null ? d.toFixed(2) : null; tdD.className = deltaClass(d); tdD.style.background = bg; tr.appendChild(tdD);
         });
         tbody.appendChild(tr);
-        if(prevKey&&groupMap.has(prevKey)){
-            const prevAgg=aggRows(groupMap.get(prevKey).rows,sts);
-            const diffTr=document.createElement('tr');diffTr.className='diff-row';
-            diffTr.appendChild(mkTd('↔ vs попер.','',{textAlign:'left',paddingLeft:'4px',color:'#92400e',fontWeight:'600'}));
-            diffTr.appendChild(mkTd('',''));
-            sts.forEach((st,i)=>{
-                const bg=STORE_BG[i%STORE_BG.length];
-                const pf=prevAgg[st.name]?.f||0,pk=prevAgg[st.name]?.k||0;
-                const cf=agg[st.name]?.f||0,ck=agg[st.name]?.k||0;
-                const df=cf-pf,dk=ck-pk;
-                const dd=(pf>0&&cf>0)?(ck/cf)-(pk/pf):null;
-                const fBL=i>0?'2px solid #d0d0da':'';
-                diffTr.appendChild(mkTd((df>=0?'+':'')+fmt(Math.abs(df))+(df>=0?' ↑':' ↓'),df>=0?'diff-pos':'diff-neg',{background:bg,borderLeft:fBL,fontSize:'10px'}));
-                diffTr.appendChild(mkTd((dk>=0?'+':'')+fmt(Math.abs(dk))+(dk>=0?' ↑':' ↓'),dk>=0?'diff-pos':'diff-neg',{background:bg,fontSize:'10px'}));
-                diffTr.appendChild(mkTd(dd!=null?(dd>=0?'+':'')+dd.toFixed(2):null,dd==null?'':(dd<=0?'diff-pos':'diff-neg'),{background:bg,fontSize:'10px'}));
+        if (prevKey && groupMap.has(prevKey)) {
+            const prevAgg = aggRows(groupMap.get(prevKey).rows, sts);
+            const diffTr = document.createElement('tr'); diffTr.className = 'diff-row';
+            const tdLabel = document.createElement('td'); tdLabel.textContent = '↔ vs попер.'; tdLabel.style.textAlign = 'left'; tdLabel.style.paddingLeft = '4px'; tdLabel.style.color = '#92400e'; tdLabel.style.fontWeight = '600'; diffTr.appendChild(tdLabel);
+            diffTr.appendChild(document.createElement('td'));
+            sts.forEach((st, i) => {
+                const bg = STORE_BG[i % STORE_BG.length];
+                const pf = prevAgg[st.name]?.f || 0, pk = prevAgg[st.name]?.k || 0;
+                const cf = agg[st.name]?.f || 0, ck = agg[st.name]?.k || 0;
+                const df = cf - pf, dk = ck - pk;
+                const dd = (pf > 0 && cf > 0) ? (ck / cf) - (pk / pf) : null;
+                const tdF = document.createElement('td'); tdF.textContent = (df >= 0 ? '+' : '') + fmt(Math.abs(df)) + (df >= 0 ? ' ↑' : ' ↓'); tdF.className = df >= 0 ? 'diff-pos' : 'diff-neg'; tdF.style.background = bg; if (i > 0) tdF.style.borderLeft = '2px solid #d0d0da'; tdF.style.fontSize = '10px'; diffTr.appendChild(tdF);
+                const tdK = document.createElement('td'); tdK.textContent = (dk >= 0 ? '+' : '') + fmt(Math.abs(dk)) + (dk >= 0 ? ' ↑' : ' ↓'); tdK.className = dk >= 0 ? 'diff-pos' : 'diff-neg'; tdK.style.background = bg; tdK.style.fontSize = '10px'; diffTr.appendChild(tdK);
+                const tdD = document.createElement('td'); tdD.textContent = dd != null ? (dd >= 0 ? '+' : '') + dd.toFixed(2) : null; tdD.className = dd == null ? '' : (dd <= 0 ? 'diff-pos' : 'diff-neg'); tdD.style.background = bg; tdD.style.fontSize = '10px'; diffTr.appendChild(tdD);
             });
             tbody.appendChild(diffTr);
         }
     });
-    tbl.appendChild(tbody);wrap.appendChild(tbl);card.appendChild(wrap);
-    cont.innerHTML='';cont.appendChild(card);
+    tbl.appendChild(tbody);
+    wrap.appendChild(tbl);
+    card.appendChild(wrap);
+    cont.innerHTML = '';
+    cont.appendChild(card);
 }
-
-function aggRows(rows,sts){
-    const r={};
-    sts.forEach(st=>{
-        let f=0,k=0;
-        rows.forEach(row=>{const v=row.storeVals[st.name]||{};if(v.foks!=null)f+=v.foks;if(v.komf!=null)k+=v.komf;});
-        r[st.name]={f,k,d:f>0?k/f:null};
+function aggRows(rows, sts) {
+    const r = {};
+    sts.forEach(st => {
+        let f = 0, k = 0;
+        rows.forEach(row => {
+            const v = row.storeVals[st.name] || {};
+            if (v.foks != null) f += v.foks;
+            if (v.komf != null) k += v.komf;
+        });
+        r[st.name] = { f, k, d: f > 0 ? k / f : null };
     });
     return r;
 }
-
-// ── CHART (правка 1 — цифри не перекривають) ──
-function renderChart(){
-    const cont=document.getElementById('tabContent');
-    const data=activeData();
-    if(!data.length){cont.innerHTML='<div class="chart-card"><div class="status-box">Немає даних</div></div>';return;}
-    const sts=activeStores();
-    if(!selChartStore||!sts.find(s=>s.name===selChartStore))selChartStore=sts[0]?.name||'';
-
-    const card=document.createElement('div');card.className='chart-card';
-
-    const c0=document.createElement('div');c0.className='ctrl-row';
-    c0.appendChild(Object.assign(document.createElement('span'),{className:'ctrl-lbl',textContent:'Режим:'}));
-    [{v:'store',l:'Один магазин, всі дні'},{v:'allstores',l:'Всі магазини, один період'}].forEach(m=>{
-        const b=document.createElement('button');b.className='pill'+(selChartMode===m.v?' active':'');
-        b.textContent=m.l;if(selChartMode===m.v){b.style.background='#374151';b.style.color='#fff';}
-        b.onclick=()=>{selChartMode=m.v;renderChart();};c0.appendChild(b);
+// ──────────────────────────────────────────────
+// ГРАФІК (Динаміка)
+// ──────────────────────────────────────────────
+function renderChart() {
+    const cont = document.getElementById('tabContent');
+    const data = activeData();
+    if (!data.length) {
+        cont.innerHTML = '<div class="chart-card"><div class="status-box">Немає даних</div></div>';
+        return;
+    }
+    const sts = activeStores();
+    if (!selChartStore || !sts.find(s => s.name === selChartStore)) selChartStore = sts[0]?.name || '';
+    const card = document.createElement('div'); card.className = 'chart-card';
+    const c0 = document.createElement('div'); c0.className = 'ctrl-row';
+    c0.appendChild(Object.assign(document.createElement('span'), {className: 'ctrl-lbl', textContent: 'Режим:'}));
+    [{v:'store',l:'Один магазин, всі дні'}, {v:'allstores',l:'Всі магазини, один період'}].forEach(m => {
+        const b = document.createElement('button');
+        b.className = 'pill' + (selChartMode === m.v ? ' active' : '');
+        b.textContent = m.l;
+        if (selChartMode === m.v) { b.style.background = '#374151'; b.style.color = '#fff'; }
+        b.onclick = () => { selChartMode = m.v; renderChart(); };
+        c0.appendChild(b);
     });
     card.appendChild(c0);
-
-    const c1=document.createElement('div');c1.className='ctrl-row';
-    c1.appendChild(Object.assign(document.createElement('span'),{className:'ctrl-lbl',textContent:'Групування:'}));
-    [{v:'day',l:'День'},{v:'week',l:'Тиждень'},{v:'month',l:'Місяць'}].forEach(p=>{
-        const b=document.createElement('button');b.className='pill'+(selChartPeriod===p.v?' active':'');
-        b.textContent=p.l;if(selChartPeriod===p.v){b.style.background='#0071e3';b.style.color='#fff';}
-        b.onclick=()=>{selChartPeriod=p.v;renderChart();};c1.appendChild(b);
+    const c1 = document.createElement('div'); c1.className = 'ctrl-row';
+    c1.appendChild(Object.assign(document.createElement('span'), {className: 'ctrl-lbl', textContent: 'Групування:'}));
+    [{v:'day',l:'День'}, {v:'week',l:'Тиждень'}, {v:'month',l:'Місяць'}].forEach(p => {
+        const b = document.createElement('button');
+        b.className = 'pill' + (selChartPeriod === p.v ? ' active' : '');
+        b.textContent = p.l;
+        if (selChartPeriod === p.v) { b.style.background = '#0071e3'; b.style.color = '#fff'; }
+        b.onclick = () => { selChartPeriod = p.v; renderChart(); };
+        c1.appendChild(b);
     });
     card.appendChild(c1);
-
-    const c2=document.createElement('div');c2.className='ctrl-row';
-    c2.appendChild(Object.assign(document.createElement('span'),{className:'ctrl-lbl',textContent:'Показник:'}));
-    [{v:'delta',l:'Δ Дельта'},{v:'foks',l:'Фокстрот'},{v:'komf',l:'Комфі'}].forEach(m=>{
-        const b=document.createElement('button');b.className='pill'+(selChartMetric===m.v?' active':'');
-        b.textContent=m.l;if(selChartMetric===m.v){b.style.background='#6b21a8';b.style.color='#fff';}
-        b.onclick=()=>{selChartMetric=m.v;renderChart();};c2.appendChild(b);
+    const c2 = document.createElement('div'); c2.className = 'ctrl-row';
+    c2.appendChild(Object.assign(document.createElement('span'), {className: 'ctrl-lbl', textContent: 'Показник:'}));
+    [{v:'delta',l:'Δ Дельта'}, {v:'foks',l:'Фокстрот'}, {v:'komf',l:'Комфі'}].forEach(m => {
+        const b = document.createElement('button');
+        b.className = 'pill' + (selChartMetric === m.v ? ' active' : '');
+        b.textContent = m.l;
+        if (selChartMetric === m.v) { b.style.background = '#6b21a8'; b.style.color = '#fff'; }
+        b.onclick = () => { selChartMetric = m.v; renderChart(); };
+        c2.appendChild(b);
     });
-    if(selChartMode==='store'){
-        c2.appendChild(Object.assign(document.createElement('span'),{className:'ctrl-lbl',textContent:'  Магазин:',style:'margin-left:8px'}));
-        sts.forEach(st=>{
-            const b=document.createElement('button');b.className='pill'+(st.name===selChartStore?' active':'');
-            b.textContent=st.name.split(' ').slice(1,4).join(' ');b.title=st.name;
-            if(st.name===selChartStore){b.style.background='#1d1d1f';b.style.color='#fff';}
-            b.onclick=()=>{selChartStore=st.name;renderChart();};c2.appendChild(b);
+    if (selChartMode === 'store') {
+        c2.appendChild(Object.assign(document.createElement('span'), {className: 'ctrl-lbl', textContent: '  Магазин:', style: 'margin-left:8px'}));
+        sts.forEach(st => {
+            const b = document.createElement('button');
+            b.className = 'pill' + (st.name === selChartStore ? ' active' : '');
+            b.textContent = st.name.split(' ').slice(1,4).join(' ');
+            b.title = st.name;
+            if (st.name === selChartStore) { b.style.background = '#1d1d1f'; b.style.color = '#fff'; }
+            b.onclick = () => { selChartStore = st.name; renderChart(); };
+            c2.appendChild(b);
         });
     }
     card.appendChild(c2);
-
-    function getVal(rows,stName){
-        let f=0,k=0;
-        rows.forEach(r=>{const v=r.storeVals[stName]||{};if(v.foks!=null)f+=v.foks;if(v.komf!=null)k+=v.komf;});
-        if(selChartMetric==='delta')return f>0?k/f:null;
-        if(selChartMetric==='foks')return f||null;
-        return k||null;
+    function getVal(rows, stName) {
+        let f = 0, k = 0;
+        rows.forEach(r => {
+            const v = r.storeVals[stName] || {};
+            if (v.foks != null) f += v.foks;
+            if (v.komf != null) k += v.komf;
+        });
+        if (selChartMetric === 'delta') return f > 0 ? k / f : null;
+        if (selChartMetric === 'foks') return f || null;
+        return k || null;
     }
-
-    const gMap=new Map();
-    data.forEach(r=>{
+    const gMap = new Map();
+    data.forEach(r => {
         let k;
-        if(selChartPeriod==='day')k=r.date;
-        else if(selChartPeriod==='week')k=r.year+'_W'+String(r.week||0).padStart(2,'0');
-        else k=r.year+'_'+String(r.month).padStart(2,'0');
-        if(!gMap.has(k))gMap.set(k,[]);gMap.get(k).push(r);
+        if (selChartPeriod === 'day') k = r.date;
+        else if (selChartPeriod === 'week') k = r.year + '_W' + String(r.week || 0).padStart(2, '0');
+        else k = r.year + '_' + String(r.month).padStart(2, '0');
+        if (!gMap.has(k)) gMap.set(k, []);
+        gMap.get(k).push(r);
     });
-    const sortedKeys=[...gMap.keys()].sort();
-    const labels=sortedKeys.map(k=>{
-        if(selChartPeriod==='day')return fmtDate(k);
-        if(selChartPeriod==='week'){const p=k.split('_W');return'T'+p[1]+(p[0]?' '+String(p[0]).slice(2):'');}
-        const p=k.split('_');const m=parseInt(p[1]);return MONTHS_UK[m-1]?.slice(0,3)+(p[0]?' '+String(p[0]).slice(2):'');
+    const sortedKeys = [...gMap.keys()].sort();
+    const labels = sortedKeys.map(k => {
+        if (selChartPeriod === 'day') return fmtDate(k);
+        if (selChartPeriod === 'week') { const p = k.split('_W'); return 'T' + p[1] + (p[0] ? ' ' + String(p[0]).slice(2) : ''); }
+        const p = k.split('_'); const m = parseInt(p[1]); return MONTHS_UK[m-1]?.slice(0,3) + (p[0] ? ' ' + String(p[0]).slice(2) : '');
     });
-
-    const datasets=[];
-    const CHART_COLORS=['#1a56db','#0e7490','#6b21a8','#9d174d','#065f46','#92400e'];
-
-    if(selChartMode==='store'){
-        const vals=sortedKeys.map(k=>getVal(gMap.get(k),selChartStore));
-        const color=selChartMetric==='delta'?'#6b21a8':selChartMetric==='foks'?'#1a56db':'#0e7490';
-        const isBar=selChartMetric==='delta';
-        const isSmall=vals.length<=40;
+    const datasets = [];
+    const CHART_COLORS = ['#1a56db','#0e7490','#6b21a8','#9d174d','#065f46','#92400e'];
+    const isSmallDataset = sortedKeys.length <= 40;
+    if (selChartMode === 'store') {
+        const vals = sortedKeys.map(k => getVal(gMap.get(k), selChartStore));
+        const color = selChartMetric === 'delta' ? '#6b21a8' : (selChartMetric === 'foks' ? '#1a56db' : '#0e7490');
+        const isBar = selChartMetric === 'delta';
         datasets.push({
-            type:isBar?'bar':'line',
-            label:selChartStore.split(' ').slice(1,3).join(' '),
-            data:vals,
-            backgroundColor:isBar?vals.map(v=>{
-                if(v===null)return'rgba(200,200,200,0.4)';
-                if(v<0.8)return'rgba(21,128,61,0.75)';
-                if(v<0.95)return'rgba(22,163,74,0.65)';
-                if(v<=1.05)return'rgba(107,114,128,0.55)';
-                if(v<=1.25)return'rgba(194,65,12,0.65)';
-                return'rgba(185,28,28,0.8)';
-            }):color+'44',
-            borderColor:color,
-            borderWidth:isBar?0:3,
-            pointRadius:isSmall?5:3,
-            pointHoverRadius:9,
-            tension:0.3,
-            fill:!isBar,
-            spanGaps:true,
-            datalabels:{
-                display:true,
-                color:'#1d1d1f',
-                backgroundColor:'rgba(255,255,255,0.97)',
-                borderRadius:8,
-                borderWidth:2,
-                borderColor:color+'aa',
-                padding:10,
-                font:{size:12,weight:'bold'},
-                formatter:value=>value===null?'':(selChartMetric==='delta'?value.toFixed(2):fmt(value)),
-                anchor:isBar?'end':'end',
-                align:isBar?'top':'top',
-                offset:isBar?14:16,
-                clamp:true,
-                clip:false
+            type: isBar ? 'bar' : 'line',
+            label: selChartStore.split(' ').slice(1,3).join(' '),
+            data: vals,
+            backgroundColor: isBar ? vals.map(v => {
+                if (v === null) return 'rgba(200,200,200,0.3)';
+                if (v < 0.8) return 'rgba(21,128,61,0.7)';
+                if (v < 0.95) return 'rgba(22,163,74,0.6)';
+                if (v <= 1.05) return 'rgba(107,114,128,0.5)';
+                if (v <= 1.25) return 'rgba(194,65,12,0.6)';
+                return 'rgba(185,28,28,0.7)';
+            }) : color + '33',
+            borderColor: color,
+            borderWidth: isBar ? 0 : 2.5,
+            pointRadius: isSmallDataset ? 4 : 2,
+            pointHoverRadius: 7,
+            tension: 0.25,
+            fill: !isBar,
+            spanGaps: true,
+            datalabels: {
+                display: true,
+                color: '#1d1d1f',
+                backgroundColor: 'rgba(255,255,255,0.9)',
+                borderRadius: 4,
+                borderWidth: 1,
+                borderColor: color + '88',
+                padding: 6,
+                font: { size: 10, weight: '600' },
+                formatter: value => value === null ? '' : (selChartMetric === 'delta' ? value.toFixed(2) : fmt(value)),
+                anchor: isBar ? 'end' : 'end',
+                align: isBar ? 'top' : 'top',
+                offset: isBar ? 4 : 8,
+                clamp: true
             }
         });
     } else {
-        sts.forEach((st,i)=>{
-            const color=CHART_COLORS[i%CHART_COLORS.length];
-            const vals=sortedKeys.map(k=>getVal(gMap.get(k),st.name));
+        sts.forEach((st, i) => {
+            const color = CHART_COLORS[i % CHART_COLORS.length];
+            const vals = sortedKeys.map(k => getVal(gMap.get(k), st.name));
             datasets.push({
-                type:'line',
-                label:st.name.split(' ').slice(1,3).join(' '),
-                data:vals,
-                borderColor:color,
-                backgroundColor:color+'33',
-                borderWidth:3,
-                pointRadius:vals.length<=40?5:3,
-                pointHoverRadius:9,
-                tension:0.3,
-                fill:false,
-                spanGaps:true,
-                datalabels:{
-                    display:true,
-                    color:'#1d1d1f',
-                    backgroundColor:'rgba(255,255,255,0.97)',
-                    borderRadius:8,
-                    borderWidth:2,
-                    borderColor:color+'aa',
-                    padding:10,
-                    font:{size:12,weight:'bold'},
-                    formatter:value=>value===null?'':(selChartMetric==='delta'?value.toFixed(2):fmt(value)),
-                    clamp:true,
-                    clip:false
+                type: 'line',
+                label: st.name.split(' ').slice(1,3).join(' '),
+                data: vals,
+                borderColor: color,
+                backgroundColor: color + '22',
+                borderWidth: 2.5,
+                pointRadius: isSmallDataset ? 4 : 2,
+                pointHoverRadius: 7,
+                tension: 0.25,
+                fill: false,
+                spanGaps: true,
+                datalabels: {
+                    display: true,
+                    color: '#1d1d1f',
+                    backgroundColor: 'rgba(255,255,255,0.85)',
+                    borderRadius: 4,
+                    borderWidth: 1,
+                    borderColor: color + '88',
+                    padding: 6,
+                    font: { size: 10, weight: '600' },
+                    formatter: value => value === null ? '' : (selChartMetric === 'delta' ? value.toFixed(2) : fmt(value))
                 }
             });
         });
     }
-
-    const wrap=document.createElement('div');wrap.className='chart-wrap';
-    const canvas=document.createElement('canvas');canvas.id='dailyChart';
-    wrap.appendChild(canvas);card.appendChild(wrap);
-    cont.innerHTML='';cont.appendChild(card);
-
-    if(chartInstance){chartInstance.destroy();chartInstance=null;}
-    const ctx=canvas.getContext('2d');
-    chartInstance=new Chart(ctx,{
-        plugins:[ChartDataLabels],
-        data:{labels,datasets},
-        options:{
-            responsive:true,maintainAspectRatio:false,
-            interaction:{mode:'index',intersect:false},
-            plugins:{
-                legend:{display:datasets.length>1,position:'top',labels:{font:{size:11},boxWidth:18,padding:10}},
-                tooltip:{backgroundColor:'#1d1d1f',titleFont:{size:12},bodyFont:{size:12},padding:12,
-                    callbacks:{label:c=>' '+c.dataset.label+': '+(c.raw!=null?(selChartMetric==='delta'?c.raw.toFixed(2):fmt(c.raw)):'—')}},
-                datalabels:{clip:false}
+    const wrap = document.createElement('div'); wrap.className = 'chart-wrap';
+    const canvas = document.createElement('canvas'); canvas.id = 'dailyChart';
+    wrap.appendChild(canvas);
+    card.appendChild(wrap);
+    cont.innerHTML = '';
+    cont.appendChild(card);
+    if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
+    const ctx = canvas.getContext('2d');
+    chartInstance = new Chart(ctx, {
+        plugins: [ChartDataLabels],
+        data: { labels, datasets },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+                legend: { display: datasets.length > 1, position: 'top', labels: { font: { size: 11 }, boxWidth: 18, padding: 10 } },
+                tooltip: {
+                    backgroundColor: '#1d1d1f',
+                    titleFont: { size: 12 },
+                    bodyFont: { size: 12 },
+                    padding: 12,
+                    callbacks: {
+                        label: c => ' ' + c.dataset.label + ': ' + (c.raw != null ? (selChartMetric === 'delta' ? c.raw.toFixed(2) : fmt(c.raw)) : '—')
+                    }
+                }
             },
-            scales:{
-                x:{grid:{color:'#f0f0f0'},ticks:{font:{size:10},color:'#86868b',maxTicksLimit:24,maxRotation:45}},
-                y:{grid:{color:'#f0f0f0'},ticks:{font:{size:11},color:'#86868b',
-                    callback:v=>selChartMetric==='delta'?v.toFixed(2):fmt(v)},
-                    ...(selChartMetric==='delta'?{suggestedMin:0.4,suggestedMax:1.6}:{})}
+            scales: {
+                x: { grid: { color: '#f0f0f0' }, ticks: { font: { size: 9 }, color: '#86868b', maxTicksLimit: 24, maxRotation: 45 } },
+                y: {
+                    grid: { color: '#f0f0f0' },
+                    ticks: {
+                        font: { size: 10 },
+                        color: '#86868b',
+                        callback: v => selChartMetric === 'delta' ? v.toFixed(2) : fmt(v)
+                    },
+                    ...(selChartMetric === 'delta' ? { suggestedMin: 0.5, suggestedMax: 1.5 } : {})
+                }
             }
         }
     });
 }
-
-// ── SWITCH & RENDER ──
-function switchTab(tab){
-    activeTab=tab;
-    document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
-    document.querySelectorAll('.tab').forEach(b=>{
-        if(b.textContent.includes(tab==='table'?'Таблиця':tab==='weekday'?'Пн–Чт':tab==='weekly'?'По тижнях':tab==='monthly'?'По місяцях':'Динаміка')){
-            b.classList.add('active');
-        }
-    });
+// ──────────────────────────────────────────────
+// ПЕРЕМИКАННЯ ТАБІВ
+// ──────────────────────────────────────────────
+function switchTab(tab) {
+    activeTab = tab;
+    document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+    const activeBtn = Array.from(document.querySelectorAll('.tab')).find(b => b.textContent.includes(tab === 'table' ? 'Таблиця' : tab === 'weekday' ? 'Пн–Чт' : tab === 'weekly' ? 'По тижнях' : tab === 'monthly' ? 'По місяцях' : 'Динаміка'));
+    if (activeBtn) activeBtn.classList.add('active');
     render();
 }
-function render(){
-    if(activeTab==='table')renderTable();
-    else if(activeTab==='weekday')renderWeekday();
-    else if(activeTab==='weekly')renderWeekly();
-    else if(activeTab==='monthly')renderMonthly();
+function render() {
+    if (activeTab === 'table') renderTable();
+    else if (activeTab === 'weekday') renderWeekday();
+    else if (activeTab === 'weekly') renderWeekly();
+    else if (activeTab === 'monthly') renderMonthly();
     else renderChart();
 }
-
-// ── INIT ──
-async function init(){
+// ──────────────────────────────────────────────
+// INIT
+// ──────────────────────────────────────────────
+async function init() {
     showSkel();
-    try{
-        const res=await fetch(CSV_URL+'&t='+Date.now());
-        if(!res.ok)throw new Error('HTTP '+res.status);
-        const text=await res.text();
-        const rows=parseCSV(text);
-        if(!rows.length)throw new Error('Порожній файл');
+    try {
+        const res = await fetch(CSV_URL + '&t=' + Date.now());
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const text = await res.text();
+        const rows = parseCSV(text);
+        if (!rows.length) throw new Error('Порожній файл');
         detect(rows);
-        if(!stores.length)throw new Error('Не знайдено магазини у файлі');
+        if (!stores.length) throw new Error('Не знайдено магазини у файлі');
         renderFilters();
         render();
-    }catch(e){
-        document.getElementById('tabContent').innerHTML='<div class="table-card"><div class="status-box error">❌ '+e.message+'</div></div>';
+    } catch (e) {
+        document.getElementById('tabContent').innerHTML = '<div class="table-card"><div class="status-box error">❌ ' + e.message + '</div></div>';
         console.error(e);
     }
 }
