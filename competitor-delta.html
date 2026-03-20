@@ -241,22 +241,6 @@ function detectStructure(csvRows){
     allYears=[...yrs].sort((a,b)=>a-b);
     allMonths=[...mos].sort((a,b)=>a-b);
     dataRows.forEach(r=>selectedPeriods.add(r.key));
-    // Debug: show columns on page
-    setTimeout(()=>{
-        const db=document.createElement('div');
-        db.id='debug-cols';
-        db.style.cssText='background:#1d1d1f;color:#0f0;font-family:monospace;font-size:11px;padding:12px;border-radius:8px;margin:10px;white-space:pre;overflow-x:auto;max-height:300px;overflow-y:auto';
-        const deltaC=allCols.filter(c=>c.isDelta);
-        const nonDelta=allCols.filter(c=>!c.isDelta);
-        let txt='=== DELTA COLS ===\n';
-        deltaC.forEach(c=>txt+=`group="${c.group}" sub="${c.sub}"\n`);
-        txt+='\n=== ALL GROUPS ===\n';
-        [...new Set(allCols.map(c=>c.group))].forEach(g=>txt+=`"${g}"\n`);
-        txt+='\n=== NON-DELTA sub names ===\n';
-        nonDelta.forEach(c=>txt+=`group="${c.group}" sub="${c.sub}"\n`);
-        db.textContent=txt;
-        document.body.insertBefore(db,document.body.firstChild);
-    },1500);
     return dataRows.length>0;
 }
 
@@ -585,31 +569,31 @@ function renderChart(){
 }
 
 // ── SUMMARY HELPERS ──
-// Знаходить колонку-партнер за назвою sub в іншій групі
-// Порівнює нормалізовано (без пробілів, нижній регістр)
-function normSub(s){ return (s||'').toLowerCase().replace(/\s+/g,'').replace(/\./g,''); }
-
-function findPartnerCol(sub, groupKeyword){
-    const ns=normSub(sub);
-    // Спочатку точний збіг
-    let found=allCols.find(c=>normSub(c.sub)===ns && c.group.toLowerCase().includes(groupKeyword.toLowerCase()));
-    // Якщо не знайшли — пробуємо часткове включення sub
-    if(!found) found=allCols.find(c=>normSub(c.sub).includes(ns) && c.group.toLowerCase().includes(groupKeyword.toLowerCase()));
-    if(!found) found=allCols.find(c=>ns.includes(normSub(c.sub)) && normSub(c.sub).length>1 && c.group.toLowerCase().includes(groupKeyword.toLowerCase()));
-    return found||null;
+// Знаходить партнерську колонку за ПОЗИЦІЄЮ в групі (надійніше ніж по назві sub)
+// delta col має ту саму позицію що і відповідна col у ФОКСТРОТ/КОМФІ
+function findPartnerByPosition(deltaCol, groupKeyword){
+    // Знайти групу дельти
+    const deltaGrp=colGroups.find(g=>g.cols.some(c=>c.key===deltaCol.key));
+    if(!deltaGrp) return null;
+    const posInDelta=deltaGrp.cols.findIndex(c=>c.key===deltaCol.key);
+    // Знайти цільову групу
+    const targetGrp=colGroups.find(g=>g.name.toLowerCase().includes(groupKeyword.toLowerCase()));
+    if(!targetGrp) return null;
+    // Взяти колонку за тією ж позицією (або за схожою назвою sub як fallback)
+    return targetGrp.cols[posInDelta] || targetGrp.cols.find(c=>
+        c.sub.toLowerCase().replace(/\s/g,'') === deltaCol.sub.toLowerCase().replace(/\s/g,'')
+    ) || null;
 }
 
-// Для дельта-колонки рахує правильно: sum(КОМБІ) / sum(ФОКС) за набором рядків
-// Повертає {ratio, kombiSum, foksSum} або null
+// Для дельта-колонки рахує правильно: sum(КОМФІ) / sum(ФОКСТРОТ) за набором рядків
 function calcDeltaRatio(col, rows){
-    // Пробуємо знайти партнерів по різних варіантах назв груп
-    const kombiCol = findPartnerCol(col.sub, 'комф') || findPartnerCol(col.sub, 'комб') || findPartnerCol(col.sub, 'комбі');
-    const foksCol  = findPartnerCol(col.sub, 'фокс') || findPartnerCol(col.sub, 'foxtrot');
-    console.log('[calcDeltaRatio]', col.sub, col.group, '→ kombi:', kombiCol?.group, kombiCol?.sub, '/ foks:', foksCol?.group, foksCol?.sub);
-    if(!kombiCol || !foksCol) {
-        console.warn('[calcDeltaRatio] партнера не знайдено для', col.sub, '| groups:', [...new Set(allCols.map(c=>c.group))]);
-        return null;
-    }
+    // Знаходимо групи з ключовими словами (гнучко)
+    const komfGrp = colGroups.find(g=>g.name.toLowerCase().includes('комф') || g.name.toLowerCase().includes('комб'));
+    const foksGrp = colGroups.find(g=>g.name.toLowerCase().includes('фокс'));
+    if(!komfGrp || !foksGrp){ return null; }
+    const kombiCol = findPartnerByPosition(col, komfGrp.name);
+    const foksCol  = findPartnerByPosition(col, foksGrp.name);
+    if(!kombiCol || !foksCol){ return null; }
     const kombiSum = rows.reduce((s,r)=>{ const v=r.vals[kombiCol.key]; return s+(v!=null?v:0); }, 0);
     const foksSum  = rows.reduce((s,r)=>{ const v=r.vals[foksCol.key];  return s+(v!=null?v:0); }, 0);
     if(foksSum===0) return null;
