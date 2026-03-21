@@ -1050,16 +1050,33 @@ if (!gMap.has(k)) gMap.set(k, []);
 gMap.get(k).push(r);
 });
 const sortedKeys = [...gMap.keys()].sort();
-const labels = sortedKeys.map(k => {
+
+// Фільтруємо порожні періоди (де немає даних)
+const filteredKeys = sortedKeys.filter(k => {
+const rows = gMap.get(k);
+return rows.some(r => {
+if (selChartMode === 'store') {
+const v = r.storeVals[selChartStore] || {};
+return v.foks != null || v.komf != null;
+} else {
+return sts.some(st => {
+const v = r.storeVals[st.name] || {};
+return v.foks != null || v.komf != null;
+});
+}
+});
+});
+
+const labels = filteredKeys.map(k => {
 if (selChartPeriod === 'day') return fmtDate(k);
 if (selChartPeriod === 'week') { const p = k.split('_W'); return 'T' + p[1] + (p[0] ? ' ' + String(p[0]).slice(2) : ''); }
 const p = k.split('_'); const m = parseInt(p[1]); return MONTHS_UK[m-1]?.slice(0,3) + (p[0] ? ' ' + String(p[0]).slice(2) : '');
 });
 const datasets = [];
 const CHART_COLORS = ['#1a56db','#0e7490','#6b21a8','#9d174d','#065f46','#92400e'];
-const isSmallDataset = sortedKeys.length <= 30;
+const dataLength = filteredKeys.length;
 if (selChartMode === 'store') {
-const vals = sortedKeys.map(k => getVal(gMap.get(k), selChartStore));
+const vals = filteredKeys.map(k => getVal(gMap.get(k), selChartStore));
 const color = selChartMetric === 'delta' ? '#6b21a8' : (selChartMetric === 'foks' ? '#1a56db' : '#0e7490');
 const isBar = selChartMetric === 'delta';
 datasets.push({
@@ -1076,7 +1093,7 @@ return 'rgba(185,28,28,0.7)';
 }) : color + '33',
 borderColor: color,
 borderWidth: isBar ? 0 : 2.5,
-pointRadius: isSmallDataset ? 5 : 3,
+pointRadius: dataLength <= 30 ? 5 : 3,
 pointHoverRadius: 9,
 tension: 0.25,
 fill: !isBar,
@@ -1084,9 +1101,9 @@ spanGaps: true,
 datalabels: {
 display: function(context) {
 const index = context.dataIndex;
-const total = context.dataset.data.length;
-if (total > 20) return index % 3 === 0;
-if (total > 10) return index % 2 === 0;
+if (dataLength > 30) return index % 4 === 0; // Кожна 4-та
+if (dataLength > 20) return index % 3 === 0; // Кожна 3-тя
+if (dataLength > 10) return index % 2 === 0; // Кожна 2-га
 return true;
 },
 color: '#1d1d1f',
@@ -1098,7 +1115,7 @@ return context.dataset.borderColor || '#000';
 },
 padding: 6,
 font: { 
-size: 10, 
+size: 8, // Зменшено з 10 до 8
 weight: '600',
 family: 'Inter'
 },
@@ -1118,8 +1135,8 @@ return 'center';
 },
 offset: function(context) {
 const index = context.dataIndex;
-if (index % 3 === 0) return 15;
-if (index % 3 === 1) return -15;
+if (index % 3 === 0) return 20; // Збільшено з 15 до 20
+if (index % 3 === 1) return -20; // Збільшено з -15 до -20
 return 0;
 },
 clip: false,
@@ -1130,7 +1147,7 @@ overlap: false
 } else {
 sts.forEach((st, i) => {
 const color = CHART_COLORS[i % CHART_COLORS.length];
-const vals = sortedKeys.map(k => getVal(gMap.get(k), st.name));
+const vals = filteredKeys.map(k => getVal(gMap.get(k), st.name));
 datasets.push({
 type: 'line',
 label: st.name.split(' ').slice(1,3).join(' '),
@@ -1138,7 +1155,7 @@ data: vals,
 borderColor: color,
 backgroundColor: color + '22',
 borderWidth: 2.5,
-pointRadius: isSmallDataset ? 5 : 3,
+pointRadius: dataLength <= 30 ? 5 : 3,
 pointHoverRadius: 9,
 tension: 0.25,
 fill: false,
@@ -1146,9 +1163,9 @@ spanGaps: true,
 datalabels: {
 display: function(context) {
 const index = context.dataIndex;
-const total = context.dataset.data.length;
-if (total > 20) return index % 3 === 0;
-if (total > 10) return index % 2 === 0;
+if (dataLength > 30) return index % 4 === 0;
+if (dataLength > 20) return index % 3 === 0;
+if (dataLength > 10) return index % 2 === 0;
 return true;
 },
 color: '#1d1d1f',
@@ -1160,7 +1177,7 @@ return context.dataset.borderColor || '#000';
 },
 padding: 6,
 font: { 
-size: 10, 
+size: 8, // Зменшено з 10 до 8
 weight: '600',
 family: 'Inter'
 },
@@ -1180,8 +1197,8 @@ return 'center';
 },
 offset: function(context) {
 const index = context.dataIndex;
-if (index % 3 === 0) return 15;
-if (index % 3 === 1) return -15;
+if (index % 3 === 0) return 20;
+if (index % 3 === 1) return -20;
 return 0;
 },
 clip: false,
