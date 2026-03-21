@@ -79,11 +79,16 @@ border: 1px solid rgba(0,0,0,0.06);
 .filter-row {
 display: flex;
 align-items: flex-start;
-flex-wrap: wrap;
+flex-wrap: nowrap;
 gap: 4px;
 padding: 7px 12px;
 border-bottom: 1px solid #f0f0f2;
+overflow-x: auto;
+-webkit-overflow-scrolling: touch;
+scrollbar-width: thin;
 }
+.filter-row::-webkit-scrollbar { height: 4px; }
+.filter-row::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 2px; }
 .filter-row:last-child { border-bottom: none; }
 .filter-label {
 font-size: 10px;
@@ -94,6 +99,7 @@ letter-spacing: .06em;
 padding-top: 4px;
 margin-right: 6px;
 white-space: nowrap;
+flex-shrink: 0;
 }
 .pill {
 border: none;
@@ -107,6 +113,7 @@ font-family: inherit;
 color: #6e6e73;
 transition: all .15s;
 white-space: nowrap;
+flex-shrink: 0;
 }
 .pill:hover { background: #f2f2f7; color: #1d1d1f; }
 .pill.active { background: #1d1d1f; color: #fff; }
@@ -242,17 +249,16 @@ margin-bottom: 14px;
 .ctrl-lbl { font-size: 11px; font-weight: 600; color: var(--text-sec); margin-right: 2px; }
 .status-box { padding: 40px; text-align: center; color: var(--text-sec); font-size: 14px; }
 .status-box.error { color: #ff3b30; }
-#storePills {
+#storePills, #ttPills, #totalPills {
 flex-wrap: nowrap !important;
 overflow-x: auto !important;
 -webkit-overflow-scrolling: touch !important;
 gap: 4px;
-padding: 6px 12px;
 scroll-padding: 12px;
 scrollbar-width: thin;
 }
-#storePills::-webkit-scrollbar { height: 6px; }
-#storePills::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 3px; }
+#storePills::-webkit-scrollbar, #ttPills::-webkit-scrollbar, #totalPills::-webkit-scrollbar { height: 6px; }
+#storePills::-webkit-scrollbar-thumb, #ttPills::-webkit-scrollbar-thumb, #totalPills::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 3px; }
 </style>
 </head>
 <body>
@@ -272,19 +278,27 @@ scrollbar-width: thin;
 <div class="filters-wrap" id="filtersWrap" style="display:none">
 <div class="filter-row">
 <span class="filter-label">Рік</span>
-<div id="yearPills" style="display:flex;gap:3px;flex-wrap:wrap"></div>
+<div id="yearPills" style="display:flex;gap:3px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch"></div>
 </div>
 <div class="filter-row">
 <span class="filter-label">Місяць</span>
-<div id="monthPills" style="display:flex;gap:3px;flex-wrap:wrap"></div>
+<div id="monthPills" style="display:flex;gap:3px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch"></div>
 </div>
 <div class="filter-row">
 <span class="filter-label">Магазин</span>
-<div id="storePills" style="display:flex;gap:3px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch"></div>
+<div id="storePills" style="display:flex;gap:3px"></div>
+</div>
+<div class="filter-row">
+<span class="filter-label">ТТ</span>
+<div id="ttPills" style="display:flex;gap:3px"></div>
+</div>
+<div class="filter-row">
+<span class="filter-label">Тотал</span>
+<div id="totalPills" style="display:flex;gap:3px"></div>
 </div>
 <div class="filter-row">
 <span class="filter-label">ДНІ</span>
-<div id="segmentPills" style="display:flex;gap:3px;flex-wrap:wrap"></div>
+<div id="segmentPills" style="display:flex;gap:3px;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch"></div>
 </div>
 </div>
 <div id="tabContent">
@@ -302,8 +316,8 @@ const STORE_BG = ['#eff6ff','#ecfeff','#faf5ff','#fdf2f8','#ecfdf5','#fffbeb','#
 // ──────────────────────────────────────────────
 // СТАН
 // ──────────────────────────────────────────────
-let stores = [], dataRows = [], allYears = [], allMonths = [];
-let selYears = new Set(), selMonths = new Set(), selStores = new Set();
+let stores = [], dataRows = [], allYears = [], allMonths = [], allTT = [], allTotal = [];
+let selYears = new Set(), selMonths = new Set(), selStores = new Set(), selTT = new Set(), selTotal = new Set();
 let selSegments = new Set(['wd','we']);
 let activeTab = 'table', chartInstance = null;
 let selChartMode = 'store', selChartStore = '', selChartPeriod = 'day', selChartMetric = 'delta';
@@ -410,7 +424,7 @@ st.cols.push({ type, colIdx: i });
 }
 const dataStart = subRow + 1;
 dataRows = [];
-const yrs = new Set(), mos = new Set();
+const yrs = new Set(), mos = new Set(), ttSet = new Set(), totalSet = new Set();
 for (let ri = dataStart; ri < rows.length; ri++) {
 const row = rows[ri];
 if (!row.some(c => c)) continue;
@@ -420,6 +434,8 @@ const monthNum = toN(row[2]);
 const monthName = (row[3] || '').trim();
 const dowName = (row[5] || '').trim();
 const dateStr = (row[6] || '').trim();
+const ttVal = (row[7] || '').trim();
+const totalVal = (row[8] || '').trim();
 if (!year || !dateStr) continue;
 const mo = monthNum || (function() {
 const lo = monthName.toLowerCase();
@@ -445,19 +461,26 @@ if (dv === null && fv != null && kv != null && fv !== 0) dv = kv / fv;
 storeVals[st.name] = { foks: fv, komf: kv, delta: dv };
 });
 const isWE = dowNum >= 5 || (dowNum === 0 && isWeekend(dowName));
-dataRows.push({ year, month: mo, week, dowName, dowNum, date: dateStr, storeVals, isWE });
+dataRows.push({ year, month: mo, week, dowName, dowNum, date: dateStr, storeVals, isWE, tt: ttVal, total: totalVal });
 yrs.add(year);
 mos.add(mo);
+if (ttVal) ttSet.add(ttVal);
+if (totalVal) totalSet.add(totalVal);
 }
 allYears = [...yrs].sort((a,b) => a - b);
 allMonths = [...mos].sort((a,b) => a - b);
+allTT = [...ttSet].sort();
+allTotal = [...totalSet].sort();
 selYears = new Set(allYears);
 selMonths = new Set(allMonths);
 selStores = new Set(stores.map(s => s.name));
+selTT = new Set(allTT);
+selTotal = new Set(allTotal);
 }
 function activeData() {
 return dataRows.filter(r => {
 if (!selYears.has(r.year) || !selMonths.has(r.month)) return false;
+if (!selTT.has(r.tt) || !selTotal.has(r.total)) return false;
 const sts = activeStores();
 return sts.some(st => {
 const v = r.storeVals[st.name] || {};
@@ -539,6 +562,48 @@ b.title = s.name;
 if (a) { b.style.background = '#1d1d1f'; b.style.color = '#fff'; }
 sp.appendChild(b);
 });
+const ttp = document.getElementById('ttPills'); ttp.innerHTML = '';
+if (allTT.length > 0) {
+const allTTA = allTT.every(t => selTT.has(t));
+const baTT = mkPill('Всі', allTTA, 'pill-all', () => {
+if (allTTA) allTT.forEach(t => selTT.delete(t));
+else allTT.forEach(t => selTT.add(t));
+renderFilters(); render();
+});
+if (allTTA) baTT.style.background = '#374151';
+ttp.appendChild(baTT);
+allTT.forEach(t => {
+const a = selTT.has(t);
+const b = mkPill(t, a, '', () => {
+if (a) { if (selTT.size > 1) selTT.delete(t); }
+else selTT.add(t);
+renderFilters(); render();
+});
+if (a) { b.style.background = '#1d1d1f'; b.style.color = '#fff'; }
+ttp.appendChild(b);
+});
+}
+const totp = document.getElementById('totalPills'); totp.innerHTML = '';
+if (allTotal.length > 0) {
+const allTotalA = allTotal.every(t => selTotal.has(t));
+const baTotal = mkPill('Всі', allTotalA, 'pill-all', () => {
+if (allTotalA) allTotal.forEach(t => selTotal.delete(t));
+else allTotal.forEach(t => selTotal.add(t));
+renderFilters(); render();
+});
+if (allTotalA) baTotal.style.background = '#374151';
+totp.appendChild(baTotal);
+allTotal.forEach(t => {
+const a = selTotal.has(t);
+const b = mkPill(t, a, '', () => {
+if (a) { if (selTotal.size > 1) selTotal.delete(t); }
+else selTotal.add(t);
+renderFilters(); render();
+});
+if (a) { b.style.background = '#1d1d1f'; b.style.color = '#fff'; }
+totp.appendChild(b);
+});
+}
 const segp = document.getElementById('segmentPills'); segp.innerHTML = '';
 const segDefs = [{key:'wd', lbl:'Пн–Чт'}, {key:'we', lbl:'Пт–Сб'}];
 const allSeg = segDefs.every(s => selSegments.has(s.key));
