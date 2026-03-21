@@ -1,3 +1,1014 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<title>Дельта щоденна</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
+<style>
+:root {
+--bg: #f5f5f7;
+--text: #1d1d1f;
+--text-sec: #6e6e73;
+--accent: #0071e3;
+--border: #d2d2d7;
+--card: #fff;
+--shadow: 0 4px 20px rgba(0,0,0,0.06);
+}
+* { box-sizing: border-box; margin:0; padding:0; }
+body {
+font-family: 'Inter', sans-serif;
+background: var(--bg);
+color: var(--text);
+padding: 8px 10px 60px;
+}
+@keyframes shimmer {
+0% { background-position: -600px 0; }
+100% { background-position: 600px 0; }
+}
+.skel {
+background: linear-gradient(90deg, #eaeaed 25%, #f5f5f7 50%, #eaeaed 75%);
+background-size: 600px 100%;
+animation: shimmer 1.4s ease-in-out infinite;
+border-radius: 7px;
+}
+.skel-row { display: flex; gap: 8px; padding: 9px 10px; border-bottom: 1px solid #f2f2f4; }
+.skel-cell { height: 11px; border-radius: 5px; flex: 1; }
+.skel-cell.w { flex: 2; }
+.top-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; gap: 10px; flex-wrap: wrap; }
+.back-link { color: var(--accent); text-decoration: none; font-weight: 600; font-size: 14px; }
+.page-title { font-size: 20px; font-weight: 700; }
+.tabs {
+display: flex;
+gap: 2px;
+background: #e5e5ea;
+border-radius: 12px;
+padding: 3px;
+margin-bottom: 12px;
+overflow-x: auto;
+-webkit-overflow-scrolling: touch;
+}
+.tab {
+border: none;
+background: transparent;
+padding: 6px 14px;
+border-radius: 10px;
+font-size: 12px;
+font-weight: 600;
+cursor: pointer;
+color: var(--text-sec);
+font-family: inherit;
+transition: all .2s;
+white-space: nowrap;
+}
+.tab.active {
+background: white;
+color: var(--text);
+box-shadow: 0 1px 4px rgba(0,0,0,.12);
+}
+.filters-wrap {
+background: var(--card);
+border-radius: 14px;
+box-shadow: var(--shadow);
+margin-bottom: 12px;
+overflow: hidden;
+border: 1px solid rgba(0,0,0,0.06);
+}
+.filter-row {
+display: flex;
+align-items: flex-start;
+flex-wrap: nowrap;
+gap: 4px;
+padding: 7px 12px;
+border-bottom: 1px solid #f0f0f2;
+overflow-x: auto;
+-webkit-overflow-scrolling: touch;
+scrollbar-width: thin;
+}
+.filter-row::-webkit-scrollbar { height: 4px; }
+.filter-row::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 2px; }
+.filter-row:last-child { border-bottom: none; }
+.filter-label {
+font-size: 10px;
+font-weight: 700;
+color: #a0a0ab;
+text-transform: uppercase;
+letter-spacing: .06em;
+padding-top: 4px;
+margin-right: 6px;
+white-space: nowrap;
+flex-shrink: 0;
+}
+.pill {
+border: none;
+background: transparent;
+padding: 3px 7px;
+border-radius: 7px;
+font-size: 11px;
+font-weight: 600;
+cursor: pointer;
+font-family: inherit;
+color: #6e6e73;
+transition: all .15s;
+white-space: nowrap;
+flex-shrink: 0;
+}
+.pill:hover { background: #f2f2f7; color: #1d1d1f; }
+.pill.active { background: #1d1d1f; color: #fff; }
+.pill-all { border: 1px solid #d2d2d7; color: #555; }
+.pill-all.active { background: #374151; border-color: #374151; color: #fff; }
+.table-card {
+background: var(--card);
+border-radius: 16px;
+box-shadow: var(--shadow);
+margin-bottom: 14px;
+overflow: hidden;
+}
+.table-wrap {
+overflow-x: auto;
+-webkit-overflow-scrolling: touch;
+max-height: 70vh;
+overflow-y: auto;
+}
+.table-hint {
+font-size: 11px;
+color: var(--text-sec);
+padding: 7px 12px;
+border-bottom: 1px solid #f2f2f4;
+background: #fafafa;
+}
+table { border-collapse: collapse; min-width: 100%; }
+th, td {
+padding: 4px 7px;
+border-bottom: 1px solid #f2f2f4;
+font-size: 11px;
+text-align: right;
+white-space: nowrap;
+}
+thead { 
+position: sticky; 
+top: 0; 
+z-index: 60;
+background: var(--card);
+}
+th.grp {
+text-align: center;
+font-size: 9px;
+font-weight: 800;
+letter-spacing: .05em;
+color: #fff;
+border-bottom: 1px solid rgba(255,255,255,0.15);
+height: 22px;
+white-space: nowrap;
+overflow: hidden;
+text-overflow: ellipsis;
+max-width: 120px;
+}
+th.sub {
+font-size: 9px;
+font-weight: 700;
+color: rgba(255,255,255,0.9);
+text-transform: uppercase;
+height: 20px;
+border-bottom: 2px solid rgba(0,0,0,0.2);
+z-index: 10;
+background-clip: padding-box;
+}
+th.c-l1, td.c-l1 {
+position: sticky;
+left: 0;
+z-index: 50;
+text-align: left;
+min-width: 52px;
+width: 52px;
+font-size: 10px;
+font-weight: 600;
+background: var(--card);
+border-right: 1px solid rgba(0,0,0,0.08);
+}
+th.c-l2, td.c-l2 {
+position: sticky;
+left: 52px;
+z-index: 45;
+text-align: left;
+min-width: 34px;
+width: 34px;
+font-size: 10px;
+background: var(--card);
+border-right: 2px solid rgba(0,0,0,0.1);
+box-shadow: 3px 0 5px -2px rgba(0,0,0,.07);
+padding-right: 4px;
+}
+th.c-l1, th.c-l2 { background: #374151; color: #fff; }
+tr.weekend td { background: #fff8f0 !important; }
+tr.weekend td.c-l1, tr.weekend td.c-l2 { background: #fff0e0 !important; }
+tr.wk-sep td { border-top: 2px solid #c8c8d0 !important; }
+tr.tot td {
+background: #f0f4ff !important;
+font-weight: 700;
+border-top: 2px solid #b0c0e0;
+}
+tr.tot td.c-l1, tr.tot td.c-l2 { background: #e0e8ff !important; }
+.d5 { color: #15803d; font-weight: 700; background: rgba(21,128,61,.08); border-radius: 3px; padding: 1px 3px; }
+.d4 { color: #16a34a; font-weight: 600; }
+.d3 { color: #6b7280; font-weight: 600; }
+.d2 { color: #c2410c; font-weight: 600; }
+.d1 { color: #b91c1c; font-weight: 700; background: rgba(185,28,28,.08); border-radius: 3px; padding: 1px 3px; }
+tr.diff-row td {
+background: #fefce8;
+font-size: 10px;
+color: #7c2d12;
+border-bottom: 1px solid #fde68a;
+}
+tr.diff-row td.c-l1 {
+position: sticky;
+left: 0;
+z-index: 55;
+background: #fefce8;
+border-right: 2px solid rgba(0,0,0,0.1);
+}
+tr.diff-row td.c-l2 {
+position: sticky;
+left: 52px;
+z-index: 50;
+background: #fefce8;
+}
+tr.diff-row td.diff-pos { color: #15803d; }
+tr.diff-row td.diff-neg { color: #b91c1c; }
+.chart-card {
+background: var(--card);
+border-radius: 16px;
+box-shadow: var(--shadow);
+padding: 16px;
+margin-bottom: 14px;
+}
+.chart-wrap { 
+  position: relative; 
+  height: 60vh; 
+  min-height: 500px; 
+  max-height: 700px; 
+}
+.ctrl-row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
+.ctrl-lbl { font-size: 11px; font-weight: 600; color: var(--text-sec); margin-right: 2px; }
+.status-box { padding: 40px; text-align: center; color: var(--text-sec); font-size: 14px; }
+.status-box.error { color: #ff3b30; }
+#yearMonthPills, #storePills, #segmentPills {
+flex-wrap: nowrap !important;
+overflow-x: auto !important;
+-webkit-overflow-scrolling: touch !important;
+gap: 4px;
+scroll-padding: 12px;
+scrollbar-width: thin;
+}
+#yearMonthPills::-webkit-scrollbar, #storePills::-webkit-scrollbar, #segmentPills::-webkit-scrollbar { height: 6px; }
+#yearMonthPills::-webkit-scrollbar-thumb, #storePills::-webkit-scrollbar-thumb, #segmentPills::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 3px; }
+.zoom-hint {
+  font-size: 10px;
+  color: #86868b;
+  margin-top: 8px;
+  text-align: center;
+  font-style: italic;
+}
+
+/* ✅ МОБІЛЬНА ОПТИМІЗАЦІЯ */
+@media (max-width: 768px) {
+body { padding: 6px 8px 50px; }
+.page-title { font-size: 18px; }
+.tab { font-size: 11px; padding: 5px 10px; }
+.filter-label { font-size: 9px; }
+.pill { font-size: 10px; padding: 3px 6px; }
+th, td { font-size: 10px; padding: 3px 5px; }
+.chart-card { padding: 10px; }
+.ctrl-row { gap: 4px; }
+.ctrl-lbl { font-size: 10px; }
+.chart-wrap { 
+  height: 70vh !important; 
+  min-height: 550px !important; 
+  max-height: none !important;
+}
+.zoom-hint { font-size: 9px; margin-top: 6px; }
+.table-wrap { max-height: 60vh; }
+}
+
+/* ✅ ПЛАВНІ ПЕРЕХОДИ */
+.pill { transition: all 0.15s ease; }
+.chart-wrap canvas { transition: opacity 0.2s ease; }
+#toggleTooltipBtn.active { background: #ef4444 !important; color: white !important; }
+</style>
+</head>
+<body>
+<div class="top-bar">
+<div style="display:flex;align-items:center;gap:14px">
+<a href="index.html" class="back-link">← Назад</a>
+<div class="page-title">Дельта щоденна</div>
+</div>
+</div>
+<div class="tabs" id="tabsEl">
+<button class="tab active" onclick="switchTab('table')">📋 Таблиця</button>
+<button class="tab" onclick="switchTab('weekday')">📅 Пн–Чт / Пт–Нд</button>
+<button class="tab" onclick="switchTab('weekly')">📆 По тижнях</button>
+<button class="tab" onclick="switchTab('monthly')">🗓 По місяцях</button>
+<button class="tab" onclick="switchTab('chart')">📈 Динаміка</button>
+</div>
+<div class="filters-wrap" id="filtersWrap" style="display:none">
+<div class="filter-row">
+<span class="filter-label">Рік-Місяць</span>
+<div id="yearMonthPills" style="display:flex;gap:3px"></div>
+</div>
+<div class="filter-row">
+<span class="filter-label">Магазин</span>
+<div id="storePills" style="display:flex;gap:3px"></div>
+</div>
+<div class="filter-row">
+<span class="filter-label">ДНІ</span>
+<div id="segmentPills" style="display:flex;gap:3px"></div>
+</div>
+</div>
+<div id="tabContent">
+<div class="table-card"><div class="status-box">Завантаження…</div></div>
+</div>
+<script>
+// ──────────────────────────────────────────────
+// КОНСТАНТИ
+// ──────────────────────────────────────────────
+const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRnVyY9d_BjUGvXWa3VUFsdMoBwZH-MINuS8b91-lgNqeNMx-6UsE5oRJ66x6XVmK_JhXcGTbSK9Emx/pub?output=csv';
+const MONTHS_UK = ['Січень','Лютий','Березень','Квітень','Травень','Червень','Липень','Серпень','Вересень','Жовтень','Листопад','Грудень'];
+const DOW_WE = ["пт","сб","нд","субота","неділя","friday","saturday","sunday","пятниця"];
+const STORE_HDR = ['#1a56db','#0e7490','#6b21a8','#9d174d','#065f46','#92400e','#1e40af','#7c3aed'];
+const STORE_BG = ['#eff6ff','#ecfeff','#faf5ff','#fdf2f8','#ecfdf5','#fffbeb','#eff6ff','#f5f3ff'];
+// ──────────────────────────────────────────────
+// СТАН
+// ──────────────────────────────────────────────
+let stores = [], dataRows = [], allYearMonths = [];
+let selYearMonths = new Set(), selStores = new Set();
+let selSegments = new Set(['wd','we']);
+let activeTab = 'table', chartInstance = null;
+let selChartMode = 'store', selChartStore = '', selChartPeriod = 'day', selChartMetric = 'delta';
+// ──────────────────────────────────────────────
+// УТИЛІТИ
+// ──────────────────────────────────────────────
+function parseCSV(text) {
+const res = []; let row = [], col = '', inQ = false;
+for (let i = 0; i < text.length; i++) {
+const c = text[i];
+if (c === '"' && text[i+1] === '"') { col += '"'; i++; }
+else if (c === '"') inQ = !inQ;
+else if (c === ',' && !inQ) { row.push(col.trim()); col = ''; }
+else if ((c === '\n' || c === '\r') && !inQ) {
+if (c === '\r' && text[i+1] === '\n') i++;
+row.push(col.trim()); res.push(row); row = []; col = '';
+}
+else col += c;
+}
+if (col || row.length) { row.push(col.trim()); res.push(row); }
+return res.filter(r => r.some(c => c));
+}
+function toN(v) {
+if (!v && v !== 0) return null;
+const s = String(v).replace(/\s|\u00a0/g,'').replace(',','.').replace('%','');
+if (['#div/0!','#value!','#n/a','#ref!'].includes(s.toLowerCase())) return null;
+const n = parseFloat(s); return isNaN(n) ? null : n;
+}
+function fmt(v) {
+if (v === null || v === undefined) return '—';
+const n = Number(v); if (isNaN(n)) return '—';
+if (Math.abs(n) >= 1000000) return (n/1000000).toFixed(2) + 'М';
+if (Math.abs(n) >= 1000) return (n/1000).toFixed(1) + 'К';
+if (n % 1 !== 0) return n.toFixed(2);
+return n.toLocaleString('uk-UA');
+}
+function fmtDate(d) {
+if (!d) return '';
+const parts = d.replace(/\//g,'.').split('.');
+if (parts.length === 3) {
+const [a,b,c] = parts;
+if (a.length === 4) return `${c}.${b}`;
+return `${a}.${b}`;
+}
+return d;
+}
+function isWeekend(dow) {
+return DOW_WE.some(w => String(dow).toLowerCase().trim() === w || String(dow).toLowerCase().includes(w));
+}
+// ──────────────────────────────────────────────
+// SKELETON ЗАВАНТАЖЕННЯ
+// ──────────────────────────────────────────────
+function showSkel() {
+const cont = document.getElementById('tabContent');
+const card = document.createElement('div'); card.className = 'table-card';
+const wrap = document.createElement('div');
+for (let i = 0; i < 14; i++) {
+const row = document.createElement('div'); row.className = 'skel-row';
+for (let j = 0; j < 6; j++) {
+const c = document.createElement('div');
+c.className = 'skel-cell skel' + (j < 2 ? ' w' : '');
+c.style.animationDelay = (i * .04 + j * .015) + 's';
+row.appendChild(c);
+}
+wrap.appendChild(row);
+}
+card.appendChild(wrap);
+cont.innerHTML = '';
+cont.appendChild(card);
+}
+// ──────────────────────────────────────────────
+// ПАРСИНГ ДАНИХ З CSV
+// ──────────────────────────────────────────────
+function detect(rows) {
+let subRow = -1, storeRow = -1;
+for (let i = 0; i < Math.min(10, rows.length); i++) {
+const r = rows[i].map(c => (c || '').toLowerCase().trim());
+if (r.filter(c => c.includes('фокстрот') || c === 'фокс').length >= 1 &&
+r.filter(c => c.includes('комфі') || c === 'комф').length >= 1) {
+subRow = i;
+storeRow = i - 1;
+break;
+}
+}
+if (subRow === -1) { subRow = 3; storeRow = 2; }
+const storeRowData = rows[storeRow] || [];
+const subRowData = rows[subRow] || [];
+stores = [];
+let curStore = '';
+for (let i = 7; i < Math.max(storeRowData.length, subRowData.length); i++) {
+const sn = (storeRowData[i] || '').trim();
+if (sn) curStore = sn;
+if (!curStore) continue;
+const sub = (subRowData[i] || '').toLowerCase().trim();
+if (!sub) continue;
+let type = null;
+if (sub.includes('фокс') || sub === 'фокстрот') type = 'foks';
+else if (sub.includes('комф') || sub === 'комфі') type = 'komf';
+else if (sub.includes('дельт') || sub.includes('delta')) type = 'delta';
+if (!type) continue;
+let st = stores.find(s => s.name === curStore);
+if (!st) { st = { name: curStore, cols: [] }; stores.push(st); }
+st.cols.push({ type, colIdx: i });
+}
+stores = stores.filter(s => s.name && s.name.trim() && s.cols.length > 0);
+
+const dataStart = subRow + 1;
+dataRows = [];
+const ymSet = new Set();
+for (let ri = dataStart; ri < rows.length; ri++) {
+const row = rows[ri];
+if (!row.some(c => c)) continue;
+const year = toN(row[0]);
+const week = toN(row[1]);
+const monthNum = toN(row[2]);
+const monthName = (row[3] || '').trim();
+const dowName = (row[5] || '').trim();
+const dateStr = (row[6] || '').trim();
+if (!year || !dateStr) continue;
+const mo = monthNum || (function() {
+const lo = monthName.toLowerCase();
+const idx = MONTHS_UK.findIndex(m => lo.includes(m.slice(0,3).toLowerCase()));
+return idx >= 0 ? idx + 1 : null;
+})();
+if (!mo) continue;
+let dowNum = 0;
+const dowLo = dowName.toLowerCase();
+const dowMap = {понеділок:1,пн:1,вівторок:2,вт:2,середа:3,ср:3,четвер:4,чт:4,"п'ятниця":5,пятниця:5,пт:5,субота:6,сб:6,неділя:7,нд:7};
+for (const [k,v] of Object.entries(dowMap)) {
+if (dowLo === k || dowLo.startsWith(k)) { dowNum = v; break; }
+}
+const storeVals = {};
+stores.forEach(st => {
+const fCol = st.cols.find(c => c.type === 'foks');
+const kCol = st.cols.find(c => c.type === 'komf');
+const dCol = st.cols.find(c => c.type === 'delta');
+const fv = fCol ? toN(row[fCol.colIdx]) : null;
+const kv = kCol ? toN(row[kCol.colIdx]) : null;
+let dv = dCol ? toN(row[dCol.colIdx]) : null;
+if (dv === null && fv != null && kv != null && fv !== 0) dv = kv / fv;
+storeVals[st.name] = { foks: fv, komf: kv, delta: dv };
+});
+const isWE = dowNum >= 5 || (dowNum === 0 && isWeekend(dowName));
+const yearMonthKey = year + '_' + String(mo).padStart(2, '0');
+dataRows.push({ year, month: mo, week, dowName, dowNum, date: dateStr, storeVals, isWE, yearMonth: yearMonthKey });
+ymSet.add(yearMonthKey);
+}
+allYearMonths = [...ymSet].sort();
+selYearMonths = new Set(allYearMonths);
+selStores = new Set(stores.map(s => s.name));
+
+stores = stores.filter(st => {
+return dataRows.some(r => {
+const v = r.storeVals[st.name] || {};
+return v.foks != null || v.komf != null || v.delta != null;
+});
+});
+selStores = new Set(stores.map(s => s.name));
+}
+function activeData() {
+return dataRows.filter(r => {
+if (!selYearMonths.has(r.yearMonth)) return false;
+const sts = activeStores();
+return sts.some(st => {
+const v = r.storeVals[st.name] || {};
+return v.foks != null || v.komf != null;
+});
+});
+}
+function activeStores() {
+return stores.filter(s => selStores.has(s.name));
+}
+// ──────────────────────────────────────────────
+// ФІЛЬТРИ
+// ──────────────────────────────────────────────
+function mkPill(text, active, cls, onclick) {
+const b = document.createElement('button');
+b.className = 'pill' + (active ? ' active' : '') + (cls ? ' ' + cls : '');
+b.textContent = text;
+b.onclick = onclick;
+if (active) { b.style.background = '#1d1d1f'; b.style.color = '#fff'; }
+return b;
+}
+function renderFilters() {
+const ymp = document.getElementById('yearMonthPills'); ymp.innerHTML = '';
+const allYMA = allYearMonths.every(ym => selYearMonths.has(ym));
+const baYM = mkPill('Всі', allYMA, 'pill-all', () => {
+if (allYMA) allYearMonths.forEach(ym => selYearMonths.delete(ym));
+else allYearMonths.forEach(ym => selYearMonths.add(ym));
+renderFilters(); render();
+});
+if (allYMA) baYM.style.background = '#374151';
+ymp.appendChild(baYM);
+
+const yearsGrouped = {};
+allYearMonths.forEach(ym => {
+const [year, month] = ym.split('_');
+if (!yearsGrouped[year]) yearsGrouped[year] = [];
+yearsGrouped[year].push({key: ym, month: parseInt(month)});
+});
+
+Object.keys(yearsGrouped).sort().forEach(year => {
+const yearDiv = document.createElement('div');
+yearDiv.style.cssText = 'display:flex;flex-direction:column;gap:2px;margin-right:12px;';
+const yearHeader = document.createElement('div');
+yearHeader.style.cssText = 'font-weight:700;color:#374151;font-size:10px;margin-bottom:2px;';
+yearHeader.textContent = year;
+yearDiv.appendChild(yearHeader);
+
+const monthsContainer = document.createElement('div');
+monthsContainer.style.cssText = 'display:flex;gap:3px;flex-wrap:wrap;';
+
+yearsGrouped[year].forEach(ym => {
+const a = selYearMonths.has(ym.key);
+const b = mkPill(MONTHS_UK[ym.month-1].slice(0,3), a, '', () => {
+if (a) { if (selYearMonths.size > 1) selYearMonths.delete(ym.key); }
+else selYearMonths.add(ym.key);
+renderFilters(); render();
+});
+if (a) { b.style.background = '#1d1d1f'; b.style.color = '#fff'; }
+monthsContainer.appendChild(b);
+});
+yearDiv.appendChild(monthsContainer);
+ymp.appendChild(yearDiv);
+});
+
+const sp = document.getElementById('storePills'); sp.innerHTML = '';
+const allSA = stores.every(s => selStores.has(s.name));
+const baS = mkPill('Всі', allSA, 'pill-all', () => {
+if (allSA) stores.forEach(s => selStores.delete(s.name));
+else stores.forEach(s => selStores.add(s.name));
+renderFilters(); render();
+});
+if (allSA) baS.style.background = '#374151';
+sp.appendChild(baS);
+stores.filter(s => s.name && s.name.trim()).forEach(s => {
+const a = selStores.has(s.name);
+const displayName = s.name.split(' ').slice(1,4).join(' ');
+if (!displayName) return;
+const b = mkPill(displayName, a, '', () => {
+if (a) { if (selStores.size > 1) selStores.delete(s.name); }
+else selStores.add(s.name);
+renderFilters(); render();
+});
+b.title = s.name;
+if (a) { b.style.background = '#1d1d1f'; b.style.color = '#fff'; }
+sp.appendChild(b);
+});
+const segp = document.getElementById('segmentPills'); segp.innerHTML = '';
+const segDefs = [{key:'wd', lbl:'Пн–Чт'}, {key:'we', lbl:'Пт–Сб'}];
+const allSeg = segDefs.every(s => selSegments.has(s.key));
+const baSeg = mkPill('Всі', allSeg, 'pill-all', () => {
+if (allSeg) segDefs.forEach(s => selSegments.delete(s.key));
+else segDefs.forEach(s => selSegments.add(s.key));
+renderFilters(); render();
+});
+if (allSeg) baSeg.style.background = '#374151';
+segp.appendChild(baSeg);
+segDefs.forEach(s => {
+const a = selSegments.has(s.key);
+const b = mkPill(s.lbl, a, '', () => {
+if (a) { if (selSegments.size > 1) selSegments.delete(s.key); }
+else selSegments.add(s.key);
+renderFilters(); render();
+});
+if (a) { b.style.background = '#1d1d1f'; b.style.color = '#fff'; }
+segp.appendChild(b);
+});
+document.getElementById('filtersWrap').style.display = '';
+}
+// ──────────────────────────────────────────────
+// ДОПОМІЖНІ ФУНКЦІЇ ДЛЯ ТАБЛИЦЬ
+// ──────────────────────────────────────────────
+function mkTh(text, cls, sty) {
+const t = document.createElement('th');
+t.textContent = text;
+if (cls) t.className = cls;
+if (sty) Object.assign(t.style, sty);
+return t;
+}
+function mkTd(text, cls, sty) {
+const t = document.createElement('td');
+t.textContent = (text === null || text === undefined) ? '—' : text;
+if (cls) t.className = cls;
+if (sty) Object.assign(t.style, sty);
+return t;
+}
+function deltaClass(d) {
+if (d === null || d === undefined) return '';
+if (d < 0.8) return 'd5';
+if (d < 0.95) return 'd4';
+if (d <= 1.05) return 'd3';
+if (d <= 1.25) return 'd2';
+return 'd1';
+}
+// ──────────────────────────────────────────────
+// РЕНДЕР ТАБЛИЦІ
+// ──────────────────────────────────────────────
+function renderTable() {
+const cont = document.getElementById('tabContent');
+const data = activeData();
+const sts = activeStores();
+if (!data.length || !sts.length) {
+cont.innerHTML = '<div class="table-card"><div class="status-box">Немає даних для обраного фільтру</div></div>';
+return;
+}
+const card = document.createElement('div'); card.className = 'table-card';
+const hint = document.createElement('div'); hint.className = 'table-hint';
+hint.innerHTML = 'Пн–Чт — будні | Пт–Нд — <b style="color:#b45309">вихідні</b> | Δ: <span class="d5"><0.8</span> <span class="d4">0.8–0.95</span> <span class="d3">~1</span> <span class="d2">1.05–1.25</span> <span class="d1">>1.25</span>';
+card.appendChild(hint);
+const wrap = document.createElement('div'); wrap.className = 'table-wrap';
+const tbl = document.createElement('table');
+const thead = document.createElement('thead');
+const trG = document.createElement('tr');
+const th1 = mkTh('Дата', 'c-l1', {background:'#374151',color:'#fff'}); th1.rowSpan = 2; trG.appendChild(th1);
+const th2 = mkTh('', 'c-l2', {background:'#374151',color:'#fff'}); th2.rowSpan = 2; trG.appendChild(th2);
+sts.forEach((st, i) => {
+const c = STORE_HDR[i % STORE_HDR.length];
+const th = mkTh(st.name, 'grp', {background:c});
+if (i > 0) th.style.borderLeft = '2px solid rgba(255,255,255,0.2)';
+th.colSpan = 3;
+th.title = st.name;
+trG.appendChild(th);
+});
+thead.appendChild(trG);
+const trH = document.createElement('tr');
+sts.forEach((st, i) => {
+const c = STORE_HDR[i % STORE_HDR.length];
+['Фокс','Комфі','Δ'].forEach((l, j) => {
+const th = mkTh(l, 'sub', {background:c});
+if (j === 0 && i > 0) th.style.borderLeft = '2px solid rgba(255,255,255,0.2)';
+trH.appendChild(th);
+});
+});
+thead.appendChild(trH);
+tbl.appendChild(thead);
+const tbody = document.createElement('tbody');
+let prevWeek = null;
+data.forEach(r => {
+const tr = document.createElement('tr');
+if (r.isWE) tr.classList.add('weekend');
+if (r.week && r.week !== prevWeek) { tr.classList.add('wk-sep'); prevWeek = r.week; }
+const tdDate = mkTd(fmtDate(r.date), 'c-l1');
+const tdDow = mkTd(r.dowName ? r.dowName.slice(0,2) : '', 'c-l2');
+tr.appendChild(tdDate);
+tr.appendChild(tdDow);
+sts.forEach((st, i) => {
+const bg = STORE_BG[i % STORE_BG.length];
+const v = r.storeVals[st.name] || {};
+const f = v.foks ?? null;
+const k = v.komf ?? null;
+const d = v.delta ?? (f != null && k != null && f !== 0 ? k / f : null);
+const tdF = mkTd(fmt(f), '', {background:bg, borderLeft: i > 0 ? '2px solid #d0d0da' : ''});
+const tdK = mkTd(fmt(k), '', {background:bg});
+const tdD = mkTd(d != null ? d.toFixed(2) : null, deltaClass(d), {background:bg});
+tr.appendChild(tdF);
+tr.appendChild(tdK);
+tr.appendChild(tdD);
+});
+tbody.appendChild(tr);
+});
+const trTot = document.createElement('tr'); trTot.className = 'tot';
+const tdTot = mkTd('РАЗОМ', 'c-l1');
+trTot.appendChild(tdTot);
+trTot.appendChild(document.createElement('td'));
+sts.forEach((st, i) => {
+const bg = STORE_BG[i % STORE_BG.length];
+let sf = 0, sk = 0;
+data.forEach(r => {
+const v = r.storeVals[st.name] || {};
+if (v.foks != null) sf += v.foks;
+if (v.komf != null) sk += v.komf;
+});
+const sd = sf > 0 ? sk / sf : null;
+const tdF = mkTd(fmt(sf), '', {background:bg, borderLeft: i > 0 ? '2px solid #d0d0da' : '', fontWeight:'700'});
+const tdK = mkTd(fmt(sk), '', {background:bg, fontWeight:'700'});
+const tdD = mkTd(sd != null ? sd.toFixed(2) : null, deltaClass(sd), {background:bg, fontWeight:'700'});
+trTot.appendChild(tdF);
+trTot.appendChild(tdK);
+trTot.appendChild(tdD);
+});
+tbody.appendChild(trTot);
+tbl.appendChild(tbody);
+wrap.appendChild(tbl);
+card.appendChild(wrap);
+cont.innerHTML = '';
+cont.appendChild(card);
+}
+// ──────────────────────────────────────────────
+// ВКЛАДКА Пн–Чт / Пт–Нд
+// ──────────────────────────────────────────────
+function renderWeekday() {
+const cont = document.getElementById('tabContent');
+const data = activeData();
+const sts = activeStores();
+if (!data.length || !sts.length) {
+cont.innerHTML = '<div class="table-card"><div class="status-box">Немає даних</div></div>';
+return;
+}
+const wMap = new Map();
+data.forEach(r => {
+if (!r.week) return;
+const k = r.year + '_W' + String(r.week).padStart(2, '0');
+if (!wMap.has(k)) wMap.set(k, { label: k, year: r.year, week: r.week, wd: [], we: [], rows: [] });
+const w = wMap.get(k);
+w.rows.push(r);
+if (r.isWE) w.we.push(r); else w.wd.push(r);
+});
+const card = document.createElement('div'); card.className = 'table-card';
+const hint = document.createElement('div'); hint.className = 'table-hint';
+hint.innerHTML = '<b>Пн–Чт</b> та <b>Пт–Сб</b> за кожен тиждень | ↔ — відхилення від попереднього тижня';
+card.appendChild(hint);
+const wrap = document.createElement('div'); wrap.className = 'table-wrap';
+const tbl = document.createElement('table');
+const thead = document.createElement('thead');
+const segDefs = [{key:'wd', lbl:'Пн–Чт'}, {key:'we', lbl:'Пт–Сб'}];
+const segsToShow = segDefs.filter(s => selSegments.has(s.key));
+if (segsToShow.length === 0) segsToShow.push(...segDefs);
+const trG = document.createElement('tr');
+const th1 = mkTh('Рік', 'c-l1', {background:'#374151',color:'#fff'}); th1.rowSpan = 3; trG.appendChild(th1);
+const th2 = mkTh('Тиж', 'c-l2', {background:'#374151',color:'#fff'}); th2.rowSpan = 3; trG.appendChild(th2);
+sts.forEach((st, i) => {
+const c = STORE_HDR[i % STORE_HDR.length];
+const th = mkTh(st.name, 'grp', {background:c});
+if (i > 0) th.style.borderLeft = '2px solid rgba(255,255,255,0.2)';
+th.colSpan = segsToShow.length * 3;
+th.title = st.name;
+trG.appendChild(th);
+});
+thead.appendChild(trG);
+const trSeg = document.createElement('tr');
+sts.forEach((st, i) => {
+const c = STORE_HDR[i % STORE_HDR.length];
+segsToShow.forEach((sdef, jSeg) => {
+const th = mkTh(sdef.lbl, 'grp', {background: (sdef.key === 'wd') ? c : c + '99'});
+if (i > 0 && jSeg === 0) th.style.borderLeft = '2px solid rgba(255,255,255,0.2)';
+th.colSpan = 3;
+trSeg.appendChild(th);
+});
+});
+thead.appendChild(trSeg);
+const trH = document.createElement('tr');
+sts.forEach((st, i) => {
+const c = STORE_HDR[i % STORE_HDR.length];
+segsToShow.forEach((sdef, jSeg) => {
+const segBg = (sdef.key === 'wd') ? c : c + '99';
+['Фокс','Комфі','Δ'].forEach((l, k2) => {
+const th = mkTh(l, 'sub', {background: segBg});
+if (k2 === 0) {
+if (i > 0 && jSeg === 0) th.style.borderLeft = '2px solid rgba(255,255,255,0.2)';
+else if (jSeg > 0) th.style.borderLeft = '1px solid rgba(255,255,255,0.15)';
+}
+trH.appendChild(th);
+});
+});
+});
+thead.appendChild(trH);
+tbl.appendChild(thead);
+const tbody = document.createElement('tbody');
+const keys = [...wMap.keys()].sort();
+keys.forEach((k, idx) => {
+const w = wMap.get(k);
+const tr = document.createElement('tr');
+const tdYear = mkTd(String(w.year), 'c-l1');
+const tdWeek = mkTd('T' + w.week, 'c-l2');
+tr.appendChild(tdYear);
+tr.appendChild(tdWeek);
+sts.forEach((st, i) => {
+const bg = STORE_BG[i % STORE_BG.length];
+segsToShow.forEach((sdef, jSeg) => {
+const rowsForSeg = (sdef.key === 'wd') ? w.wd : w.we;
+let f = 0, kv = 0;
+rowsForSeg.forEach(r => {
+const v = r.storeVals[st.name] || {};
+if (v.foks != null) f += v.foks;
+if (v.komf != null) kv += v.komf;
+});
+const d = f > 0 ? kv / f : null;
+const isFirstSeg = jSeg === 0;
+const bl = (isFirstSeg && i > 0) ? '2px solid #d0d0da' : (jSeg > 0 ? '1px solid #e8e8ec' : '');
+const tdF = mkTd(fmt(f), '', {background: bg, borderLeft: bl});
+const tdK = mkTd(fmt(kv), '', {background: bg});
+const tdD = mkTd(d != null ? d.toFixed(2) : null, deltaClass(d), {background: bg});
+tr.appendChild(tdF);
+tr.appendChild(tdK);
+tr.appendChild(tdD);
+});
+});
+tbody.appendChild(tr);
+if (idx > 0) {
+const prevK = keys[idx - 1];
+const prev = wMap.get(prevK);
+const diffTr = document.createElement('tr'); diffTr.className = 'diff-row';
+const tdLabel = mkTd('↔ vs T' + prev.week, 'c-l1', {textAlign: 'left', paddingLeft: '6px', color: '#92400e', fontWeight: '600', fontSize: '10px'});
+diffTr.appendChild(tdLabel);
+diffTr.appendChild(mkTd('', 'c-l2'));
+sts.forEach((st, i) => {
+const bg = STORE_BG[i % STORE_BG.length];
+segsToShow.forEach((sdef, jSeg) => {
+const rowsForSeg = (sdef.key === 'wd') ? w.wd : w.we;
+const pRowsForSeg = (sdef.key === 'wd') ? prev.wd : prev.we;
+let cf = 0, ck = 0, pf = 0, pk = 0;
+rowsForSeg.forEach(r => { const v = r.storeVals[st.name] || {}; if (v.foks != null) cf += v.foks; if (v.komf != null) ck += v.komf; });
+pRowsForSeg.forEach(r => { const v = r.storeVals[st.name] || {}; if (v.foks != null) pf += v.foks; if (v.komf != null) pk += v.komf; });
+const df = cf - pf, dk = ck - pk;
+const dd = (pf > 0 && cf > 0) ? (ck / cf) - (pk / pf) : null;
+const isFirstSeg = jSeg === 0;
+const bl = (isFirstSeg && i > 0) ? '2px solid #d0d0da' : (jSeg > 0 ? '1px solid #e8e8ec' : '');
+const tdF = mkTd((df >= 0 ? '+' : '') + fmt(Math.abs(df)) + (df >= 0 ? ' ↑' : ' ↓'), df >= 0 ? 'diff-pos' : 'diff-neg', {background: bg, borderLeft: bl, fontSize: '10px'});
+const tdK = mkTd((dk >= 0 ? '+' : '') + fmt(Math.abs(dk)) + (dk >= 0 ? ' ↑' : ' ↓'), dk >= 0 ? 'diff-pos' : 'diff-neg', {background: bg, fontSize: '10px'});
+const tdD = mkTd(dd != null ? (dd >= 0 ? '+' : '') + dd.toFixed(2) : null, dd == null ? '' : (dd <= 0 ? 'diff-pos' : 'diff-neg'), {background: bg, fontSize: '10px'});
+diffTr.appendChild(tdF);
+diffTr.appendChild(tdK);
+diffTr.appendChild(tdD);
+});
+});
+tbody.appendChild(diffTr);
+}
+});
+tbl.appendChild(tbody);
+wrap.appendChild(tbl);
+card.appendChild(wrap);
+cont.innerHTML = '';
+cont.appendChild(card);
+}
+// ──────────────────────────────────────────────
+// ПО ТИЖНЯХ
+// ──────────────────────────────────────────────
+function renderWeekly() {
+const cont = document.getElementById('tabContent');
+const data = activeData();
+const sts = activeStores();
+if (!data.length || !sts.length) {
+cont.innerHTML = '<div class="table-card"><div class="status-box">Немає даних</div></div>';
+return;
+}
+const gMap = new Map();
+const keys = [];
+data.forEach(r => {
+if (!r.week) return;
+const k = r.year + '_W' + String(r.week).padStart(2, '0');
+if (!gMap.has(k)) { gMap.set(k, {label: k, rows: []}); keys.push(k); }
+gMap.get(k).rows.push(r);
+});
+keys.sort().forEach((k, i) => { gMap.get(k).prevKey = i > 0 ? keys[i-1] : null; });
+buildAggTable(cont, gMap, sts, 'Рік', 'Тиждень', l => 'T' + (l.split('_W')[1] || ''));
+}
+// ──────────────────────────────────────────────
+// ПО МІСЯЦЯХ
+// ──────────────────────────────────────────────
+function renderMonthly() {
+const cont = document.getElementById('tabContent');
+const data = activeData();
+const sts = activeStores();
+if (!data.length || !sts.length) {
+cont.innerHTML = '<div class="table-card"><div class="status-box">Немає даних</div></div>';
+return;
+}
+const gMap = new Map();
+const keys = [];
+data.forEach(r => {
+const k = r.year + '_' + String(r.month).padStart(2, '0');
+if (!gMap.has(k)) { gMap.set(k, {label: k, rows: []}); keys.push(k); }
+gMap.get(k).rows.push(r);
+});
+keys.sort().forEach((k, i) => { gMap.get(k).prevKey = i > 0 ? keys[i-1] : null; });
+buildAggTable(cont, gMap, sts, 'Рік', 'Місяць', l => {
+const m = parseInt(l.split('_')[1]);
+return MONTHS_UK[m-1]?.slice(0,3) || l;
+});
+}
+function buildAggTable(cont, groupMap, sts, col1Label, col2Label, col2fmt) {
+const card = document.createElement('div'); card.className = 'table-card';
+const wrap = document.createElement('div'); wrap.className = 'table-wrap';
+const tbl = document.createElement('table');
+const thead = document.createElement('thead');
+const trG = document.createElement('tr');
+const th1 = mkTh(col1Label, 'c-l1', {background:'#374151', color:'#fff'}); th1.rowSpan = 2; trG.appendChild(th1);
+const th2 = mkTh(col2Label, 'c-l2', {background:'#374151', color:'#fff'}); th2.rowSpan = 2; trG.appendChild(th2);
+sts.forEach((st, i) => {
+const c = STORE_HDR[i % STORE_HDR.length];
+const th = mkTh(st.name, 'grp', {background: c});
+if (i > 0) th.style.borderLeft = '2px solid rgba(255,255,255,0.2)';
+th.colSpan = 3;
+th.title = st.name;
+trG.appendChild(th);
+});
+thead.appendChild(trG);
+const trH = document.createElement('tr');
+sts.forEach((st, i) => {
+const c = STORE_HDR[i % STORE_HDR.length];
+['Фокс','Комфі','Δ'].forEach((l, j) => {
+const th = mkTh(l, 'sub', {background: c});
+if (j === 0 && i > 0) th.style.borderLeft = '2px solid rgba(255,255,255,0.2)';
+trH.appendChild(th);
+});
+});
+thead.appendChild(trH);
+tbl.appendChild(thead);
+const tbody = document.createElement('tbody');
+const keys = [...groupMap.keys()].sort();
+keys.forEach(k => {
+const {label, rows, prevKey} = groupMap.get(k);
+const agg = aggRows(rows, sts);
+const tr = document.createElement('tr');
+const td1 = mkTd(label.split('_')[0] || label, 'c-l1');
+const td2 = mkTd(col2fmt(label), 'c-l2');
+tr.appendChild(td1);
+tr.appendChild(td2);
+sts.forEach((st, i) => {
+const bg = STORE_BG[i % STORE_BG.length];
+const {f, k: kv, d} = agg[st.name] || {f:0, k:0, d:null};
+const tdF = mkTd(fmt(f), '', {background: bg, borderLeft: i > 0 ? '2px solid #d0d0da' : ''});
+const tdK = mkTd(fmt(kv), '', {background: bg});
+const tdD = mkTd(d != null ? d.toFixed(2) : null, deltaClass(d), {background: bg});
+tr.appendChild(tdF);
+tr.appendChild(tdK);
+tr.appendChild(tdD);
+});
+tbody.appendChild(tr);
+if (prevKey && groupMap.has(prevKey)) {
+const prevAgg = aggRows(groupMap.get(prevKey).rows, sts);
+const diffTr = document.createElement('tr'); diffTr.className = 'diff-row';
+const tdLabel = mkTd('↔ vs попер.', 'c-l1', {textAlign: 'left', paddingLeft: '4px', color: '#92400e', fontWeight: '600'});
+diffTr.appendChild(tdLabel);
+diffTr.appendChild(mkTd('', 'c-l2'));
+sts.forEach((st, i) => {
+const bg = STORE_BG[i % STORE_BG.length];
+const pf = prevAgg[st.name]?.f || 0, pk = prevAgg[st.name]?.k || 0;
+const cf = agg[st.name]?.f || 0, ck = agg[st.name]?.k || 0;
+const df = cf - pf, dk = ck - pk;
+const dd = (pf > 0 && cf > 0) ? (ck / cf) - (pk / pf) : null;
+const tdF = mkTd((df >= 0 ? '+' : '') + fmt(Math.abs(df)) + (df >= 0 ? ' ↑' : ' ↓'), df >= 0 ? 'diff-pos' : 'diff-neg', {background: bg, borderLeft: i > 0 ? '2px solid #d0d0da' : '', fontSize: '10px'});
+const tdK = mkTd((dk >= 0 ? '+' : '') + fmt(Math.abs(dk)) + (dk >= 0 ? ' ↑' : ' ↓'), dk >= 0 ? 'diff-pos' : 'diff-neg', {background: bg, fontSize: '10px'});
+const tdD = mkTd(dd != null ? (dd >= 0 ? '+' : '') + dd.toFixed(2) : null, dd == null ? '' : (dd <= 0 ? 'diff-pos' : 'diff-neg'), {background: bg, fontSize: '10px'});
+diffTr.appendChild(tdF);
+diffTr.appendChild(tdK);
+diffTr.appendChild(tdD);
+});
+tbody.appendChild(diffTr);
+}
+});
+tbl.appendChild(tbody);
+wrap.appendChild(tbl);
+card.appendChild(wrap);
+cont.innerHTML = '';
+cont.appendChild(card);
+}
+function aggRows(rows, sts) {
+const r = {};
+sts.forEach(st => {
+let f = 0, k = 0;
+rows.forEach(row => {
+const v = row.storeVals[st.name] || {};
+if (v.foks != null) f += v.foks;
+if (v.komf != null) k += v.komf;
+});
+r[st.name] = { f, k, d: f > 0 ? k / f : null };
+});
+return r;
+}
+// ──────────────────────────────────────────────
+// ГРАФІК (Динаміка) — ПОВНІСТЮ ОНОВЛЕНИЙ
+// ──────────────────────────────────────────────
 function renderChart() {
 const cont = document.getElementById('tabContent');
 const data = activeData();
@@ -29,7 +1040,7 @@ btnResetZoom.style.marginLeft = 'auto';
 btnResetZoom.onclick = () => { if(chartInstance) chartInstance.resetZoom(); };
 c0.appendChild(btnResetZoom);
 
-// ✅ ДОДАЄМО КНОПКУ ПРИХОВАТИ TOOLTIP
+// ✅ КНОПКА ПЕРЕМКАННЯ TOOLTIP
 const btnToggleTooltip = document.createElement('button');
 btnToggleTooltip.className = 'pill';
 btnToggleTooltip.textContent = isMobile ? '📴 Tooltip: ВКЛ' : '📴 Tooltip';
@@ -50,11 +1061,169 @@ c0.appendChild(btnToggleTooltip);
 
 card.appendChild(c0);
 
-// ... (інші контролли залишаються без змін) ...
+const c1 = document.createElement('div'); c1.className = 'ctrl-row';
+c1.appendChild(Object.assign(document.createElement('span'), {className: 'ctrl-lbl', textContent: 'Групування:'}));
+[{v:'day',l:'День'}, {v:'week',l:'Тиждень'}, {v:'month',l:'Місяць'}].forEach(p => {
+const b = document.createElement('button');
+b.className = 'pill' + (selChartPeriod === p.v ? ' active' : '');
+b.textContent = p.l;
+if (selChartPeriod === p.v) { b.style.background = '#0071e3'; b.style.color = '#fff'; }
+b.onclick = () => { selChartPeriod = p.v; renderChart(); };
+c1.appendChild(b);
+});
+card.appendChild(c1);
+
+const c2 = document.createElement('div'); c2.className = 'ctrl-row';
+c2.appendChild(Object.assign(document.createElement('span'), {className: 'ctrl-lbl', textContent: 'Показник:'}));
+[{v:'delta',l:'Δ Дельта'}, {v:'foks',l:'Фокстрот'}, {v:'komf',l:'Комфі'}].forEach(m => {
+const b = document.createElement('button');
+b.className = 'pill' + (selChartMetric === m.v ? ' active' : '');
+b.textContent = m.l;
+if (selChartMetric === m.v) { b.style.background = '#6b21a8'; b.style.color = '#fff'; }
+b.onclick = () => { selChartMetric = m.v; renderChart(); };
+c2.appendChild(b);
+});
+if (selChartMode === 'store') {
+c2.appendChild(Object.assign(document.createElement('span'), {className: 'ctrl-lbl', textContent: ' Магазин:', style: 'margin-left:8px'}));
+sts.forEach(st => {
+const b = document.createElement('button');
+b.className = 'pill' + (st.name === selChartStore ? ' active' : '');
+b.textContent = st.name.split(' ').slice(1,4).join(' ');
+b.title = st.name;
+if (st.name === selChartStore) { b.style.background = '#1d1d1f'; b.style.color = '#fff'; }
+b.onclick = () => { selChartStore = st.name; renderChart(); };
+c2.appendChild(b);
+});
+}
+card.appendChild(c2);
+
+function getVal(rows, stName) {
+let f = 0, k = 0;
+rows.forEach(r => {
+const v = r.storeVals[stName] || {};
+if (v.foks != null) f += v.foks;
+if (v.komf != null) k += v.komf;
+});
+if (selChartMetric === 'delta') return f > 0 ? k / f : null;
+if (selChartMetric === 'foks') return f || null;
+return k || null;
+}
+
+const gMap = new Map();
+data.forEach(r => {
+let k;
+if (selChartPeriod === 'day') k = r.date;
+else if (selChartPeriod === 'week') k = r.year + '_W' + String(r.week || 0).padStart(2, '0');
+else k = r.year + '_' + String(r.month).padStart(2, '0');
+if (!gMap.has(k)) gMap.set(k, []);
+gMap.get(k).push(r);
+});
+const sortedKeys = [...gMap.keys()].sort();
+
+const filteredKeys = sortedKeys.filter(k => {
+const rows = gMap.get(k);
+return rows.some(r => {
+if (selChartMode === 'store') {
+const v = r.storeVals[selChartStore] || {};
+return v.foks != null || v.komf != null;
+} else {
+return sts.some(st => {
+const v = r.storeVals[st.name] || {};
+return v.foks != null || v.komf != null;
+});
+}
+});
+});
+
+const labels = filteredKeys.map(k => {
+if (selChartPeriod === 'day') return fmtDate(k);
+if (selChartPeriod === 'week') { const p = k.split('_W'); return 'T' + p[1] + (p[0] ? ' ' + String(p[0]).slice(2) : ''); }
+const p = k.split('_'); const m = parseInt(p[1]); return MONTHS_UK[m-1]?.slice(0,3) + (p[0] ? ' ' + String(p[0]).slice(2) : '');
+});
+
+const datasets = [];
+const CHART_COLORS = ['#1a56db','#0e7490','#6b21a8','#9d174d','#065f46','#92400e'];
+const dataLength = filteredKeys.length;
+
+// ✅ ОПТИМІЗОВАНІ DATALABELS
+const customDataLabelsConfig = {
+display: function(context) {
+const index = context.dataIndex;
+const count = context.dataset.data.length;
+if (isMobile) {
+return index === count - 1 || index % 3 === 0;
+}
+return index === count - 1 || index % 2 === 0;
+},
+color: (context) => context.dataset.borderColor,
+backgroundColor: 'rgba(255, 255, 255, 0.92)',
+padding: 3,
+font: { size: isMobile ? 8 : 9, weight: 'bold', family: 'Inter' },
+formatter: (v) => v != null ? v.toFixed(2) : '',
+anchor: 'center',
+align: (context) => {
+const idx = context.dataIndex;
+return idx % 3 === 0 ? 'top' : (idx % 3 === 1 ? 'bottom' : 'top');
+},
+offset: isMobile ? 8 : 10,
+clip: true,
+overflow: 'clip',
+borderWidth: 1,
+borderColor: (context) => context.dataset.borderColor + '40'
+};
+
+if (selChartMode === 'store') {
+const vals = filteredKeys.map(k => getVal(gMap.get(k), selChartStore));
+const color = selChartMetric === 'delta' ? '#6b21a8' : (selChartMetric === 'foks' ? '#1a56db' : '#0e7490');
+const isBar = selChartMetric === 'delta';
+const dataset = {
+type: isBar ? 'bar' : 'line',
+label: selChartStore.split(' ').slice(1,3).join(' '),
+data: vals,
+backgroundColor: isBar ? vals.map(v => {
+if (v === null) return 'rgba(200,200,200,0.3)';
+if (v < 0.8) return 'rgba(21,128,61,0.7)';
+if (v < 0.95) return 'rgba(22,163,74,0.6)';
+if (v <= 1.05) return 'rgba(107,114,128,0.5)';
+if (v <= 1.25) return 'rgba(194,65,12,0.6)';
+return 'rgba(185,28,28,0.7)';
+}) : color + '33',
+borderColor: color,
+borderWidth: isBar ? 0 : 2.5,
+pointRadius: dataLength <= 30 ? 5 : 3,
+pointHoverRadius: 9,
+tension: 0.25,
+fill: !isBar,
+spanGaps: true,
+datalabels: customDataLabelsConfig
+};
+dataset.originalColor = color;
+datasets.push(dataset);
+} else {
+sts.forEach((st, i) => {
+const color = CHART_COLORS[i % CHART_COLORS.length];
+const vals = filteredKeys.map(k => getVal(gMap.get(k), st.name));
+const dataset = {
+type: 'line',
+label: st.name.split(' ').slice(1,3).join(' '),
+data: vals,
+borderColor: color,
+backgroundColor: color + '22',
+borderWidth: 2.5,
+pointRadius: dataLength <= 30 ? 5 : 3,
+pointHoverRadius: 9,
+tension: 0.25,
+fill: false,
+spanGaps: true,
+datalabels: customDataLabelsConfig
+};
+dataset.originalColor = color;
+datasets.push(dataset);
+});
+}
 
 const wrap = document.createElement('div'); 
 wrap.className = 'chart-wrap';
-// ✅ ЗБІЛЬШУЄМО ВИСОТУ НА МОБІЛЬНИХ
 wrap.style.height = isMobile ? '75vh' : '60vh';
 wrap.style.minHeight = isMobile ? '600px' : '500px';
 
@@ -73,14 +1242,6 @@ cont.appendChild(card);
 if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
 const ctx = canvas.getContext('2d');
 
-// ✅ ОБЧИСЛЮЄМО JITTER ДЛЯ ТОЧОК (щоб не накладались)
-function addJitter(value, index, total) {
-if (total <= 1) return value;
-const jitterRange = 0.02; // ±2%
-const jitter = (Math.random() - 0.5) * jitterRange * 2;
-return value + jitter;
-}
-
 chartInstance = new Chart(ctx, {
 plugins: [ChartDataLabels, window.ChartZoom],
 data: { labels, datasets },
@@ -90,7 +1251,6 @@ maintainAspectRatio: false,
 interaction: { 
 mode: isMobile ? 'nearest' : 'index', 
 intersect: false,
-// ✅ НА МОБІЛЬНИХ ВІДКЛЮЧАЄМО AUTO HIGHLIGHT
 axis: 'xy'
 },
 hover: {
@@ -113,14 +1273,10 @@ if (ds.originalColor) ds.borderColor = ds.originalColor;
 }
 chart.update('none');
 },
-// ✅ КЛІК ПОЗА ГРАФІКОМ ЗАКРИВАЄ TOOLTIP
-onClick: (e) => {
-const canvasPosition = Chart.helpers.getRelativePosition(e, chartInstance);
-const chartArea = chartInstance.chartArea;
-if (canvasPosition.x < chartArea.left || canvasPosition.x > chartArea.right ||
-canvasPosition.y < chartArea.top || canvasPosition.y > chartArea.bottom) {
-chartInstance.tooltip.setActiveElements([], {x: 0, y: 0});
-chartInstance.update('none');
+onClick: (e, activeElements, chart) => {
+if (activeElements.length === 0) {
+chart.tooltip.setActiveElements([], {x: 0, y: 0});
+chart.update('none');
 }
 },
 plugins: {
@@ -135,7 +1291,6 @@ usePointStyle: true
 } 
 },
 tooltip: {
-// ✅ МОБІЛЬНИЙ TOOLTIP: КОМПАКТНІШИЙ І ПРОЗОРІШИЙ
 enabled: true,
 backgroundColor: isMobile ? 'rgba(0, 0, 0, 0.85)' : 'rgba(29, 29, 31, 0.95)',
 titleFont: { size: isMobile ? 11 : 13, weight: '600' },
@@ -143,15 +1298,11 @@ bodyFont: { size: isMobile ? 10 : 12 },
 padding: isMobile ? 8 : 12,
 cornerRadius: isMobile ? 6 : 8,
 displayColors: true,
-// ✅ ДОДАЄМО КНОПКУ ЗАКРИТТЯ В TOOLTIP
 callbacks: {
 label: c => ' ' + c.dataset.label + ': ' + (c.raw != null ? (selChartMetric === 'delta' ? c.raw.toFixed(2) : fmt(c.raw)) : '—'),
-// Додаємо підказку про закриття
 afterBody: isMobile ? () => '\n👆 Клікніть поза вікном для закриття' : undefined
 },
-// ✅ НА МОБІЛЬНИХ ШВИДШЕ ЗНИКАЄ
-hideOnClick: true,
-enabled: true
+hideOnClick: true
 },
 zoom: {
 pan: { enabled: true, mode: 'x', modifierKey: null },
@@ -159,36 +1310,10 @@ zoom: {
 wheel: { enabled: !isMobile },
 pinch: { enabled: true },
 mode: 'x',
-// ✅ ОБМЕЖУЄМО ЗУМ НА МОБІЛЬНИХ
 limits: { x: { min: 'original', max: 'original' }, y: { min: 'original', max: 'original' } }
 }
 },
-datalabels: {
-display: function(context) {
-const index = context.dataIndex;
-const count = context.dataset.data.length;
-// ✅ НА МОБІЛЬНИХ ЩЕ РІДШЕ ПОКАЗУЄМО МІТКИ
-if (isMobile) {
-return index === count - 1 || index % 3 === 0;
-}
-return index === count - 1 || index % 2 === 0;
-},
-color: (context) => context.dataset.borderColor,
-backgroundColor: 'rgba(255, 255, 255, 0.9)',
-padding: 3,
-font: { size: isMobile ? 8 : 9, weight: 'bold' },
-formatter: (v) => v ? v.toFixed(2) : '',
-anchor: 'center',
-align: (context) => {
-// ✅ РОЗНОСИМО МІТКИ ЩОБ НЕ НАКЛАДАЛИСЬ
-const idx = context.dataIndex;
-return idx % 3 === 0 ? 'top' : (idx % 3 === 1 ? 'bottom' : 'top');
-},
-offset: isMobile ? 8 : 10,
-// ✅ УНИКАЄМО НАКЛАДАННЯ МІТОК
-clip: true,
-overflow: 'clip'
-}
+datalabels: customDataLabelsConfig
 },
 scales: {
 x: { 
@@ -208,7 +1333,6 @@ autoSkipPadding: isMobile ? 20 : 10
 } 
 },
 y: {
-// ✅ ЗБІЛЬШУЄМО ВЕРТИКАЛЬНИЙ ПРОСТІР ЩОБ УНИКНУТИ НАКЛАДАННЯ
 grace: isMobile ? '30%' : '20%',
 grid: { color: '#f0f0f0' },
 ticks: {
@@ -220,7 +1344,6 @@ stepSize: selChartMetric === 'delta' ? 0.5 : undefined
 ...(selChartMetric === 'delta' ? { 
 suggestedMin: 0.5, 
 suggestedMax: 2.5,
-// ✅ ДОДАЄМО ВІДСТУП ЗВЕРХУ І ЗНИЗУ
 min: 0.4,
 max: 3.0
 } : {})
@@ -229,4 +1352,45 @@ max: 3.0
 }
 });
 }
+// ──────────────────────────────────────────────
+// ПЕРЕМИКАННЯ ТАБІВ
+// ──────────────────────────────────────────────
+function switchTab(tab) {
+activeTab = tab;
+document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+const activeBtn = Array.from(document.querySelectorAll('.tab')).find(b => b.textContent.includes(tab === 'table' ? 'Таблиця' : tab === 'weekday' ? 'Пн–Чт' : tab === 'weekly' ? 'По тижнях' : tab === 'monthly' ? 'По місяцях' : 'Динаміка'));
+if (activeBtn) activeBtn.classList.add('active');
+render();
+}
+function render() {
+if (activeTab === 'table') renderTable();
+else if (activeTab === 'weekday') renderWeekday();
+else if (activeTab === 'weekly') renderWeekly();
+else if (activeTab === 'monthly') renderMonthly();
+else renderChart();
+}
+// ──────────────────────────────────────────────
+// INIT
+// ──────────────────────────────────────────────
+async function init() {
+showSkel();
+try {
+const res = await fetch(CSV_URL + '&t=' + Date.now());
+if (!res.ok) throw new Error('HTTP ' + res.status);
+const text = await res.text();
+const rows = parseCSV(text);
+if (!rows.length) throw new Error('Порожній файл');
+detect(rows);
+if (!stores.length) throw new Error('Не знайдено магазини у файлі');
+renderFilters();
+render();
+} catch (e) {
+document.getElementById('tabContent').innerHTML = '<div class="table-card"><div class="status-box error">❌ ' + e.message + '</div></div>';
+console.error(e);
+}
+}
+init();
+</script>
+</body>
+</html>
 
