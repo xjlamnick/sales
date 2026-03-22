@@ -238,6 +238,7 @@ if (/послуги\s*%|послуг.*%/.test(lo)) return {type:'ratio', num:'П
 if (/acc\s*%|аcc\s*%/.test(lo))       return {type:'ratio', num:'ACC'};
 if (/гурт\s*%/.test(lo))              return {type:'ratio', num:'Гурт'};
 if (/конвер/.test(lo)) return {type:'avg'};
+// ВИПРАВЛЕНО: ТО план тепер сумується
 if (/^то$|товарообіг|^то план$|товарообіг план|^чеки$|послуги грн|^послуги$|^acc$|^аcc$|^гурт$/.test(lo)) return {type:'sum'};
 return {type:'avg'};
 }
@@ -460,6 +461,7 @@ return toSum>0?(numSum/toSum*100):null;
 return null;
 }
 
+// ВИКОНАННЯ ПЛАНУ
 function calcPlanExecution(periodsSet){
 const toPlan=calcPeriodVal('ТО план',periodsSet);
 const toActual=calcPeriodVal('ТО',periodsSet);
@@ -612,7 +614,7 @@ tr.addEventListener('click',()=>toggleMetric(metric));
 tbody.appendChild(tr);
 });
 
-// ДОДАНО: Рядок виконання плану - ОКРЕМИЙ РЯДОК
+// ОКРЕМИЙ РЯДОК ВИКОНАННЯ ПЛАНУ
 const hasToPlan=selectedMetrics.has('ТО план')||selectedMetrics.has('товарообіг план');
 const hasTo=selectedMetrics.has('ТО')||selectedMetrics.has('товарообіг');
 if(hasToPlan||hasTo){
@@ -691,7 +693,7 @@ document.getElementById('chartSubtitle').textContent=selectedMetrics.size?period
 }
 }
 
-// CHART - ВИПРАВЛЕНО: % виконання плану над стовпчиками
+// CHART - ВИПРАВЛЕНО
 function renderChart(){
 const body=document.getElementById('chartBody');
 const controls=document.getElementById('chartControls');
@@ -707,7 +709,7 @@ const metrics=[...selectedMetrics];
 const datasets=[];
 let labels=[];
 
-// Перевірка чи потрібно показувати виконання плану
+// Перевірка чи потрібно показувати виконання плану (достатньо одного з ТО або ТО план)
 const hasToPlan=metrics.some(m=>m.toLowerCase().includes('то план')||m.toLowerCase().includes('товарообіг план'));
 const hasTo=metrics.some(m=>m.toLowerCase()==='то'||m.toLowerCase()==='товарообіг');
 const showExecution=hasToPlan||hasTo;
@@ -715,6 +717,7 @@ const showExecution=hasToPlan||hasTo;
 // Зберігаємо дані виконання плану для відображення над стовпчиками
 let executionData={};
 
+try{
 if(compareMode){
 const p1pairs=[...periods1].map(k=>{const[y,m]=k.split('_');return{y:+y,m:+m};}).sort((a,b)=>a.y-b.y||a.m-b.m);
 const p2pairs=[...periods2].map(k=>{const[y,m]=k.split('_');return{y:+y,m:+m};}).sort((a,b)=>a.y-b.y||a.m-b.m);
@@ -854,7 +857,7 @@ return plan!=null&&plan>0&&to!=null?(to/plan)*100:null;
 if(chartInstance){chartInstance.destroy();chartInstance=null;}
 body.innerHTML='<div class="chart-wrap"><canvas id="dynChart"></canvas></div>';
 
-// Плагін для підписів - ТЕПЕР ВКЛЮЧАЄ % ВИКОНАННЯ ПЛАНУ НАД СТОВПЧИКАМИ
+// Плагін для підписів - ВКЛЮЧАЄ % ВИКОНАННЯ ПЛАНУ НАД СТОВПЧИКАМИ
 const smartLabels={
 id:'smartLabels',
 afterDatasetsDraw(chart,args,options){
@@ -865,9 +868,8 @@ const FS=10,PX=4,PY=3,LH=FS+PY*2+2,GAP=4;
 ctx.font=`600 ${FS}px Inter,sans-serif`;
 const pts=[];
 
-// Збираємо точки для основних датасетів (не виконання плану)
+// Збираємо точки для основних датасетів
 chart.data.datasets.forEach((ds,di)=>{
-if(ds._isExecution)return; // Пропускаємо датасети виконання
 const meta=chart.getDatasetMeta(di);
 if(meta.hidden)return;
 ds.data.forEach((val,pi)=>{
@@ -879,26 +881,60 @@ pts.push({x:el.x,y:el.y,text,color:ds.borderColor,tw:ctx.measureText(text).width
 });
 });
 
-// Додаємо % виконання плану НАД стовпчиками (не як окремий датасет)
-if(Object.keys(executionData).length>0){
-// Для кожного року/періоду додаємо % над відповідними стовпчиками
-Object.keys(executionData).forEach((key,idx)=>{
-const execArr=executionData[key];
-const yearDatasets=datasets.filter((ds,i)=>ds.label.includes(key)||(!compareMode&&datasets.indexOf(ds)%datasets.length<years.length));
-execArr.forEach((execVal,pi)=>{
+// Додаємо % виконання плану НАД стовпчиками
+if(executionData && Object.keys(executionData).length>0){
+if(compareMode){
+const p1pairs=[...periods1].map(k=>{const[y,m]=k.split('_');return{y:+y,m:+m};}).sort((a,b)=>a.y-b.y||a.m-b.m);
+const p2pairs=[...periods2].map(k=>{const[y,m]=k.split('_');return{y:+y,m:+m};}).sort((a,b)=>a.y-b.y||a.m-b.m);
+
+if(executionData.p1){
+executionData.p1.forEach((execVal,pi)=>{
 if(execVal===null||execVal===undefined)return;
-// Знаходимо відповідний стовпчик
-const targetDs=yearDatasets.find(ds=>ds.data[pi]!=null);
+const targetDs=datasets.find(ds=>ds.label.includes('(П1)'));
 if(!targetDs)return;
-const meta=chart.getDatasetMeta(datasets.indexOf(targetDs));
+const dsIndex=datasets.indexOf(targetDs);
+const meta=chart.getDatasetMeta(dsIndex);
 if(!meta||!meta.data[pi])return;
 const el=meta.data[pi];
 if(!el)return;
 const text=execVal.toFixed(1)+'%';
-// Розміщуємо % ВИЩЕ ніж основне значення
-pts.push({x:el.x,y:el.y-15,text,color:'#34c759',tw:ctx.measureText(text).width,isPct:true,dsIndex:datasets.indexOf(targetDs)});
+pts.push({x:el.x,y:el.y-15,text,color:'#34c759',tw:ctx.measureText(text).width,isPct:true,dsIndex:dsIndex});
+});
+}
+
+if(executionData.p2){
+executionData.p2.forEach((execVal,pi)=>{
+if(execVal===null||execVal===undefined)return;
+const targetDs=datasets.find(ds=>ds.label.includes('(П2)'));
+if(!targetDs)return;
+const dsIndex=datasets.indexOf(targetDs);
+const meta=chart.getDatasetMeta(dsIndex);
+if(!meta||!meta.data[pi])return;
+const el=meta.data[pi];
+if(!el)return;
+const text=execVal.toFixed(1)+'%';
+pts.push({x:el.x,y:el.y-15,text,color:'#30d158',tw:ctx.measureText(text).width,isPct:true,dsIndex:dsIndex});
+});
+}
+} else {
+Object.keys(executionData).forEach((year,idx)=>{
+const execArr=executionData[year];
+if(!execArr)return;
+const yearDatasets=datasets.filter(ds=>ds.label.includes(year));
+execArr.forEach((execVal,pi)=>{
+if(execVal===null||execVal===undefined)return;
+const targetDs=yearDatasets.find(ds=>ds.data[pi]!=null);
+if(!targetDs)return;
+const dsIndex=datasets.indexOf(targetDs);
+const meta=chart.getDatasetMeta(dsIndex);
+if(!meta||!meta.data[pi])return;
+const el=meta.data[pi];
+if(!el)return;
+const text=execVal.toFixed(1)+'%';
+pts.push({x:el.x,y:el.y-15,text,color:'#34c759',tw:ctx.measureText(text).width,isPct:true,dsIndex:dsIndex});
 });
 });
+}
 }
 
 const byX={};
@@ -909,9 +945,8 @@ byX[k].push(p);
 });
 
 Object.values(byX).forEach(grp=>{
-// Сортуємо: спочатку абсолютні значення, потім % (але % ВИЩЕ)
 grp.sort((a,b)=>{
-if(a.isPct&&!b.isPct)return -1; // % вище
+if(a.isPct&&!b.isPct)return -1;
 if(!a.isPct&&b.isPct)return 1;
 return a.y-b.y;
 });
@@ -1036,6 +1071,10 @@ callback:v=>fmt(v)
 }
 });
 renderSummary();
+}catch(err){
+console.error('Chart render error:',err);
+body.innerHTML=`<div class="status-box error">❌ Помилка графіка: ${err.message}</div>`;
+}
 }
 
 // Chart Controls
