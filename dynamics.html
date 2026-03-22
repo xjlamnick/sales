@@ -230,9 +230,7 @@ const c=text[i];
 if(c==='"'&&text[i+1]==='"'){col+='"';i++;}
 else if(c==='"')inQ=!inQ;
 else if(c===','&&!inQ){row.push(col.trim());col='';}
-else if((c==='
-'||c==='\r')&&!inQ){if(c==='\r'&&text[i+1]==='
-')i++;row.push(col.trim());rows.push(row);row=[];col='';}
+else if((c==='\n'||c==='\r')&&!inQ){if(c==='\r'&&text[i+1]==='\n')i++;row.push(col.trim());rows.push(row);row=[];col='';}
 else col+=c;
 }
 if(col||row.length){row.push(col.trim());rows.push(row);}
@@ -545,7 +543,6 @@ thead.appendChild(trH);
 tbl.appendChild(thead);
 const tbody=document.createElement('tbody');
 let rowIdx=0;
-let toRowInserted=false;
 // Спочатку вставляємо всі метрики КРІМ ТО
 allMetrics.forEach(metric=>{
 if(!years.some(y=>parsedByYear[y]?.[metric]))return;
@@ -593,7 +590,6 @@ tr.appendChild(td);
 });
 tr.addEventListener('click',()=>toggleMetric(toMetric));
 tbody.appendChild(tr);
-toRowInserted=true;
 // ОДРАЗУ ПІСЛЯ ТО - ВИКОНАННЯ ПЛАНУ (якщо є ТО план)
 const hasToPlan=allMetrics.some(m=>m.toLowerCase()==='то план'||m.toLowerCase()==='товарообіг план');
 if(hasToPlan){
@@ -711,7 +707,7 @@ while(tt1.length<maxLen) tt1.push('');
 while(tt2.length<maxLen) tt2.push('');
 datasets.push({
 label:`${metric} (П1)`,
-data1,
+data:data1,
 borderColor:c1,
 backgroundColor:c1+'80',
 pointBackgroundColor:c1,
@@ -942,7 +938,7 @@ ctx.restore();
 const ctx=document.getElementById('dynChart').getContext('2d');
 chartInstance=new Chart(ctx,{
 type:'bar',
-{labels,datasets},
+data:{labels,datasets},
 plugins:[smartLabels],
 options:{
 responsive:true,
@@ -1274,3 +1270,4 @@ init();
 </script>
 </body>
 </html>
+
