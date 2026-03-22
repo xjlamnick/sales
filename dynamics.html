@@ -561,13 +561,10 @@ thead.appendChild(trH);
 tbl.appendChild(thead);
 const tbody=document.createElement('tbody');
 let rowIdx=0;
-let toRowInserted=false;
 
-// Спочатку вставляємо всі метрики КРІМ ТО
+// ДОДАЄМО ВСІ МЕТРИКИ ОДИН РАЗ
 allMetrics.forEach(metric=>{
 if(!years.some(y=>parsedByYear[y]?.[metric]))return;
-if(metric.toLowerCase()==='то'||metric.toLowerCase()==='товарообіг')return;
-
 const tr=document.createElement('tr');tr.className='metric-row appear';tr.dataset.metric=metric;
 tr.style.animationDelay=(rowIdx*0.03)+'s';
 rowIdx++;
@@ -587,7 +584,37 @@ tr.appendChild(td);
 });
 tr.addEventListener('click',()=>toggleMetric(metric));
 tbody.appendChild(tr);
+
+// ОДРАЗУ ПІСЛЯ ТО - ДОДАЄМО ВИКОНАННЯ ПЛАНУ
+if(metric.toLowerCase()==='то'||metric.toLowerCase()==='товарообіг'){
+const hasToPlan=allMetrics.some(m=>m.toLowerCase()==='то план'||m.toLowerCase()==='товарообіг план');
+if(hasToPlan){
+const trExec=document.createElement('tr');trExec.className='metric-row appear';trExec.dataset.metric='Виконання плану';
+trExec.style.animationDelay=(rowIdx*0.03)+'s';
+rowIdx++;
+const tdN=document.createElement('td');tdN.className='col-metric';tdN.textContent='📊 Виконання плану';tdN.style.color='#34c759';tdN.style.fontWeight='700';trExec.appendChild(tdN);
+periods.forEach((p,pi)=>{
+const td=document.createElement('td');
+if(pi>0&&periods[pi-1].y!==p.y)td.classList.add('grp-start');
+const planVal=parsedByYear[p.y]?.['ТО план']?.[p.m];
+const toVal=parsedByYear[p.y]?.['ТО']?.[p.m];
+if(planVal!=null&&planVal>0&&toVal!=null){
+const execPct=(toVal/planVal)*100;
+const sp=document.createElement('span');
+sp.className='badge '+(execPct>=100?'badge-exec':'badge-exec-low');
+sp.textContent=execPct.toFixed(1)+'%';
+td.appendChild(sp);
+}else{td.textContent='—';td.style.color='#ccc';}
+trExec.appendChild(td);
 });
+trExec.addEventListener('click',()=>toggleMetric('Виконання плану'));
+tbody.appendChild(trExec);
+}
+}
+});
+
+tbl.appendChild(tbody);wrap.appendChild(tbl);
+}
 
 // ДОДАЄМО РЯДОК ТО
 const hasTo=allMetrics.some(m=>m.toLowerCase()==='то'||m.toLowerCase()==='товарообіг');
