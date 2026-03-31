@@ -984,13 +984,14 @@ const AUTH = {
         monthWeights.sort((a, b) => a.date - b.date);
         const totalWeight = monthWeights.reduce((s, w) => s + w.weight, 0);
         if (!totalWeight) return null;
-        // Вага пройдених днів (включно з today)
+        // Дні ДО сьогодні (вже відпрацьовані повністю), сьогодні ще не закінчився
         const todayDay = today.getDate();
         const passedWeight = monthWeights
-            .filter(w => w.date.getDate() <= todayDay)
+            .filter(w => w.date.getDate() < todayDay)
             .reduce((s, w) => s + w.weight, 0);
         if (!passedWeight) return null;
-        // Прогноз = факт / частка_пройдених_днів
+        // Прогноз = факт / вагу відпрацьованих днів × загальна вага місяця
+        // (сьогодні ще попереду — залишається у totalWeight)
         const prognoz = Math.round(fact / passedWeight * totalWeight);
         return prognoz;
     }
