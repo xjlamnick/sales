@@ -1,173 +1,203 @@
+<script src="auth.js"></script>
+<script src="page-guard.js"></script>
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-    <title>Дельта конкурента</title>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-    <style>
-        :root{--bg:#f5f5f7;--text:#1d1d1f;--text-sec:#6e6e73;--accent:#ff3b30;--accent2:#0071e3;--border:#d2d2d7;--card:#fff;--shadow:0 4px 20px rgba(0,0,0,0.06);}
-        *{box-sizing:border-box;margin:0;padding:0}
-        body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);padding:8px 10px 60px}
-        @keyframes shimmer{0%{background-position:-600px 0}100%{background-position:600px 0}}
-        .skel{background:linear-gradient(90deg,#eaeaed 25%,#f5f5f7 50%,#eaeaed 75%);background-size:600px 100%;animation:shimmer 1.4s ease-in-out infinite;border-radius:7px}
-        .tbl-row-skel{display:flex;gap:8px;padding:9px 10px;border-bottom:1px solid #f2f2f4}
-        .tbl-row-skel-cell{height:11px;border-radius:5px;flex:1}
-        .tbl-row-skel-cell.wide{flex:2.5}
-        /* TOP BAR */
-        .top-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:10px;flex-wrap:wrap}
-        .back-link{color:var(--accent2);text-decoration:none;font-weight:600;font-size:14px}
-        .page-title{font-size:20px;font-weight:700}
-        .view-toggle{display:flex;gap:4px;background:#e5e5ea;border-radius:10px;padding:3px}
-        .view-btn{border:none;background:transparent;padding:5px 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;color:var(--text-sec);font-family:inherit;transition:all .2s}
-        .view-btn.active{background:white;color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.12)}
-        /* FILTERS */
-        .filters-wrap{background:var(--card);border-radius:14px;box-shadow:var(--shadow);margin-bottom:12px;overflow:hidden;border:1px solid rgba(0,0,0,0.06);display:flex;flex-direction:column;align-items:stretch;}
-        .filter-mode-row{display:flex;align-items:center;gap:8px;padding:7px 12px;border-bottom:1px solid #f0f0f2;flex-wrap:wrap}
-        .filter-mode-label{font-size:10px;font-weight:700;color:#a0a0ab;text-transform:uppercase;letter-spacing:.06em}
-        .filter-periods-row{display:flex;align-items:flex-start;padding:7px 10px;flex-wrap:wrap;gap:4px}
-        .pills{display:flex;gap:3px;align-items:center;flex-wrap:wrap}
-        /* Mobile: compact year+month grid */
-        @media(max-width:600px){
-            .filter-periods-row{padding:6px 8px;gap:3px;}
-            .pill{padding:3px 6px;font-size:10px;border-radius:6px;}
-            .period-label{font-size:9px;padding:2px 6px;}
-            .filter-mode-row{padding:5px 8px;}
-        }
-        .pill{border:none;background:transparent;padding:4px 8px;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;color:#6e6e73;transition:all .15s;white-space:nowrap;line-height:1.4;}
-        .pill:hover{background:#f2f2f7;color:#1d1d1f}
-        .pill.active{background:#1d1d1f;color:#fff}
-        .compare-btn{border:none;background:#f0f0f5;border-radius:9px;padding:5px 12px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;color:#6e6e73;transition:all .2s}
-        .compare-btn.on{background:#5856d6;color:#fff}
-        .period-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:3px 8px;border-radius:6px;white-space:nowrap;flex-shrink:0;margin-top:2px}
-        .period-label.p1{background:#e8f1fd;color:#1a50b8}
-        .period-label.p2{background:#e3f8ec;color:#1a7f37}
-        /* TABLE */
-        .table-card{background:var(--card);border-radius:16px;box-shadow:var(--shadow);overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:14px}
-        .table-hint{font-size:11px;color:var(--text-sec);padding:8px 12px;border-bottom:1px solid #f2f2f4;background:#fafafa;border-radius:16px 16px 0 0;display:flex;align-items:center;gap:6px}
-        .table-hint .hl{color:var(--accent2);font-weight:600}
-        table{border-collapse:collapse;width:100%}
-        th,td{padding:4px 6px;border-bottom:1px solid #f2f2f4;font-size:11px;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-        /* Frozen left */
-        td.col-year,td.col-month{position:sticky;background:white;z-index:5;}
-        td.col-year{left:0;min-width:38px;width:38px;font-size:10px;font-weight:700;color:var(--text-sec);}
-        td.col-month{left:38px;min-width:54px;width:54px;font-size:11px;font-weight:600;text-align:left;box-shadow:4px 0 8px -2px rgba(0,0,0,.07);border-right:1px solid #e8e8ec;}
-        /* Period color on month cell */
-        td.col-month.p1c{color:#1a50b8}
-        td.col-month.p2c{color:#1a7f37}
-        /* Group header */
-        th.grp-th{background:#f2f2f7;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#666;cursor:default;text-align:center;border-bottom:1px solid #e0e0e8;position:sticky;top:0;z-index:10;}
-        th.grp-th.sticky-yz{left:0;z-index:21;}
-        th.grp-th.sticky-yz2{left:38px;z-index:21;}
-        /* Sub-col header */
-        th.sub-th{background:white;font-size:9px;font-weight:700;color:var(--text-sec);text-transform:uppercase;cursor:pointer;text-align:center;position:sticky;top:22px;z-index:10;border-bottom:2px solid var(--border);transition:background .15s;user-select:none;}
-        th.sub-th:hover{background:#f0f4ff;color:var(--accent2);}
-        th.sub-th.selected-col{background:#e8f0fe;color:var(--accent2);border-bottom-color:var(--accent2);}
-        th.sub-th.sticky-left0{left:0;z-index:20;}
-        th.sub-th.sticky-left1{left:38px;z-index:20;}
-        th.grp-sep,td.grp-sep{border-left:2px solid #d0d0da!important;}
-        td.selected-col{background:#f0f5ff;}
-        tr:hover td{background:#f9f9fb!important;}
-        tr:hover td.col-year,tr:hover td.col-month{background:#f0f0f5!important;}
-        .delta-pos{color:#1a7f37;font-weight:700;}
-        .delta-neg{color:#c0392b;font-weight:700;}
-        tr.year-sep td{background:#f5f5f7;font-size:10px;font-weight:800;color:#888;padding:2px 6px;border-bottom:1px solid #e8e8ec;}
-        tr.year-sep td.col-year{color:var(--text);font-size:11px;}
-        /* CHART */
-        .chart-panel{background:var(--card);border-radius:16px;box-shadow:var(--shadow);padding:16px;display:none}
-        .chart-panel.visible{display:block}
-        .chart-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px}
-        .chart-title{font-size:15px;font-weight:700}
-        .chart-subtitle{font-size:11px;color:var(--text-sec);margin-top:2px;max-width:500px;line-height:1.4}
-        .chart-wrap{position:relative;height:320px}
-        @media(max-width:600px){.chart-wrap{height:240px}}
-        .empty-chart{display:flex;flex-direction:column;align-items:center;justify-content:center;height:200px;color:var(--text-sec);gap:8px}
-        .empty-chart-icon{font-size:36px;opacity:.4}
-        .empty-chart-text{font-size:13px;font-weight:500}
-        .chip-wrap{display:flex;flex-wrap:wrap;gap:6px}
-        .chip{display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;transition:opacity .15s;user-select:none;}
-        .chip .chip-x{opacity:.6;font-size:13px}
-        .chip:hover .chip-x{opacity:1}
-        /* SUMMARY */
-        .summary-panel{margin-top:16px;border-top:1px solid var(--border);padding-top:14px}
-        .summary-title{font-size:11px;font-weight:700;color:var(--text-sec);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
-        .summary-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:8px}
-        .summary-card{background:#f9f9fb;border-radius:12px;padding:10px 12px;border:1px solid var(--border)}
-        .summary-card-label{font-size:10px;color:var(--text-sec);font-weight:600;margin-bottom:6px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.3}
-        .summary-rows{display:flex;flex-direction:column;gap:4px}
-        .summary-row{display:flex;justify-content:space-between;align-items:center;gap:6px}
-        .summary-row-lbl{font-size:10px;color:var(--text-sec);display:flex;align-items:center;gap:3px;white-space:nowrap}
-        .summary-row-val{font-size:12px;font-weight:700;color:var(--text);white-space:nowrap}
-        .summary-divider{border:none;border-top:1px solid #ebebef;margin:3px 0}
-        .delta-row{display:flex;flex-direction:column;align-items:flex-start;gap:3px;margin-top:6px;padding-top:6px;border-top:1px dashed #e0e0e5}
-        .delta-label{font-size:10px;color:var(--text-sec);font-weight:500}
-        .delta-badge{display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap}
-        .delta-up{background:rgba(52,199,89,.15);color:#1a7f37}
-        .delta-down{background:rgba(255,59,48,.12);color:#c0392b}
-        .delta-flat{background:rgba(134,134,139,.10);color:#6e6e73}
-        .delta-arrow{font-size:12px;line-height:1}
-        .p1-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#0071e3;flex-shrink:0}
-        .p2-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#34c759;flex-shrink:0}
-        .status-box{padding:40px;text-align:center;color:var(--text-sec);font-size:14px}
-        .status-box.error{color:#ff3b30}
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<title>Дельта конкурента</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+<style>
+:root{--bg:#f5f5f7;--text:#1d1d1f;--text-sec:#6e6e73;--accent:#ff3b30;--accent2:#0071e3;--border:#d2d2d7;--card:#fff;--shadow:0 4px 20px rgba(0,0,0,0.06);}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);padding:8px 10px 60px}
+@keyframes shimmer{0%{background-position:-600px 0}100%{background-position:600px 0}}
+.skel{background:linear-gradient(90deg,#eaeaed 25%,#f5f5f7 50%,#eaeaed 75%);background-size:600px 100%;animation:shimmer 1.4s ease-in-out infinite;border-radius:7px}
+.tbl-row-skel{display:flex;gap:8px;padding:9px 10px;border-bottom:1px solid #f2f2f4}
+.tbl-row-skel-cell{height:11px;border-radius:5px;flex:1}
+.tbl-row-skel-cell.wide{flex:2.5}
+.top-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:10px;flex-wrap:wrap}
+.back-link{color:var(--accent2);text-decoration:none;font-weight:600;font-size:14px}
+.page-title{font-size:20px;font-weight:700}
+.view-toggle{display:flex;gap:4px;background:#e5e5ea;border-radius:10px;padding:3px}
+.view-btn{border:none;background:transparent;padding:5px 12px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;color:var(--text-sec);font-family:inherit;transition:all .2s}
+.view-btn.active{background:white;color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.12)}
+.filters-wrap{background:var(--card);border-radius:14px;box-shadow:var(--shadow);margin-bottom:12px;overflow:hidden;border:1px solid rgba(0,0,0,0.06);display:flex;flex-direction:column;align-items:stretch;}
+.filter-mode-row{display:flex;align-items:center;gap:8px;padding:7px 12px;border-bottom:1px solid #f0f0f2;flex-wrap:wrap}
+.filter-mode-label{font-size:10px;font-weight:700;color:#a0a0ab;text-transform:uppercase;letter-spacing:.06em}
+.filter-periods-row{display:flex;align-items:flex-start;padding:7px 10px;flex-wrap:wrap;gap:4px}
+.pills{display:flex;gap:3px;align-items:center;flex-wrap:wrap}
+@media(max-width:600px){
+.filter-periods-row{padding:6px 8px;gap:3px;}
+.pill{padding:3px 6px;font-size:10px;border-radius:6px;}
+.period-label{font-size:9px;padding:2px 6px;}
+.filter-mode-row{padding:5px 8px;}
+}
+.pill{border:none;background:transparent;padding:4px 8px;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;color:#6e6e73;transition:all .15s;white-space:nowrap;line-height:1.4;}
+.pill:hover{background:#f2f2f7;color:#1d1d1f}
+.pill.active{background:#1d1d1f;color:#fff}
+.compare-btn{border:none;background:#f0f0f5;border-radius:9px;padding:5px 12px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;color:#6e6e73;transition:all .2s}
+.compare-btn.on{background:#5856d6;color:#fff}
+.period-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:3px 8px;border-radius:6px;white-space:nowrap;flex-shrink:0;margin-top:2px}
+.period-label.p1{background:#e8f1fd;color:#1a50b8}
+.period-label.p2{background:#e3f8ec;color:#1a7f37}
+.table-card{background:var(--card);border-radius:16px;box-shadow:var(--shadow);overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:14px}
+.table-hint{font-size:11px;color:var(--text-sec);padding:8px 12px;border-bottom:1px solid #f2f2f4;background:#fafafa;border-radius:16px 16px 0 0;display:flex;align-items:center;gap:6px}
+.table-hint .hl{color:var(--accent2);font-weight:600}
+table{border-collapse:collapse;width:100%}
+th,td{padding:4px 6px;border-bottom:1px solid #f2f2f4;font-size:11px;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+td.col-year,td.col-month{position:sticky;background:white;z-index:15;}
+td.col-year{left:0;min-width:38px;width:38px;font-size:10px;font-weight:700;color:var(--text-sec);}
+td.col-month{left:38px;min-width:54px;width:54px;font-size:11px;font-weight:600;text-align:left;box-shadow:4px 0 8px -2px rgba(0,0,0,.07);border-right:1px solid #e8e8ec;}
+td.col-month.p1c{color:#1a50b8}
+td.col-month.p2c{color:#1a7f37}
+/* ✅ Group headers - FIXED TOP with colors */
+th.grp-th{background:#f2f2f7;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#666;cursor:default;text-align:center;border-bottom:1px solid #e0e0e8;position:sticky;top:0;z-index:30;}
+th.grp-th.sticky-yz{left:0;z-index:41;}
+th.grp-th.sticky-yz2{left:38px;z-index:41;}
+/* ✅ Group background colors */
+th.grp-th.grp-foks{background:#e3f2fd;color:#1565c0;}
+th.grp-th.grp-komf{background:#e8f5e9;color:#2e7d32;}
+/* Sub-col header */
+th.sub-th{background:white;font-size:9px;font-weight:700;color:var(--text-sec);text-transform:uppercase;cursor:pointer;text-align:center;position:sticky;top:22px;z-index:20;border-bottom:2px solid var(--border);transition:background .15s;user-select:none;}
+th.sub-th:hover{background:#f0f4ff;color:var(--accent2);}
+th.sub-th.selected-col{background:#e8f0fe;color:var(--accent2);border-bottom-color:var(--accent2);}
+th.sub-th.sticky-left0{left:0;z-index:30;}
+th.sub-th.sticky-left1{left:38px;z-index:30;}
+th.grp-sep,td.grp-sep{border-left:2px solid #d0d0da!important;}
+td.selected-col{background:#f0f5ff;}
+tr:hover td{background:#f9f9fb!important;}
+tr:hover td.col-year,tr:hover td.col-month{background:#f0f0f5!important;}
+.delta-pos{color:#1a7f37;font-weight:700;}
+.delta-neg{color:#c0392b;font-weight:700;}
+tr.year-sep td{background:#f5f5f7;font-size:10px;font-weight:800;color:#888;padding:2px 6px;border-bottom:1px solid #e8e8ec;}
+tr.year-sep td.col-year{color:var(--text);font-size:11px;}
+/* ✅ Delta cell coloring - DARKER green/red */
+td.is-delta{font-weight:700;}
+/* ✅ Column striping - full height highlighting for delta columns */
+col.delta-col{background:#fff3e0;}
+tr td.col-delta-striped{background:#fff3e0;}
+.chart-panel{background:var(--card);border-radius:16px;box-shadow:var(--shadow);padding:16px;display:none}
+.chart-panel.visible{display:block}
+.chart-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px}
+.chart-title{font-size:15px;font-weight:700}
+.chart-subtitle{font-size:11px;color:var(--text-sec);margin-top:2px;max-width:500px;line-height:1.4}
+.chart-controls{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.chart-control-btn{border:none;background:#f0f0f5;border-radius:7px;padding:5px 10px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;color:#6e6e73;transition:all .15s;}
+.chart-control-btn.active{background:#1d1d1f;color:#fff;}
+.chart-wrap{position:relative;height:320px}
+@media(max-width:600px){.chart-wrap{height:240px}}
+.empty-chart{display:flex;flex-direction:column;align-items:center;justify-content:center;height:200px;color:var(--text-sec);gap:8px}
+.empty-chart-icon{font-size:36px;opacity:.4}
+.empty-chart-text{font-size:13px;font-weight:500}
+.chip-wrap{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;transition:opacity .15s;user-select:none;}
+.chip .chip-x{opacity:.6;font-size:13px}
+.chip:hover .chip-x{opacity:1}
+.summary-panel{margin-top:16px;border-top:1px solid var(--border);padding-top:14px}
+.summary-title{font-size:11px;font-weight:700;color:var(--text-sec);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:8px}
+.summary-card{background:#f9f9fb;border-radius:12px;padding:10px 12px;border:1px solid var(--border)}
+.summary-card-label{font-size:10px;color:var(--text-sec);font-weight:600;margin-bottom:6px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.3}
+.summary-rows{display:flex;flex-direction:column;gap:4px}
+.summary-row{display:flex;justify-content:space-between;align-items:center;gap:6px}
+.summary-row-lbl{font-size:10px;color:var(--text-sec);display:flex;align-items:center;gap:3px;white-space:nowrap}
+.summary-row-val{font-size:12px;font-weight:700;color:var(--text);white-space:nowrap}
+.summary-divider{border:none;border-top:1px solid #ebebef;margin:3px 0}
+.delta-row{display:flex;flex-direction:column;align-items:flex-start;gap:3px;margin-top:6px;padding-top:6px;border-top:1px dashed #e0e0e5}
+.delta-label{font-size:10px;color:var(--text-sec);font-weight:500}
+.delta-badge{display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap}
+.delta-up{background:rgba(52,199,89,.15);color:#1a7f37}
+.delta-down{background:rgba(255,59,48,.12);color:#c0392b}
+.delta-flat{background:rgba(134,134,139,.10);color:#6e6e73}
+.delta-arrow{font-size:12px;line-height:1}
+.p1-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#0071e3;flex-shrink:0}
+.p2-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#34c759;flex-shrink:0}
+.status-box{padding:40px;text-align:center;color:var(--text-sec);font-size:14px}
+.status-box.error{color:#ff3b30}
+</style>
 </head>
 <body>
-
 <div class="top-bar">
-    <div style="display:flex;align-items:center;gap:14px">
-        <a href="index.html" class="back-link">← Назад</a>
-        <div class="page-title">Дельта конкурента</div>
-    </div>
-    <div class="view-toggle">
-        <button class="view-btn active" id="btnTable" onclick="setView('table')">📋 Таблиця</button>
-        <button class="view-btn" id="btnChart" onclick="setView('chart')">📈 Графік</button>
-    </div>
+<div style="display:flex;align-items:center;gap:14px">
+<a href="index.html" class="back-link">← Назад</a>
+<div class="page-title">Дельта конкурента</div>
 </div>
-
+<div class="view-toggle">
+<button class="view-btn active" id="btnTable" onclick="setView('table')">📋 Таблиця</button>
+<button class="view-btn" id="btnChart" onclick="setView('chart')">📈 Графік</button>
+</div>
+</div>
 <div class="filters-wrap" id="filtersWrap" style="display:none">
-    <div class="filter-mode-row">
-        <span class="filter-mode-label">Режим</span>
-        <button class="compare-btn" id="compareModeBtn" onclick="toggleCompareMode()">⚖️ Порівняння</button>
-    </div>
-    <div class="filter-periods-row" id="filterRow1">
-        <span class="period-label p1" id="periodLabel1" style="display:none">Період 1</span>
-        <div class="pills" id="pills1"></div>
-    </div>
-    <div class="filter-periods-row" id="filterRow2" style="display:none;border-top:1px solid #f0f0f2">
-        <span class="period-label p2">Період 2</span>
-        <div class="pills" id="pills2"></div>
-    </div>
+<div class="filter-mode-row">
+<span class="filter-mode-label">Режим</span>
+<button class="compare-btn" id="compareModeBtn" onclick="toggleCompareMode()">⚖️ Порівняння</button>
 </div>
-
+<div class="filter-periods-row" id="filterRow1">
+<span class="period-label p1" id="periodLabel1" style="display:none">Період 1</span>
+<div class="pills" id="pills1"></div>
+</div>
+<div class="filter-periods-row" id="filterRow2" style="display:none;border-top:1px solid #f0f0f2">
+<span class="period-label p2">Період 2</span>
+<div class="pills" id="pills2"></div>
+</div>
+</div>
 <div id="tableSection">
-    <div class="table-card" id="tableCard">
-        <div class="status-box">Завантаження…</div>
-    </div>
+<div class="table-card" id="tableCard">
+<div class="status-box">Завантаження…</div>
 </div>
-
+</div>
 <div class="chart-panel" id="chartPanel">
-    <div class="chart-top">
-        <div>
-            <div class="chart-title">Динаміка показників</div>
-            <div class="chart-subtitle" id="chartSubtitle">Оберіть колонку у таблиці</div>
-        </div>
-        <div class="chip-wrap" id="selectedChips"></div>
-    </div>
-    <div id="chartBody">
-        <div class="empty-chart">
-            <div class="empty-chart-icon">📊</div>
-            <div class="empty-chart-text">Натисніть на заголовок колонки у таблиці</div>
-        </div>
-    </div>
+<div class="chart-top">
+<div>
+<div class="chart-title">Динаміка показників</div>
+<div class="chart-subtitle" id="chartSubtitle">Оберіть колонку у таблиці</div>
 </div>
-
+<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+<div class="chart-controls">
+<button class="chart-control-btn" id="btnToggleTooltip" onclick="toggleTooltip()">💬 Tooltip: ON</button>
+<button class="chart-control-btn" id="btnChartType" onclick="toggleChartType()">📊 Тип: Лінії</button>
+</div>
+<div class="chip-wrap" id="selectedChips"></div>
+</div>
+</div>
+<div id="chartBody">
+<div class="empty-chart">
+<div class="empty-chart-icon">📊</div>
+<div class="empty-chart-text">Натисніть на заголовок колонки у таблиці</div>
+</div>
+</div>
+</div>
 <div class="summary-panel" id="summaryPanel" style="display:none;background:var(--card);border-radius:16px;box-shadow:var(--shadow);padding:16px;margin-top:12px">
-    <div class="summary-title">Підсумки за обраний період</div>
-    <div class="summary-grid" id="summaryGrid"></div>
+<div class="summary-title">Підсумки за обраний період</div>
+<div class="summary-grid" id="summaryGrid"></div>
 </div>
 
+<!-- TOTAL DELTA BLOCK: sum of all selected delta categories -->
+<div id="totalDeltaBlock" style="display:none;margin-top:12px">
+<div style="background:var(--card);border-radius:16px;box-shadow:var(--shadow);padding:16px;margin-bottom:12px">
+<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+<div style="font-size:14px;font-weight:700">📊 Тотал по всіх категоріях</div>
+<div style="font-size:11px;color:var(--text-sec);background:#f0f0f5;padding:3px 8px;border-radius:20px">av · it · acc · dig · mda · sda · nip</div>
+</div>
+<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+<table id="totalDeltaTable" style="border-collapse:collapse;width:100%;min-width:280px"></table>
+</div>
+</div>
+<div style="background:var(--card);border-radius:16px;box-shadow:var(--shadow);padding:16px">
+<div style="font-size:13px;font-weight:700;margin-bottom:12px">📈 Дельта тотал — графік</div>
+<div id="totalChartWrap" style="position:relative;height:280px"></div>
+</div>
+<div style="background:var(--card);border-radius:16px;box-shadow:var(--shadow);padding:16px;margin-top:12px">
+<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+<div style="font-size:13px;font-weight:700">📊 Порівняння категорій за підсумками</div>
+<div style="font-size:11px;color:var(--text-sec);background:#f0f0f5;padding:3px 8px;border-radius:20px">КОМФІ vs ФОКСТРОТ · дельта по категоріях</div>
+</div>
+<div id="catCompareWrap" style="position:relative;height:320px"></div>
+</div>
+</div>
 <script>
 const CSV_URL='https://docs.google.com/spreadsheets/d/e/2PACX-1vSgOmIYjnODMGFZYOmo-Yg6zfsGRh1Cm4MYJkLn7V6cFe4PsoWs24mf5KaEUPq8KOl28onGBS-90OKY/pub?output=csv';
 const MONTHS_UK=['Січень','Лютий','Березень','Квітень','Травень','Червень','Липень','Серпень','Вересень','Жовтень','Листопад','Грудень'];
@@ -175,707 +205,1099 @@ const MMAP={'січень':1,'лютий':2,'березень':3,'квітень
 const CHART_COLORS=['#0071e3','#ff3b30','#34c759','#ff9500','#af52de','#5856d6','#00b388','#ff6b35','#1abc9c','#e67e22'];
 const P1_SHADES=['#0071e3','#5856d6','#af52de','#ff3b30','#ff9500','#00b388','#5ac8fa','#007aff'];
 const P2_SHADES=['#34c759','#30d158','#32ade6','#ffd60a','#ff6b35','#64d2ff','#a8e063','#b5e48c'];
-
-// STATE
 let allYears=[],allMonths=[],colGroups=[],allCols=[];
 let dataRows=[];
-// Normal mode
-let selectedPeriods=new Set(); // "year_month"
-// Compare mode
+let selectedPeriods=new Set();
 let compareMode=false;
 let periods1=new Set(),periods2=new Set();
-// Chart
 let selectedCols=new Set();
 let viewMode='table',chartInstance=null;
+let tooltipEnabled=true;
+let chartType='line';
 
-// ── PARSE ──
 function parseCSV(text){
-    const result=[];let row=[],col='',inQ=false;
-    for(let i=0;i<text.length;i++){
-        const c=text[i];
-        if(c==='"'&&text[i+1]==='"'){col+='"';i++;}
-        else if(c==='"')inQ=!inQ;
-        else if(c===','&&!inQ){row.push(col.trim());col='';}
-        else if((c==='\n'||c==='\r')&&!inQ){if(c==='\r'&&text[i+1]==='\n')i++;row.push(col.trim());result.push(row);row=[];col='';}
-        else col+=c;
-    }
-    if(col||row.length){row.push(col.trim());result.push(row);}
-    return result.filter(r=>r.some(c=>c));
+const result=[];let row=[],col='',inQ=false;
+for(let i=0;i<text.length;i++){
+const c=text[i];
+if(c==='"'&&text[i+1]==='"'){col+='"';i++;}
+else if(c==='"')inQ=!inQ;
+else if(c===','&&!inQ){row.push(col.trim());col='';}
+else if((c==='\n'||c==='\r')&&!inQ){if(c==='\r'&&text[i+1]==='\n')i++;row.push(col.trim());result.push(row);row=[];col='';}
+else col+=c;
+}
+if(col||row.length){row.push(col.trim());result.push(row);}
+return result.filter(r=>r.some(c=>c));
 }
 function mNum(s){const lo=(s||'').toLowerCase().trim();for(const[k,v]of Object.entries(MMAP))if(lo===k||lo.startsWith(k))return v;return null;}
 function toN(v){if(!v&&v!==0)return null;const s=String(v).replace(/\s|\u00a0/g,'').replace('%','').replace(',','.');if(['#div/0!','#value!','#ref!','#n/a','#name?'].includes(s.toLowerCase()))return null;const n=parseFloat(s);return isNaN(n)?null:n;}
 function fmt(v,isPct=false){
-    if(v===null||v===undefined)return'—';
-    const n=Number(v);if(isNaN(n))return String(v);
-    if(isPct)return n.toFixed(1)+'%';
-    if(Math.abs(n)>=1000000)return(n/1000000).toFixed(2)+'М';
-    if(Math.abs(n)>=1000)return(n/1000).toFixed(1)+'К';
-    if(n%1!==0)return n.toFixed(2);
-    return n.toLocaleString('uk-UA');
+if(v===null||v===undefined)return'—';
+const n=Number(v);if(isNaN(n))return String(v);
+if(isPct)return n.toFixed(1)+'%';
+if(Math.abs(n)>=1000000)return(n/1000000).toFixed(2)+'М';
+if(Math.abs(n)>=1000)return(n/1000).toFixed(1)+'К';
+if(n%1!==0)return n.toFixed(2);
+return n.toLocaleString('uk-UA');
 }
-
+// ✅ Delta color - DARKER green/red only
+function getDeltaColor(value){
+if(value===null||value===undefined) return '';
+if(value<1.0){
+const intensity=Math.max(0,Math.min(1,(1.0-value)/0.5));
+const r=Math.round(22+40*intensity);
+const g=Math.round(101-30*intensity);
+const b=Math.round(52-20*intensity);
+return `rgb(${r},${g},${b})`;
+}else{
+const intensity=Math.max(0,Math.min(1,(value-1.0)/0.5));
+const r=Math.round(153+50*intensity);
+const g=Math.round(27+20*intensity);
+const b=Math.round(27+20*intensity);
+return `rgb(${r},${g},${b})`;
+}
+}
 function detectStructure(csvRows){
-    if(csvRows.length<3)return false;
-    const g0=csvRows[0],g1=csvRows[1];
-    colGroups=[];allCols=[];
-    let curGroup='';
-    for(let i=2;i<Math.max(g0.length,g1.length);i++){
-        const gt=(g0[i]||'').trim();if(gt)curGroup=gt;
-        const sub=(g1[i]||'').trim();if(!sub)continue;
-        // Дельта: група або sub містить 'дельт'
-        const isDelta=/(дельт)/i.test(curGroup)||/(дельт)/i.test(sub);
-        const isPct=!isDelta&&/конвер|%/i.test(sub);
-        const key=curGroup+'§'+sub+'§'+i;
-        allCols.push({key,group:curGroup,sub,colIdx:i,isDelta,isPct});
-        let grp=colGroups.find(g=>g.name===curGroup);
-        if(!grp){grp={name:curGroup,cols:[]};colGroups.push(grp);}
-        grp.cols.push(allCols[allCols.length-1]);
-    }
-    dataRows=[];
-    const yrs=new Set(),mos=new Set();
-    let lastYear=null;
-    for(let ri=2;ri<csvRows.length;ri++){
-        const row=csvRows[ri];
-        const yr=parseInt((row[0]||'').trim());
-        if(!isNaN(yr)&&yr>2000)lastYear=yr;
-        if(!lastYear)continue;
-        const mo=mNum((row[1]||'').trim());
-        if(!mo)continue;
-        const vals={};
-        allCols.forEach(c=>{vals[c.key]=toN(row[c.colIdx]);});
-        dataRows.push({year:lastYear,month:mo,vals,key:lastYear+'_'+mo});
-        yrs.add(lastYear);mos.add(mo);
-    }
-    allYears=[...yrs].sort((a,b)=>a-b);
-    allMonths=[...mos].sort((a,b)=>a-b);
-    dataRows.forEach(r=>selectedPeriods.add(r.key));
-    return dataRows.length>0;
+if(csvRows.length<3)return false;
+const g0=csvRows[0],g1=csvRows[1];
+colGroups=[];allCols=[];
+let curGroup='';
+for(let i=2;i<Math.max(g0.length,g1.length);i++){
+const gt=(g0[i]||'').trim();if(gt)curGroup=gt;
+const sub=(g1[i]||'').trim();if(!sub)continue;
+const isDelta=/(дельт)/i.test(curGroup)||/(дельт)/i.test(sub);
+const isPct=!isDelta&&/конвер|%/i.test(sub);
+const key=curGroup+'§'+sub+'§'+i;
+allCols.push({key,group:curGroup,sub,colIdx:i,isDelta,isPct});
+let grp=colGroups.find(g=>g.name===curGroup);
+if(!grp){grp={name:curGroup,cols:[]};colGroups.push(grp);}
+grp.cols.push(allCols[allCols.length-1]);
 }
-
-function getAllPairs(){return dataRows.map(r=>({y:r.year,m:r.month,key:r.key}));}
-
-// ── FILTERS ──
+dataRows=[];
+const yrs=new Set(),mos=new Set();
+let lastYear=null;
+for(let ri=2;ri<csvRows.length;ri++){
+const row=csvRows[ri];
+const yr=parseInt((row[0]||'').trim());
+if(!isNaN(yr)&&yr>2000)lastYear=yr;
+if(!lastYear)continue;
+const mo=mNum((row[1]||'').trim());
+if(!mo)continue;
+const vals={};
+allCols.forEach(c=>{vals[c.key]=toN(row[c.colIdx]);});
+dataRows.push({year:lastYear,month:mo,vals,key:lastYear+'_'+mo});
+yrs.add(lastYear);mos.add(mo);
+}
+allYears=[...yrs].sort((a,b)=>a-b);
+allMonths=[...mos].sort((a,b)=>a-b);
+dataRows.forEach(r=>selectedPeriods.add(r.key));
+return dataRows.length>0;
+}
 function mkPill(text,active,onclick){
-    const b=document.createElement('button');b.className='pill'+(active?' active':'');b.textContent=text;b.onclick=onclick;return b;
+const b=document.createElement('button');b.className='pill'+(active?' active':'');b.textContent=text;b.onclick=onclick;return b;
 }
-
 function renderPillsFor(containerId,periodsSet,color){
-    const yp=document.getElementById(containerId);yp.innerHTML='';
-    // Відслідковуємо який рік розгорнутий (accordion)
-    if(!yp._openYear) yp._openYear=null;
-    allYears.forEach(y=>{
-        const availM=allMonths.filter(m=>dataRows.some(r=>r.year===y&&r.month===m));
-        if(!availM.length)return;
-        const selCount=availM.filter(m=>periodsSet.has(y+'_'+m)).length;
-        const allYA=selCount===availM.length;
-        const isOpen=yp._openYear===y;
-
-        const block=document.createElement('div');
-        block.style.cssText='border-bottom:1px solid #f0f0f2;';
-
-        // Header рядок: рік + лічильник + стрілка
-        const header=document.createElement('div');
-        header.style.cssText='display:flex;align-items:center;gap:6px;padding:5px 2px;cursor:pointer;user-select:none;';
-
-        const yBtn=document.createElement('button');
-        yBtn.style.cssText=`font-size:11px;font-weight:800;padding:3px 8px;border-radius:6px;border:none;cursor:pointer;font-family:inherit;background:${allYA?color:'#f0f0f5'};color:${allYA?'#fff':'#555'};`;
-        yBtn.textContent=y;
-        yBtn.onclick=(e)=>{
-            e.stopPropagation();
-            if(allYA)availM.forEach(m=>periodsSet.delete(y+'_'+m));
-            else availM.forEach(m=>periodsSet.add(y+'_'+m));
-            renderFilters();refreshAll();
-        };
-
-        const counter=document.createElement('span');
-        counter.style.cssText=`font-size:10px;color:${selCount>0?color:'#aaa'};font-weight:600;flex:1;`;
-        counter.textContent=selCount>0?selCount+' міс.':'не вибрано';
-
-        const arrow=document.createElement('span');
-        arrow.style.cssText='font-size:10px;color:#aaa;transition:transform .15s;';
-        arrow.textContent=isOpen?'▲':'▼';
-
-        header.appendChild(yBtn);
-        header.appendChild(counter);
-        header.appendChild(arrow);
-        header.onclick=()=>{
-            yp._openYear=isOpen?null:y;
-            renderFilters();refreshAll();
-        };
-        block.appendChild(header);
-
-        // Місяці — тільки якщо розгорнуто
-        if(isOpen){
-            const moRow=document.createElement('div');
-            moRow.style.cssText='display:grid;grid-template-columns:repeat(6,1fr);gap:3px;padding:4px 0 6px;';
-            availM.forEach(m=>{
-                const k=y+'_'+m,act=periodsSet.has(k);
-                const b=document.createElement('button');
-                b.style.cssText=`font-size:10px;padding:4px 2px;border-radius:5px;border:none;cursor:pointer;font-family:inherit;font-weight:600;text-align:center;background:${act?color:'#f0f0f5'};color:${act?'#fff':'#666'};`;
-                b.textContent=MONTHS_UK[m-1].slice(0,3);
-                b.onclick=()=>{
-                    if(periodsSet.has(k))periodsSet.delete(k);else periodsSet.add(k);
-                    renderFilters();refreshAll();
-                };
-                moRow.appendChild(b);
-            });
-            block.appendChild(moRow);
-        }
-        yp.appendChild(block);
-    });
+const yp=document.getElementById(containerId);yp.innerHTML='';
+if(!yp._openYear) yp._openYear=null;
+allYears.forEach(y=>{
+const availM=allMonths.filter(m=>dataRows.some(r=>r.year===y&&r.month===m));
+if(!availM.length)return;
+const selCount=availM.filter(m=>periodsSet.has(y+'_'+m)).length;
+const allYA=selCount===availM.length;
+const isOpen=yp._openYear===y;
+const block=document.createElement('div');
+block.style.cssText='border-bottom:1px solid #f0f0f2;';
+const header=document.createElement('div');
+header.style.cssText='display:flex;align-items:center;gap:6px;padding:5px 2px;cursor:pointer;user-select:none;';
+const yBtn=document.createElement('button');
+yBtn.style.cssText=`font-size:11px;font-weight:800;padding:3px 8px;border-radius:6px;border:none;cursor:pointer;font-family:inherit;background:${allYA?color:'#f0f0f5'};color:${allYA?'#fff':'#555'};`;
+yBtn.textContent=y;
+yBtn.onclick=(e)=>{
+e.stopPropagation();
+if(allYA)availM.forEach(m=>periodsSet.delete(y+'_'+m));
+else availM.forEach(m=>periodsSet.add(y+'_'+m));
+renderFilters();refreshAll();
+};
+const counter=document.createElement('span');
+counter.style.cssText=`font-size:10px;color:${selCount>0?color:'#aaa'};font-weight:600;flex:1;`;
+counter.textContent=selCount>0?selCount+' міс.':'не вибрано';
+const arrow=document.createElement('span');
+arrow.style.cssText='font-size:10px;color:#aaa;transition:transform .15s;';
+arrow.textContent=isOpen?'▲':'▼';
+header.appendChild(yBtn);header.appendChild(counter);header.appendChild(arrow);
+header.onclick=()=>{yp._openYear=isOpen?null:y;renderFilters();refreshAll();};
+block.appendChild(header);
+if(isOpen){
+const moRow=document.createElement('div');
+moRow.style.cssText='display:grid;grid-template-columns:repeat(6,1fr);gap:3px;padding:4px 0 6px;';
+availM.forEach(m=>{
+const k=y+'_'+m,act=periodsSet.has(k);
+const b=document.createElement('button');
+b.style.cssText=`font-size:10px;padding:4px 2px;border-radius:5px;border:none;cursor:pointer;font-family:inherit;font-weight:600;text-align:center;background:${act?color:'#f0f0f5'};color:${act?'#fff':'#666'};`;
+b.textContent=MONTHS_UK[m-1].slice(0,3);
+b.onclick=()=>{if(periodsSet.has(k))periodsSet.delete(k);else periodsSet.add(k);renderFilters();refreshAll();};
+moRow.appendChild(b);
+});
+block.appendChild(moRow);
 }
-
+yp.appendChild(block);
+});
+}
 function renderFilters(){
-    if(compareMode){
-        renderPillsFor('pills1',periods1,'#0071e3');
-        renderPillsFor('pills2',periods2,'#34c759');
-        return;
-    }
-    const yp=document.getElementById('pills1');yp.innerHTML='';
-    // Normal mode — такий самий accordion
-    if(!yp._openYear) yp._openYear=null;
-    const color='#1d1d1f';
-    allYears.forEach(y=>{
-        const availM=allMonths.filter(m=>dataRows.some(r=>r.year===y&&r.month===m));
-        if(!availM.length)return;
-        const selCount=availM.filter(m=>selectedPeriods.has(y+'_'+m)).length;
-        const allYA=selCount===availM.length;
-        const isOpen=yp._openYear===y;
-        const block=document.createElement('div');
-        block.style.cssText='border-bottom:1px solid #f0f0f2;';
-        const header=document.createElement('div');
-        header.style.cssText='display:flex;align-items:center;gap:6px;padding:5px 2px;cursor:pointer;user-select:none;';
-        const yBtn=document.createElement('button');
-        yBtn.style.cssText=`font-size:11px;font-weight:800;padding:3px 8px;border-radius:6px;border:none;cursor:pointer;font-family:inherit;background:${allYA?color:'#f0f0f5'};color:${allYA?'#fff':'#555'};`;
-        yBtn.textContent=y;
-        yBtn.onclick=(e)=>{
-            e.stopPropagation();
-            if(allYA)availM.forEach(m=>{if(selectedPeriods.size>1)selectedPeriods.delete(y+'_'+m);});
-            else availM.forEach(m=>selectedPeriods.add(y+'_'+m));
-            renderFilters();refreshAll();
-        };
-        const counter=document.createElement('span');
-        counter.style.cssText=`font-size:10px;color:${selCount>0?'#1d1d1f':'#aaa'};font-weight:600;flex:1;`;
-        counter.textContent=selCount>0?selCount+' міс.':'не вибрано';
-        const arrow=document.createElement('span');
-        arrow.style.cssText='font-size:10px;color:#aaa;';
-        arrow.textContent=isOpen?'▲':'▼';
-        header.appendChild(yBtn);header.appendChild(counter);header.appendChild(arrow);
-        header.onclick=()=>{yp._openYear=isOpen?null:y;renderFilters();refreshAll();};
-        block.appendChild(header);
-        if(isOpen){
-            const moRow=document.createElement('div');
-            moRow.style.cssText='display:grid;grid-template-columns:repeat(6,1fr);gap:3px;padding:4px 0 6px;';
-            availM.forEach(m=>{
-                const k=y+'_'+m,act=selectedPeriods.has(k);
-                const b=document.createElement('button');
-                b.style.cssText=`font-size:10px;padding:4px 2px;border-radius:5px;border:none;cursor:pointer;font-family:inherit;font-weight:600;text-align:center;background:${act?color:'#f0f0f5'};color:${act?'#fff':'#666'};`;
-                b.textContent=MONTHS_UK[m-1].slice(0,3);
-                b.onclick=()=>{
-                    if(selectedPeriods.has(k)){if(selectedPeriods.size>1)selectedPeriods.delete(k);}else selectedPeriods.add(k);
-                    renderFilters();refreshAll();
-                };
-                moRow.appendChild(b);
-            });
-            block.appendChild(moRow);
-        }
-        yp.appendChild(block);
-    });
+if(compareMode){
+renderPillsFor('pills1',periods1,'#0071e3');
+renderPillsFor('pills2',periods2,'#34c759');
+return;
 }
-
+const yp=document.getElementById('pills1');yp.innerHTML='';
+if(!yp._openYear) yp._openYear=null;
+const color='#1d1d1f';
+allYears.forEach(y=>{
+const availM=allMonths.filter(m=>dataRows.some(r=>r.year===y&&r.month===m));
+if(!availM.length)return;
+const selCount=availM.filter(m=>selectedPeriods.has(y+'_'+m)).length;
+const allYA=selCount===availM.length;
+const isOpen=yp._openYear===y;
+const block=document.createElement('div');
+block.style.cssText='border-bottom:1px solid #f0f0f2;';
+const header=document.createElement('div');
+header.style.cssText='display:flex;align-items:center;gap:6px;padding:5px 2px;cursor:pointer;user-select:none;';
+const yBtn=document.createElement('button');
+yBtn.style.cssText=`font-size:11px;font-weight:800;padding:3px 8px;border-radius:6px;border:none;cursor:pointer;font-family:inherit;background:${allYA?color:'#f0f0f5'};color:${allYA?'#fff':'#555'};`;
+yBtn.textContent=y;
+yBtn.onclick=(e)=>{
+e.stopPropagation();
+if(allYA)availM.forEach(m=>{if(selectedPeriods.size>1)selectedPeriods.delete(y+'_'+m);});
+else availM.forEach(m=>selectedPeriods.add(y+'_'+m));
+renderFilters();refreshAll();
+};
+const counter=document.createElement('span');
+counter.style.cssText=`font-size:10px;color:${selCount>0?'#1d1d1f':'#aaa'};font-weight:600;flex:1;`;
+counter.textContent=selCount>0?selCount+' міс.':'не вибрано';
+const arrow=document.createElement('span');
+arrow.style.cssText='font-size:10px;color:#aaa;';
+arrow.textContent=isOpen?'▲':'▼';
+header.appendChild(yBtn);header.appendChild(counter);header.appendChild(arrow);
+header.onclick=()=>{yp._openYear=isOpen?null:y;renderFilters();refreshAll();};
+block.appendChild(header);
+if(isOpen){
+const moRow=document.createElement('div');
+moRow.style.cssText='display:grid;grid-template-columns:repeat(6,1fr);gap:3px;padding:4px 0 6px;';
+availM.forEach(m=>{
+const k=y+'_'+m,act=selectedPeriods.has(k);
+const b=document.createElement('button');
+b.style.cssText=`font-size:10px;padding:4px 2px;border-radius:5px;border:none;cursor:pointer;font-family:inherit;font-weight:600;text-align:center;background:${act?color:'#f0f0f5'};color:${act?'#fff':'#666'};`;
+b.textContent=MONTHS_UK[m-1].slice(0,3);
+b.onclick=()=>{if(selectedPeriods.has(k)){if(selectedPeriods.size>1)selectedPeriods.delete(k);}else selectedPeriods.add(k);renderFilters();refreshAll();};
+moRow.appendChild(b);
+});
+block.appendChild(moRow);
+}
+yp.appendChild(block);
+});
+}
 function toggleCompareMode(){
-    compareMode=!compareMode;
-    document.getElementById('compareModeBtn').classList.toggle('on',compareMode);
-    document.getElementById('filterRow2').style.display=compareMode?'flex':'none';
-    document.getElementById('periodLabel1').style.display=compareMode?'':'none';
-    if(compareMode){periods1.clear();periods2.clear();}
-    renderFilters();refreshAll();
+compareMode=!compareMode;
+document.getElementById('compareModeBtn').classList.toggle('on',compareMode);
+document.getElementById('filterRow2').style.display=compareMode?'flex':'none';
+document.getElementById('periodLabel1').style.display=compareMode?'':'none';
+if(compareMode){periods1.clear();periods2.clear();}
+renderFilters();refreshAll();
 }
-
-// Returns rows for a given periods Set, sorted chronologically
-function rowsForPeriods(pset){
-    return dataRows.filter(r=>pset.has(r.key)).sort((a,b)=>a.year-b.year||a.month-b.month);
-}
+function rowsForPeriods(pset){return dataRows.filter(r=>pset.has(r.key)).sort((a,b)=>a.year-b.year||a.month-b.month);}
 function activeRows(){
-    if(compareMode){
-        const combined=new Set([...periods1,...periods2]);
-        return dataRows.filter(r=>combined.has(r.key)).sort((a,b)=>a.year-b.year||a.month-b.month);
-    }
-    return dataRows.filter(r=>selectedPeriods.has(r.key)).sort((a,b)=>a.year-b.year||a.month-b.month);
+if(compareMode){const combined=new Set([...periods1,...periods2]);return dataRows.filter(r=>combined.has(r.key)).sort((a,b)=>a.year-b.year||a.month-b.month);}
+return dataRows.filter(r=>selectedPeriods.has(r.key)).sort((a,b)=>a.year-b.year||a.month-b.month);
 }
+function refreshAll(){renderTable();renderChips();if(viewMode==='chart'){renderChart();renderSummary();}else{renderSummary();}renderTotalBlock();}
 
-function refreshAll(){
-    renderTable();
-    renderChips();
-    if(viewMode==='chart'){renderChart();renderSummary();}
-    else{renderSummary();}
-}
-
-// ── TABLE ──
 function renderTable(){
-    const card=document.getElementById('tableCard');card.innerHTML='';
-    const data=activeRows();
-    if(!data.length){
-        card.innerHTML=`<div class="status-box">${compareMode?'👆 Оберіть місяці у Періоді 1 та Періоді 2':'Немає даних'}</div>`;
-        return;
-    }
-    const hint=document.createElement('div');hint.className='table-hint';
-    hint.innerHTML='<span class="hl">💡</span> Натисніть на <span class="hl">заголовок колонки</span> щоб додати на графік';
-    card.appendChild(hint);
-    const wrap=document.createElement('div');wrap.style.cssText='overflow-x:auto;-webkit-overflow-scrolling:touch;';card.appendChild(wrap);
-    const tbl=document.createElement('table');
-    const thead=document.createElement('thead');
-    // Row 1: group headers
-    const trG=document.createElement('tr');
-    const thY0=document.createElement('th');thY0.className='sub-th sticky-left0';thY0.rowSpan=2;thY0.style.cursor='default';thY0.textContent='Рік';trG.appendChild(thY0);
-    const thM0=document.createElement('th');thM0.className='sub-th sticky-left1 grp-sep';thM0.rowSpan=2;thM0.style.cssText='cursor:default;text-align:left;';thM0.textContent='Місяць';trG.appendChild(thM0);
-    colGroups.forEach((grp,gi)=>{
-        const th=document.createElement('th');th.className='grp-th';th.colSpan=grp.cols.length;th.textContent=grp.name;
-        if(gi>0)th.classList.add('grp-sep');trG.appendChild(th);
-    });
-    thead.appendChild(trG);
-    // Row 2: sub-col headers
-    const trH=document.createElement('tr');
-    colGroups.forEach((grp,gi)=>{
-        grp.cols.forEach((col,ci)=>{
-            const th=document.createElement('th');th.className='sub-th';th.textContent=col.sub;th.dataset.key=col.key;
-            if(ci===0&&gi>0)th.classList.add('grp-sep');
-            if(selectedCols.has(col.key))th.classList.add('selected-col');
-            th.onclick=()=>toggleCol(col.key);trH.appendChild(th);
-        });
-    });
-    thead.appendChild(trH);tbl.appendChild(thead);
-    // Body
-    const tbody=document.createElement('tbody');
-    let lastY=null;
-    data.forEach(r=>{
-        if(r.year!==lastY){
-            lastY=r.year;
-            const trY=document.createElement('tr');trY.className='year-sep';
-            const tdY=document.createElement('td');tdY.className='col-year';tdY.textContent=r.year;trY.appendChild(tdY);
-            const tdM=document.createElement('td');tdM.className='col-month';tdM.textContent='';trY.appendChild(tdM);
-            colGroups.forEach((grp,gi)=>{grp.cols.forEach((col,ci)=>{const td=document.createElement('td');if(ci===0&&gi>0)td.classList.add('grp-sep');trY.appendChild(td);});});
-            tbody.appendChild(trY);
-        }
-        const tr=document.createElement('tr');
-        const tdY=document.createElement('td');tdY.className='col-year';tdY.textContent='';tr.appendChild(tdY);
-        const tdM=document.createElement('td');tdM.className='col-month';
-        tdM.textContent=MONTHS_UK[r.month-1].slice(0,3);
-        if(compareMode){
-            if(periods1.has(r.key)&&!periods2.has(r.key))tdM.classList.add('p1c');
-            else if(periods2.has(r.key)&&!periods1.has(r.key))tdM.classList.add('p2c');
-        }
-        tr.appendChild(tdM);
-        colGroups.forEach((grp,gi)=>{
-            grp.cols.forEach((col,ci)=>{
-                const td=document.createElement('td');
-                if(ci===0&&gi>0)td.classList.add('grp-sep');
-                if(selectedCols.has(col.key))td.classList.add('selected-col');
-                td.dataset.key=col.key;
-                const v=r.vals[col.key];
-                if(v!==null&&v!==undefined){
-                    td.textContent=fmt(v,col.isPct);
-                    if(col.isDelta){if(v>0.005)td.classList.add('delta-pos');else if(v<-0.005)td.classList.add('delta-neg');}
-                }else{td.textContent='—';td.style.color='#ccc';}
-                tr.appendChild(td);
-            });
-        });
-        tbody.appendChild(tr);
-    });
-    tbl.appendChild(tbody);wrap.appendChild(tbl);
+const card=document.getElementById('tableCard');card.innerHTML='';
+const data=activeRows();
+if(!data.length){card.innerHTML=`<div class="status-box">${compareMode?'👆 Оберіть місяці у Періоді 1 та Періоді 2':'Немає даних'}</div>`;return;}
+const hint=document.createElement('div');hint.className='table-hint';
+hint.innerHTML='<span class="hl">💡</span> Натисніть на <span class="hl">заголовок колонки</span> щоб додати на графік';
+card.appendChild(hint);
+const wrap=document.createElement('div');wrap.style.cssText='overflow-x:auto;-webkit-overflow-scrolling:touch;';card.appendChild(wrap);
+const tbl=document.createElement('table');
+const thead=document.createElement('thead');
+// ✅ Colgroup for column striping
+const colgroup=document.createElement('colgroup');
+colgroup.appendChild(document.createElement('col')); // Year
+colgroup.appendChild(document.createElement('col')); // Month
+
+const trG=document.createElement('tr');
+const thY0=document.createElement('th');thY0.className='sub-th sticky-left0';thY0.rowSpan=2;thY0.style.cursor='default';thY0.textContent='Рік';trG.appendChild(thY0);
+const thM0=document.createElement('th');thM0.className='sub-th sticky-left1 grp-sep';thM0.rowSpan=2;thM0.style.cssText='cursor:default;text-align:left;';thM0.textContent='Місяць';trG.appendChild(thM0);
+colGroups.forEach((grp,gi)=>{
+const th=document.createElement('th');th.className='grp-th';
+// ✅ Add group class for visual distinction
+if(/фокс/i.test(grp.name)) th.classList.add('grp-foks');
+else if(/комф|комб/i.test(grp.name)) th.classList.add('grp-komf');
+th.colSpan=grp.cols.length;th.textContent=grp.name;
+if(gi>0)th.classList.add('grp-sep');trG.appendChild(th);
+// ✅ Add delta column striping
+grp.cols.forEach((col,ci)=>{
+const colEl=document.createElement('col');
+if(col.isDelta) colEl.classList.add('delta-col');
+colgroup.appendChild(colEl);
+});
+});
+thead.appendChild(trG);
+tbl.appendChild(colgroup);
+
+const trH=document.createElement('tr');
+colGroups.forEach((grp,gi)=>{
+grp.cols.forEach((col,ci)=>{
+const th=document.createElement('th');th.className='sub-th';th.textContent=col.sub;th.dataset.key=col.key;
+if(ci===0&&gi>0)th.classList.add('grp-sep');
+if(selectedCols.has(col.key))th.classList.add('selected-col');
+th.onclick=()=>toggleCol(col.key);trH.appendChild(th);
+});
+});
+thead.appendChild(trH);tbl.appendChild(thead);
+const tbody=document.createElement('tbody');
+let lastY=null;
+data.forEach(r=>{
+if(r.year!==lastY){
+lastY=r.year;
+const trY=document.createElement('tr');trY.className='year-sep';
+const tdY=document.createElement('td');tdY.className='col-year';tdY.textContent=r.year;trY.appendChild(tdY);
+const tdM=document.createElement('td');tdM.className='col-month';tdM.textContent='';trY.appendChild(tdM);
+colGroups.forEach((grp,gi)=>{grp.cols.forEach((col,ci)=>{const td=document.createElement('td');if(ci===0&&gi>0)td.classList.add('grp-sep');trY.appendChild(td);});});
+tbody.appendChild(trY);
+}
+const tr=document.createElement('tr');
+const tdY=document.createElement('td');tdY.className='col-year';tdY.textContent='';tr.appendChild(tdY);
+const tdM=document.createElement('td');tdM.className='col-month';
+tdM.textContent=MONTHS_UK[r.month-1].slice(0,3);
+if(compareMode){
+if(periods1.has(r.key)&&!periods2.has(r.key))tdM.classList.add('p1c');
+else if(periods2.has(r.key)&&!periods1.has(r.key))tdM.classList.add('p2c');
+}
+tr.appendChild(tdM);
+colGroups.forEach((grp,gi)=>{
+grp.cols.forEach((col,ci)=>{
+const td=document.createElement('td');
+if(ci===0&&gi>0)td.classList.add('grp-sep');
+if(col.isDelta){
+td.classList.add('is-delta','col-delta-striped');
+}
+if(selectedCols.has(col.key))td.classList.add('selected-col');
+td.dataset.key=col.key;
+const v=r.vals[col.key];
+if(v!==null&&v!==undefined){
+td.textContent=fmt(v,col.isPct);
+if(col.isDelta){
+const color=getDeltaColor(v);
+if(color) td.style.color=color;
+if(v>0.005)td.classList.add('delta-pos');
+else if(v<-0.005)td.classList.add('delta-neg');
+}
+}else{td.textContent='—';td.style.color='#ccc';}
+tr.appendChild(td);
+});
+});
+tbody.appendChild(tr);
+});
+tbl.appendChild(tbody);wrap.appendChild(tbl);
 }
 
-// ── TOGGLE COL ──
 function toggleCol(key){
-    if(selectedCols.has(key))selectedCols.delete(key);else selectedCols.add(key);
-    document.querySelectorAll('[data-key]').forEach(el=>el.classList.toggle('selected-col',selectedCols.has(el.dataset.key)));
-    renderChips();
-    if(viewMode==='chart')renderChart();
-    else{
-        renderSummary();
-        if(selectedCols.size===1){
-            const b=document.getElementById('btnChart');b.style.background='#e8f0fe';b.style.color='var(--accent2)';
-            setTimeout(()=>{b.style.background='';b.style.color='';},1500);
-        }
-    }
+if(selectedCols.has(key))selectedCols.delete(key);else selectedCols.add(key);
+document.querySelectorAll('[data-key]').forEach(el=>el.classList.toggle('selected-col',selectedCols.has(el.dataset.key)));
+renderChips();
+if(viewMode==='chart')renderChart();
+else{
+renderSummary();
+if(selectedCols.size===1){
+const b=document.getElementById('btnChart');b.style.background='#e8f0fe';b.style.color='var(--accent2)';
+setTimeout(()=>{b.style.background='';b.style.color='';},1500);
+}
+}
 }
 
-// ── CHIPS ──
 function renderChips(){
-    const cont=document.getElementById('selectedChips');cont.innerHTML='';
-    const colArr=[...selectedCols];
-    if(compareMode){
-        colArr.forEach((key,i)=>{
-            const col=allCols.find(c=>c.key===key);if(!col)return;
-            const c1=P1_SHADES[i%P1_SHADES.length],c2=P2_SHADES[i%P2_SHADES.length];
-            [[c1,'П1'],[c2,'П2']].forEach(([color,pl])=>{
-                const chip=document.createElement('div');chip.className='chip';
-                chip.style.cssText=`background:${color}22;color:${color};border:1.5px solid ${color}55;`;
-                chip.innerHTML=`<span>${col.sub} (${pl})</span><span class="chip-x">✕</span>`;
-                chip.addEventListener('click',()=>toggleCol(key));cont.appendChild(chip);
-            });
-        });
-        const fp=s=>[...s].sort().map(k=>{const[y,m]=k.split('_');return MONTHS_UK[+m-1].slice(0,3)+' '+String(y).slice(2);}).join(', ');
-        document.getElementById('chartSubtitle').textContent=selectedCols.size?`П1: ${fp(periods1)} | П2: ${fp(periods2)}`:'Оберіть колонку у таблиці';
-    } else {
-        colArr.forEach((key,i)=>{
-            const col=allCols.find(c=>c.key===key);if(!col)return;
-            const color=CHART_COLORS[i%CHART_COLORS.length];
-            const chip=document.createElement('div');chip.className='chip';
-            chip.style.cssText=`background:${color}22;color:${color};border:1.5px solid ${color}55;`;
-            chip.innerHTML=`<span>${col.group}: ${col.sub}</span><span class="chip-x">✕</span>`;
-            chip.addEventListener('click',()=>toggleCol(key));cont.appendChild(chip);
-        });
-        const sub=colArr.map(k=>{const c=allCols.find(x=>x.key===k);return c?c.group+': '+c.sub:'';}).filter(Boolean).join(' · ');
-        document.getElementById('chartSubtitle').textContent=sub||'Оберіть колонку у таблиці';
-    }
+const cont=document.getElementById('selectedChips');cont.innerHTML='';
+const colArr=[...selectedCols];
+if(compareMode){
+colArr.forEach((key,i)=>{
+const col=allCols.find(c=>c.key===key);if(!col)return;
+const c1=P1_SHADES[i%P1_SHADES.length],c2=P2_SHADES[i%P2_SHADES.length];
+[[c1,'П1'],[c2,'П2']].forEach(([color,pl])=>{
+const chip=document.createElement('div');chip.className='chip';
+chip.style.cssText=`background:${color}22;color:${color};border:1.5px solid ${color}55;`;
+chip.innerHTML=`<span>${col.sub} (${pl})</span><span class="chip-x">✕</span>`;
+chip.addEventListener('click',()=>toggleCol(key));cont.appendChild(chip);
+});
+});
+const fp=s=>[...s].sort().map(k=>{const[y,m]=k.split('_');return MONTHS_UK[+m-1].slice(0,3)+' '+String(y).slice(2);}).join(', ');
+document.getElementById('chartSubtitle').textContent=selectedCols.size?`П1: ${fp(periods1)} | П2: ${fp(periods2)}`:'Оберіть колонку у таблиці';
+} else {
+colArr.forEach((key,i)=>{
+const col=allCols.find(c=>c.key===key);if(!col)return;
+const color=CHART_COLORS[i%CHART_COLORS.length];
+const chip=document.createElement('div');chip.className='chip';
+chip.style.cssText=`background:${color}22;color:${color};border:1.5px solid ${color}55;`;
+chip.innerHTML=`<span>${col.group}: ${col.sub}</span><span class="chip-x">✕</span>`;
+chip.addEventListener('click',()=>toggleCol(key));cont.appendChild(chip);
+});
+const sub=colArr.map(k=>{const c=allCols.find(x=>x.key===k);return c?c.group+': '+c.sub:'';}).filter(Boolean).join(' · ');
+document.getElementById('chartSubtitle').textContent=sub||'Оберіть колонку у таблиці';
+}
 }
 
-// ── CHART ──
+function toggleTooltip(){
+tooltipEnabled=!tooltipEnabled;
+const btn=document.getElementById('btnToggleTooltip');
+btn.textContent=tooltipEnabled?'💬 Tooltip: ON':'🔇 Tooltip: OFF';
+btn.classList.toggle('active',!tooltipEnabled);
+if(chartInstance){chartInstance.options.plugins.tooltip.enabled=tooltipEnabled;chartInstance.update('none');}
+}
+
+function toggleChartType(){
+chartType=chartType==='line'?'bar':'line';
+const btn=document.getElementById('btnChartType');
+btn.textContent=chartType==='line'?'📊 Тип: Лінії':'📊 Тип: Стовпчики';
+btn.classList.toggle('active',chartType==='bar');
+if(chartInstance)renderChart();
+}
+
+// ✅ DATALABELS CONFIG FOR BAR CHARTS
+const barDataLabelsConfig = {
+display: true,
+color: '#1d1d1f',
+backgroundColor: 'rgba(255, 255, 255, 0.95)',
+padding: 4,
+font: { size: 10, weight: '600', family: 'Inter' },
+formatter: (value, context) => {
+if (value === null || value === undefined) return '';
+return fmt(value, context.dataset._isPct);
+},
+anchor: 'end',
+align: 'top',
+offset: 4,
+borderWidth: 1,
+borderColor: (context) => context.dataset.borderColor + '60',
+borderRadius: 4,
+clip: true,
+overflow: 'hidden'
+};
+
 function renderChart(){
-    const body=document.getElementById('chartBody');
-    if(!selectedCols.size){
-        if(chartInstance){chartInstance.destroy();chartInstance=null;}
-        body.innerHTML=`<div class="empty-chart"><div class="empty-chart-icon">📊</div><div class="empty-chart-text">Натисніть на заголовок колонки у таблиці</div></div>`;
-        renderSummary();return;
-    }
-    const colArr=[...selectedCols];
-    const datasets=[];
-    let labels=[];
+const body=document.getElementById('chartBody');
+if(!selectedCols.size){
+if(chartInstance){chartInstance.destroy();chartInstance=null;}
+body.innerHTML=`<div class="empty-chart"><div class="empty-chart-icon">📊</div><div class="empty-chart-text">Натисніть на заголовок колонки у таблиці</div></div>`;
+renderSummary();return;
+}
+const colArr=[...selectedCols];
+const datasets=[];
+let labels=[];
+let yMin=Infinity,yMax=-Infinity;
+if(compareMode){
+const p1rows=rowsForPeriods(periods1);
+const p2rows=rowsForPeriods(periods2);
+const maxLen=Math.max(p1rows.length,p2rows.length);
+labels=Array.from({length:maxLen},(_,i)=>{
+const a=p1rows[i],b=p2rows[i];
+const la=a?MONTHS_UK[a.month-1].slice(0,3)+' '+String(a.year).slice(2):'';
+const lb=b?MONTHS_UK[b.month-1].slice(0,3)+' '+String(b.year).slice(2):'';
+if(la&&lb&&la!==lb)return la+' | '+lb;
+return la||lb;
+});
+colArr.forEach((key,i)=>{
+const col=allCols.find(c=>c.key===key);if(!col)return;
+const c1=P1_SHADES[i%P1_SHADES.length],c2=P2_SHADES[i%P2_SHADES.length];
+const d1=Array.from({length:maxLen},(_,j)=>{const r=p1rows[j];const val=r?(r.vals[key]??null):null;if(val!==null){yMin=Math.min(yMin,val);yMax=Math.max(yMax,val);}return val;});
+const d2=Array.from({length:maxLen},(_,j)=>{const r=p2rows[j];const val=r?(r.vals[key]??null):null;if(val!==null){yMin=Math.min(yMin,val);yMax=Math.max(yMax,val);}return val;});
+datasets.push({label:`${col.sub} (П1)`,data:d1,borderColor:c1,backgroundColor:c1+'60',pointBackgroundColor:c1,pointBorderColor:'#fff',pointBorderWidth:1.5,pointRadius:4,pointHoverRadius:7,tension:0.35,fill:false,spanGaps:false,borderDash:[],_isPct:col.isPct});
+datasets.push({label:`${col.sub} (П2)`,data:d2,borderColor:c2,backgroundColor:c2+'60',pointBackgroundColor:c2,pointBorderColor:'#fff',pointBorderWidth:1.5,pointRadius:4,pointHoverRadius:7,tension:0.35,fill:false,spanGaps:false,borderDash:[5,3],_isPct:col.isPct});
+});
+} else {
+const data=activeRows();
+labels=data.map(r=>MONTHS_UK[r.month-1].slice(0,3)+' '+String(r.year).slice(2));
+colArr.forEach((key,i)=>{
+const col=allCols.find(c=>c.key===key);if(!col)return;
+const color=CHART_COLORS[i%CHART_COLORS.length];
+const values=data.map(r=>{const v=r.vals[key];if(v!==null){yMin=Math.min(yMin,v);yMax=Math.max(yMax,v);}return v;});
+datasets.push({label:col.group+': '+col.sub,data:values,borderColor:color,backgroundColor:color+'60',pointBackgroundColor:color,pointBorderColor:'#fff',pointBorderWidth:1.5,pointRadius:4,pointHoverRadius:7,tension:0.35,fill:false,spanGaps:true,_isPct:col.isPct});
+});
+}
+if(yMin===Infinity){yMin=0;yMax=100;}
+const yRange=yMax-yMin;
+const yPadding=yRange*0.1;
+yMin=Math.max(0,yMin-yPadding);
+yMax=yMax+yPadding;
+if(chartInstance){chartInstance.destroy();chartInstance=null;}
+body.innerHTML='<div class="chart-wrap"><canvas id="cmpChart"></canvas></div>';
 
-    if(compareMode){
-        const p1rows=rowsForPeriods(periods1);
-        const p2rows=rowsForPeriods(periods2);
-        const maxLen=Math.max(p1rows.length,p2rows.length);
-        labels=Array.from({length:maxLen},(_,i)=>{
-            const a=p1rows[i],b=p2rows[i];
-            const la=a?MONTHS_UK[a.month-1].slice(0,3)+' '+String(a.year).slice(2):'';
-            const lb=b?MONTHS_UK[b.month-1].slice(0,3)+' '+String(b.year).slice(2):'';
-            if(la&&lb&&la!==lb)return la+' | '+lb;
-            return la||lb;
-        });
-        colArr.forEach((key,i)=>{
-            const col=allCols.find(c=>c.key===key);if(!col)return;
-            const c1=P1_SHADES[i%P1_SHADES.length],c2=P2_SHADES[i%P2_SHADES.length];
-            const d1=Array.from({length:maxLen},(_,j)=>{const r=p1rows[j];return r?(r.vals[key]??null):null;});
-            const d2=Array.from({length:maxLen},(_,j)=>{const r=p2rows[j];return r?(r.vals[key]??null):null;});
-            datasets.push({label:`${col.sub} (П1)`,data:d1,borderColor:c1,backgroundColor:c1+'18',pointBackgroundColor:c1,pointBorderColor:'#fff',pointBorderWidth:1.5,pointRadius:4,pointHoverRadius:7,tension:0.35,fill:false,spanGaps:false,borderDash:[],_isPct:col.isPct});
-            datasets.push({label:`${col.sub} (П2)`,data:d2,borderColor:c2,backgroundColor:c2+'18',pointBackgroundColor:c2,pointBorderColor:'#fff',pointBorderWidth:1.5,pointRadius:4,pointHoverRadius:7,tension:0.35,fill:false,spanGaps:false,borderDash:[5,3],_isPct:col.isPct});
-        });
-    } else {
-        const data=activeRows();
-        labels=data.map(r=>MONTHS_UK[r.month-1].slice(0,3)+' '+String(r.year).slice(2));
-        colArr.forEach((key,i)=>{
-            const col=allCols.find(c=>c.key===key);if(!col)return;
-            const color=CHART_COLORS[i%CHART_COLORS.length];
-            datasets.push({label:col.group+': '+col.sub,data:data.map(r=>r.vals[key]),borderColor:color,backgroundColor:color+'18',pointBackgroundColor:color,pointBorderColor:'#fff',pointBorderWidth:1.5,pointRadius:4,pointHoverRadius:7,tension:0.35,fill:false,spanGaps:true,_isPct:col.isPct});
-        });
-    }
+// ✅ SMART LABELS FOR LINE CHARTS
+const smartLabels={id:'smartLabels',afterDatasetsDraw(chart){
+if(chartType!=='line') return;
+const ctx=chart.ctx;ctx.save();
+const FS=10,PX=4,PY=3,LH=FS+PY*2+2,GAP=4;
+ctx.font=`600 ${FS}px Inter,sans-serif`;
+const pts=[];
+chart.data.datasets.forEach((ds,di)=>{
+const meta=chart.getDatasetMeta(di);if(meta.hidden)return;
+ds.data.forEach((val,pi)=>{
+if(val===null||val===undefined)return;
+const el=meta.data[pi];if(!el)return;
+const text=fmt(val,ds._isPct);
+pts.push({x:el.x,y:el.y,text,color:ds.borderColor,tw:ctx.measureText(text).width});
+});
+});
+const byX={};pts.forEach(p=>{const k=Math.round(p.x);if(!byX[k])byX[k]=[];byX[k].push(p);});
+Object.values(byX).forEach(grp=>{
+grp.sort((a,b)=>a.y-b.y);grp.forEach(p=>{p.ly=p.y-LH/2-6;});
+for(let it=0;it<20;it++){let ch=false;for(let i=1;i<grp.length;i++){const pr=grp[i-1],cu=grp[i],df=(pr.ly+LH+GAP)-cu.ly;if(df>0){pr.ly-=df/2;cu.ly+=df/2;ch=true;}}if(!ch)break;}
+grp.forEach(p=>{
+const bw=p.tw+PX*2,bh=FS+PY*2,bx=p.x-bw/2,by=p.ly-bh/2;
+ctx.shadowColor='rgba(0,0,0,0.15)';ctx.shadowBlur=4;ctx.shadowOffsetY=1;
+ctx.fillStyle='#fff';ctx.beginPath();ctx.roundRect(bx,by,bw,bh,4);ctx.fill();
+ctx.shadowColor='transparent';ctx.shadowBlur=0;
+ctx.strokeStyle=p.color;ctx.lineWidth=1.2;ctx.beginPath();ctx.roundRect(bx,by,bw,bh,4);ctx.stroke();
+ctx.fillStyle=p.color;ctx.font=`700 ${FS}px Inter,sans-serif`;
+ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(p.text,p.x,by+bh/2);
+ctx.textAlign='left';ctx.textBaseline='alphabetic';
+const lsy=by+bh;if(p.y-lsy>6){ctx.strokeStyle=p.color+'66';ctx.lineWidth=1;ctx.setLineDash([2,2]);ctx.beginPath();ctx.moveTo(p.x,lsy);ctx.lineTo(p.x,p.y-5);ctx.stroke();ctx.setLineDash([]);}
+});
+});
+ctx.restore();
+}};
 
-    if(chartInstance){chartInstance.destroy();chartInstance=null;}
-    body.innerHTML='<div class="chart-wrap"><canvas id="cmpChart"></canvas></div>';
-
-    const smartLabels={id:'smartLabels',afterDatasetsDraw(chart){
-        const ctx=chart.ctx;ctx.save();
-        const FS=10,PX=4,PY=3,LH=FS+PY*2+2,GAP=4;
-        ctx.font=`600 ${FS}px Inter,sans-serif`;
-        const pts=[];
-        chart.data.datasets.forEach((ds,di)=>{
-            const meta=chart.getDatasetMeta(di);if(meta.hidden)return;
-            ds.data.forEach((val,pi)=>{
-                if(val===null||val===undefined)return;
-                const el=meta.data[pi];if(!el)return;
-                const text=fmt(val,ds._isPct);
-                pts.push({x:el.x,y:el.y,text,color:ds.borderColor,tw:ctx.measureText(text).width});
-            });
-        });
-        const byX={};pts.forEach(p=>{const k=Math.round(p.x);if(!byX[k])byX[k]=[];byX[k].push(p);});
-        Object.values(byX).forEach(grp=>{
-            grp.sort((a,b)=>a.y-b.y);grp.forEach(p=>{p.ly=p.y-LH/2-6;});
-            for(let it=0;it<20;it++){let ch=false;for(let i=1;i<grp.length;i++){const pr=grp[i-1],cu=grp[i],df=(pr.ly+LH+GAP)-cu.ly;if(df>0){pr.ly-=df/2;cu.ly+=df/2;ch=true;}}if(!ch)break;}
-            grp.forEach(p=>{
-                const bw=p.tw+PX*2,bh=FS+PY*2,bx=p.x-bw/2,by=p.ly-bh/2;
-                ctx.shadowColor='rgba(0,0,0,0.15)';ctx.shadowBlur=4;ctx.shadowOffsetY=1;
-                ctx.fillStyle='#fff';ctx.beginPath();ctx.roundRect(bx,by,bw,bh,4);ctx.fill();
-                ctx.shadowColor='transparent';ctx.shadowBlur=0;
-                ctx.strokeStyle=p.color;ctx.lineWidth=1.2;ctx.beginPath();ctx.roundRect(bx,by,bw,bh,4);ctx.stroke();
-                ctx.fillStyle=p.color;ctx.font=`700 ${FS}px Inter,sans-serif`;
-                ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(p.text,p.x,by+bh/2);
-                ctx.textAlign='left';ctx.textBaseline='alphabetic';
-                const lsy=by+bh;if(p.y-lsy>6){ctx.strokeStyle=p.color+'66';ctx.lineWidth=1;ctx.setLineDash([2,2]);ctx.beginPath();ctx.moveTo(p.x,lsy);ctx.lineTo(p.x,p.y-5);ctx.stroke();ctx.setLineDash([]);}
-            });
-        });
-        ctx.restore();
-    }};
-
-    const ctx2=document.getElementById('cmpChart').getContext('2d');
-    chartInstance=new Chart(ctx2,{
-        type:'line',data:{labels,datasets},plugins:[smartLabels],
-        options:{
-            responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
-            layout:{padding:{top:30,left:8,right:8}},
-            plugins:{
-                legend:{display:datasets.length>1,position:'top',labels:{font:{family:'Inter',size:10},boxWidth:20,padding:10}},
-                tooltip:{backgroundColor:'#1d1d1f',titleFont:{family:'Inter',size:11},bodyFont:{family:'Inter',size:11},padding:10,
-                    callbacks:{label:c=>` ${c.dataset.label}: ${fmt(c.raw,c.dataset._isPct)}`}}
-            },
-            scales:{
-                x:{grid:{color:'#f0f0f0'},ticks:{font:{family:'Inter',size:compareMode?8:9},color:'#86868b',maxRotation:compareMode?45:30}},
-                y:{grid:{color:'#f0f0f0'},ticks:{font:{family:'Inter',size:10},color:'#86868b',callback:v=>fmt(v)}}
-            }
-        }
-    });
-    renderSummary();
+const ctx2=document.getElementById('cmpChart').getContext('2d');
+chartInstance=new Chart(ctx2,{
+type:chartType,
+data:{labels,datasets},
+plugins: chartType==='line' ? [smartLabels] : [ChartDataLabels],
+options:{
+responsive:true,
+maintainAspectRatio:false,
+interaction:{mode:'index',intersect:false},
+layout:{padding:{top:chartType==='line'?35:8,left:8,right:8}},
+plugins:{
+legend:{display:datasets.length>1,position:'top',labels:{font:{family:'Inter',size:10},boxWidth:20,padding:10}},
+tooltip:{
+enabled:tooltipEnabled,
+backgroundColor:'#1d1d1f',
+titleFont:{family:'Inter',size:11},
+bodyFont:{family:'Inter',size:11},
+padding:10,
+callbacks:{label:c=>` ${c.dataset.label}: ${fmt(c.raw,c.dataset._isPct)}`}
+},
+datalabels: chartType==='bar' ? barDataLabelsConfig : false
+},
+scales:{
+x:{grid:{color:'#f0f0f0'},ticks:{font:{family:'Inter',size:compareMode?8:9},color:'#86868b',maxRotation:compareMode?45:30}},
+y:{
+grid:{color:'#f0f0f0'},
+ticks:{font:{family:'Inter',size:10},color:'#86868b',callback:v=>fmt(v)},
+min:yMin,
+max:yMax
+}
+}
+}
+});
+renderSummary();
 }
 
-// ── SUMMARY HELPERS ──
+// ─── DELTA CATEGORIES (for total block) ───────────────────────────────────────
+const DELTA_CATS = /^(av|it|acc|dig|mda|sda|nip)$/i;
+function isDeltaCat(col){ return DELTA_CATS.test((col.sub||'').trim()) || DELTA_CATS.test((col.group||'').trim().split(/\s+/).pop()); }
+
 function ns(s){ return (s||'').toLowerCase().trim().replace(/\s+/g,' '); }
 function isConv(col){ return /конвер/i.test(col.sub)||/конвер/i.test(col.group); }
+function isServiceTO(col){ return /з\s*посл/i.test(col.sub)||/з\s*посл/i.test(col.group); }
 
-// Знаходить партнерів для дельта-колонки.
-// Два випадки:
-// 1. Дельта-група (наприклад "ДЕЛЬТА", "ДЕЛЬТА КАТЕГОРІЙ"):
-//    партнери — колонки з тим самим sub у групах КОМФІ і ФОКСТРОТ
-// 2. Дельта-sub (наприклад sub="ДЕЛЬТА ПІКАП" у групі "АБСОЛЮТ ПІКАП"):
-//    партнери — інші sub у тій самій групі (ФОКСТРОТ і КОМФІ)
 function findDeltaPartners(col){
-    const grp = colGroups.find(g=>g.cols.some(c=>c.key===col.key));
-    if(!grp) return null;
-
-    // Випадок 2: дельта знаходиться в sub (не вся група — дельта)
-    if(!/(дельт)/i.test(grp.name)){
-        // Шукаємо в тій же групі колонки ФОКСТРОТ і КОМФІ
-        const foksCol = grp.cols.find(c=>!c.isDelta && /фокс/i.test(c.sub));
-        const komfCol = grp.cols.find(c=>!c.isDelta && /комф|комб/i.test(c.sub));
-        if(foksCol&&komfCol) return {komfCol,foksCol,komfName:grp.name+' (КОМФІ)',foksName:grp.name+' (ФОКСТРОТ)'};
-        // Fallback: перша і друга не-дельта колонка в групі
-        const nonDelta = grp.cols.filter(c=>!c.isDelta);
-        if(nonDelta.length>=2) return {foksCol:nonDelta[0],komfCol:nonDelta[1],komfName:grp.name+' '+nonDelta[1].sub,foksName:grp.name+' '+nonDelta[0].sub};
-        return null;
-    }
-
-    // Випадок 1: вся група — дельта, шукаємо партнерів в інших групах за sub-назвою
-    const sub = ns(col.sub);
-    // Група КОМФІ: містить 'комф' або 'комб' але не 'дельт'
-    const komfGrps = colGroups.filter(g=>!/(дельт)/i.test(g.name)&&(/комф|комб/i.test(g.name)));
-    // Група ФОКСТРОТ: містить 'фокс' але не 'дельт'
-    const foksGrps = colGroups.filter(g=>!/(дельт)/i.test(g.name)&&(/фокс/i.test(g.name)));
-    // Шукаємо в усіх відповідних групах
-    let komfCol=null, foksCol=null;
-    for(const g of komfGrps){ komfCol=g.cols.find(c=>ns(c.sub)===sub); if(komfCol)break; }
-    for(const g of foksGrps){ foksCol=g.cols.find(c=>ns(c.sub)===sub); if(foksCol)break; }
-    if(!komfCol||!foksCol) return null;
-    return {komfCol,foksCol,komfName:komfCol.group,foksName:foksCol.group};
+const grp = colGroups.find(g=>g.cols.some(c=>c.key===col.key));
+if(!grp) return null;
+if(!/(дельт)/i.test(grp.name)){
+// for non-delta groups: find КОМФІ and ФОКСТРОТ sub-columns
+const foksCol = grp.cols.find(c=>!c.isDelta && /фокс/i.test(c.sub));
+const komfCol = grp.cols.find(c=>!c.isDelta && /комф|комб/i.test(c.sub));
+if(foksCol&&komfCol) return {komfCol,foksCol,komfName:grp.name+' (КОМФІ)',foksName:grp.name+' (ФОКСТРОТ)'};
+const nonDelta = grp.cols.filter(c=>!c.isDelta);
+if(nonDelta.length>=2) return {foksCol:nonDelta[0],komfCol:nonDelta[1],komfName:grp.name+' '+nonDelta[1].sub,foksName:grp.name+' '+nonDelta[0].sub};
+return null;
 }
-
+const sub = ns(col.sub);
+// Check if this is a service-TO delta column (ТО з послугами)
+const isServDelta = isServiceTO(col);
+// Match sub-column name, also handle "з послугами" variants
+const komfGrps = colGroups.filter(g=>!/(дельт)/i.test(g.name)&&(/комф|комб/i.test(g.name)));
+const foksGrps = colGroups.filter(g=>!/(дельт)/i.test(g.name)&&(/фокс/i.test(g.name)));
+let komfCol=null, foksCol=null;
+// Try exact match first
+for(const g of komfGrps){ komfCol=g.cols.find(c=>ns(c.sub)===sub); if(komfCol)break; }
+for(const g of foksGrps){ foksCol=g.cols.find(c=>ns(c.sub)===sub); if(foksCol)break; }
+// Fallback: match by service-TO pattern
+if((!komfCol||!foksCol) && isServDelta){
+for(const g of komfGrps){ komfCol=g.cols.find(c=>isServiceTO(c)); if(komfCol)break; }
+for(const g of foksGrps){ foksCol=g.cols.find(c=>isServiceTO(c)); if(foksCol)break; }
+}
+if(!komfCol||!foksCol) return null;
+return {komfCol,foksCol,komfName:komfCol.group,foksName:foksCol.group};
+}
 function calcDeltaRatio(col, rows){
-    if(!rows.length) return null;
-    const partners = findDeltaPartners(col);
-    if(!partners) return null;
-    const {komfCol,foksCol,komfName,foksName} = partners;
-    const komfVals = rows.map(r=>r.vals[komfCol.key]).filter(v=>v!=null);
-    const foksVals = rows.map(r=>r.vals[foksCol.key]).filter(v=>v!=null);
-    if(!foksVals.length||!komfVals.length) return null;
-    let komfAgg, foksAgg;
-    const avgMode = isConv(col);
-    if(avgMode){
-        komfAgg = komfVals.reduce((a,b)=>a+b,0)/komfVals.length;
-        foksAgg = foksVals.reduce((a,b)=>a+b,0)/foksVals.length;
-    } else {
-        komfAgg = komfVals.reduce((a,b)=>a+b,0);
-        foksAgg = foksVals.reduce((a,b)=>a+b,0);
-    }
-    const ratio = foksAgg!==0 ? komfAgg/foksAgg : null;
-    if(ratio===null) return null;
-    return {ratio,komfAgg,foksAgg,komfName,foksName,colSub:col.sub,isAvgMode:avgMode};
+if(!rows.length) return null;
+const partners = findDeltaPartners(col);
+if(!partners) return null;
+const {komfCol,foksCol,komfName,foksName} = partners;
+const komfVals = rows.map(r=>r.vals[komfCol.key]).filter(v=>v!=null);
+const foksVals = rows.map(r=>r.vals[foksCol.key]).filter(v=>v!=null);
+if(!foksVals.length||!komfVals.length) return null;
+let komfAgg, foksAgg;
+const avgMode = isConv(col);
+if(avgMode){
+komfAgg = komfVals.reduce((a,b)=>a+b,0)/komfVals.length;
+foksAgg = foksVals.reduce((a,b)=>a+b,0)/foksVals.length;
+} else {
+komfAgg = komfVals.reduce((a,b)=>a+b,0);
+foksAgg = foksVals.reduce((a,b)=>a+b,0);
+}
+const ratio = foksAgg!==0 ? komfAgg/foksAgg : null;
+if(ratio===null) return null;
+return {ratio,komfAgg,foksAgg,komfName,foksName,colSub:col.sub,isAvgMode:avgMode};
 }
 
-// Звичайна агрегація для не-дельта колонок
+// ─── TOTAL BLOCK: накопичувальна таблиця по дельта-категоріях ─────────────────
+// Знаходимо для обраних delta-cols їхні komf/foks партнерські колонки (ТО)
+function getSelectedDeltaCatCols(){
+// Збираємо лише delta-cols що є дельта-колонками AND відносяться до категорій
+const deltaSelCols = [...selectedCols].map(k=>allCols.find(c=>c.key===k)).filter(Boolean)
+.filter(c=>c.isDelta && isDeltaCat(c));
+return deltaSelCols;
+}
+
+function calcTotalDelta(rows){
+// Для кожної дельта-категорії обчислюємо suмарні komf та foks ТО, потім сумуємо
+let totalKomf=0, totalFoks=0, found=false;
+const catDetails=[];
+const processed=new Set();
+allCols.filter(c=>c.isDelta && isDeltaCat(c)).forEach(col=>{
+const partners=findDeltaPartners(col);
+if(!partners) return;
+const pairKey=partners.komfCol.key+'|'+partners.foksCol.key;
+if(processed.has(pairKey)) return;
+processed.add(pairKey);
+const komfVals=rows.map(r=>r.vals[partners.komfCol.key]).filter(v=>v!=null);
+const foksVals=rows.map(r=>r.vals[partners.foksCol.key]).filter(v=>v!=null);
+if(!komfVals.length||!foksVals.length) return;
+const komfSum=komfVals.reduce((a,b)=>a+b,0);
+const foksSum=foksVals.reduce((a,b)=>a+b,0);
+totalKomf+=komfSum; totalFoks+=foksSum; found=true;
+catDetails.push({name:col.sub, komf:komfSum, foks:foksSum, ratio:foksSum?komfSum/foksSum:null});
+});
+if(!found) return null;
+const ratio=totalFoks?totalKomf/totalFoks:null;
+return {totalKomf,totalFoks,ratio,catDetails};
+}
+
+function calcTotalDeltaByRow(rows){
+// per-row total for chart
+return rows.map(r=>{
+let komf=0,foks=0,found=false;
+const processed=new Set();
+allCols.filter(c=>c.isDelta && isDeltaCat(c)).forEach(col=>{
+const partners=findDeltaPartners(col);
+if(!partners) return;
+const pairKey=partners.komfCol.key+'|'+partners.foksCol.key;
+if(processed.has(pairKey)) return;
+processed.add(pairKey);
+const kv=r.vals[partners.komfCol.key],fv=r.vals[partners.foksCol.key];
+if(kv!=null&&fv!=null){komf+=kv;foks+=fv;found=true;}
+});
+return found&&foks?komf/foks:null;
+});
+}
+
+let totalChartInstance=null;
+let catCompareChartInstance=null;
+
+function renderCatCompareChart(t1, t2, isCompare) {
+    const wrap = document.getElementById('catCompareWrap');
+    if (!wrap) return;
+    if (catCompareChartInstance) { catCompareChartInstance.destroy(); catCompareChartInstance = null; }
+    wrap.innerHTML = '<canvas id="catCompareChart"></canvas>';
+
+    // Збираємо catDetails — список категорій з komf/foks/ratio
+    const details1 = t1 ? t1.catDetails : [];
+    const details2 = t2 ? t2.catDetails : [];
+
+    // Мітки — назви категорій
+    const allNames = [...new Set([...details1.map(d=>d.name), ...details2.map(d=>d.name)])];
+    if (!allNames.length) return;
+
+    const fmt2 = v => v == null ? null : (Math.abs(v) >= 1e6 ? (v/1e6).toFixed(2)+'М' : Math.abs(v) >= 1e3 ? (v/1e3).toFixed(0)+'К' : v.toFixed(0));
+
+    const datasets = [];
+
+    if (isCompare) {
+        // П1 КОМФІ, П1 ФОКСТРОТ, П2 КОМФІ, П2 ФОКСТРОТ
+        datasets.push({
+            label: 'КОМФІ (П1)', barPercentage: 0.85, categoryPercentage: 0.7,
+            data: allNames.map(n => { const d=details1.find(x=>x.name===n); return d?d.komf:null; }),
+            backgroundColor: '#0071e3cc', borderColor: '#0071e3', borderWidth: 1.5, borderRadius: 3,
+            _isKomf: true, _period: 1
+        });
+        datasets.push({
+            label: 'ФОКСТРОТ (П1)', barPercentage: 0.85, categoryPercentage: 0.7,
+            data: allNames.map(n => { const d=details1.find(x=>x.name===n); return d?d.foks:null; }),
+            backgroundColor: '#af52decc', borderColor: '#af52de', borderWidth: 1.5, borderRadius: 3,
+            _isKomf: false, _period: 1
+        });
+        datasets.push({
+            label: 'КОМФІ (П2)', barPercentage: 0.85, categoryPercentage: 0.7,
+            data: allNames.map(n => { const d=details2.find(x=>x.name===n); return d?d.komf:null; }),
+            backgroundColor: '#34c759cc', borderColor: '#34c759', borderWidth: 1.5, borderRadius: 3,
+            _isKomf: true, _period: 2
+        });
+        datasets.push({
+            label: 'ФОКСТРОТ (П2)', barPercentage: 0.85, categoryPercentage: 0.7,
+            data: allNames.map(n => { const d=details2.find(x=>x.name===n); return d?d.foks:null; }),
+            backgroundColor: '#ff9500cc', borderColor: '#ff9500', borderWidth: 1.5, borderRadius: 3,
+            _isKomf: false, _period: 2
+        });
+    } else {
+        datasets.push({
+            label: 'КОМФІ', barPercentage: 0.85, categoryPercentage: 0.7,
+            data: allNames.map(n => { const d=details1.find(x=>x.name===n); return d?d.komf:null; }),
+            backgroundColor: '#0071e3cc', borderColor: '#0071e3', borderWidth: 1.5, borderRadius: 3,
+            _isKomf: true, _period: 1
+        });
+        datasets.push({
+            label: 'ФОКСТРОТ', barPercentage: 0.85, categoryPercentage: 0.7,
+            data: allNames.map(n => { const d=details1.find(x=>x.name===n); return d?d.foks:null; }),
+            backgroundColor: '#ff3b30cc', borderColor: '#ff3b30', borderWidth: 1.5, borderRadius: 3,
+            _isKomf: false, _period: 1
+        });
+    }
+
+    // Delta datalabels config — показуємо дельту над парою барів
+    // Будемо малювати дельту власним plugin після draw
+    const catDeltaLabels = {
+        id: 'catDeltaLabels',
+        afterDatasetsDraw(chart) {
+            const ctx = chart.ctx; ctx.save();
+            const FS = 10, PX = 5, PY = 3;
+            ctx.font = `700 ${FS}px Inter,sans-serif`;
+
+            // Для кожного label index (категорія) — знаходимо КОМФІ і ФОКСТРОТ пару і малюємо дельту над ними
+            const pairs = isCompare
+                ? [{ki:0,fi:1,color:'#0071e3',label:'П1'},{ki:2,fi:3,color:'#34c759',label:'П2'}]
+                : [{ki:0,fi:1,color:'#5856d6',label:''}];
+
+            allNames.forEach((name, ni) => {
+                pairs.forEach(({ki,fi,color,label}) => {
+                    const komfDs = datasets[ki], foksDs = datasets[fi];
+                    if (!komfDs || !foksDs) return;
+                    const kv = komfDs.data[ni], fv = foksDs.data[ni];
+                    if (kv == null || fv == null || fv === 0) return;
+                    const ratio = kv / fv;
+
+                    // X центр між двома барами
+                    const metaK = chart.getDatasetMeta(ki);
+                    const metaF = chart.getDatasetMeta(fi);
+                    const elK = metaK.data[ni], elF = metaF.data[ni];
+                    if (!elK || !elF) return;
+                    const cx = (elK.x + elF.x) / 2;
+                    const topY = Math.min(elK.y, elF.y) - 8;
+
+                    const deltaGood = ratio >= 1;
+                    const txt = ratio.toFixed(3);
+                    const tw = ctx.measureText(txt).width;
+                    const bw = tw + PX*2, bh = FS + PY*2;
+                    const bx = cx - bw/2, by = topY - bh;
+
+                    const fillColor = deltaGood ? 'rgba(52,199,89,0.13)' : 'rgba(255,59,48,0.10)';
+                    const strokeColor = deltaGood ? '#34c759' : '#ff3b30';
+                    const textColor = deltaGood ? '#1a7f37' : '#c0392b';
+
+                    ctx.shadowColor = 'rgba(0,0,0,0.12)'; ctx.shadowBlur = 4; ctx.shadowOffsetY = 1;
+                    ctx.fillStyle = fillColor;
+                    ctx.beginPath(); ctx.roundRect(bx, by, bw, bh, 4); ctx.fill();
+                    ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
+                    ctx.strokeStyle = strokeColor; ctx.lineWidth = 1.2;
+                    ctx.beginPath(); ctx.roundRect(bx, by, bw, bh, 4); ctx.stroke();
+                    ctx.fillStyle = textColor;
+                    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                    ctx.fillText(txt, cx, by + bh/2);
+                    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+                });
+            });
+            ctx.restore();
+        }
+    };
+
+    const barDLConfig = {
+        display: true,
+        color: '#fff',
+        backgroundColor: ctx => ctx.dataset.borderColor + '33',
+        padding: { top:3, bottom:3, left:4, right:4 },
+        font: { size: 9, weight: '600', family: 'Inter' },
+        formatter: v => v != null ? fmt2(v) : '',
+        anchor: 'center', align: 'center',
+        borderRadius: 3,
+        borderWidth: 0,
+        clip: false
+    };
+
+    const ctx2 = document.getElementById('catCompareChart').getContext('2d');
+    catCompareChartInstance = new Chart(ctx2, {
+        type: 'bar',
+        data: { labels: allNames, datasets },
+        plugins: [ChartDataLabels, catDeltaLabels],
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            layout: { padding: { top: 36, left: 6, right: 6, bottom: 4 } },
+            plugins: {
+                legend: { display: true, position: 'top', labels: { font: { family: 'Inter', size: 10 }, boxWidth: 14, padding: 10 } },
+                tooltip: {
+                    backgroundColor: '#1d1d1f',
+                    callbacks: {
+                        label: c => {
+                            const v = c.raw;
+                            const komf = datasets.find(d=>d._isKomf && d._period === c.dataset._period)?.data[c.dataIndex];
+                            const foks = datasets.find(d=>!d._isKomf && d._period === c.dataset._period)?.data[c.dataIndex];
+                            let extra = '';
+                            if (komf != null && foks != null && foks !== 0) {
+                                extra = ` → Δ ${(komf/foks).toFixed(3)}`;
+                            }
+                            return ` ${c.dataset.label}: ${fmt2(v)}${extra}`;
+                        }
+                    }
+                },
+                datalabels: barDLConfig
+            },
+            scales: {
+                x: { grid: { color: '#f0f0f0' }, ticks: { font: { family: 'Inter', size: 10 }, color: '#86868b' } },
+                y: { grid: { color: '#f0f0f0' }, ticks: { font: { family: 'Inter', size: 10 }, color: '#86868b', callback: v => fmt2(v) } }
+            }
+        }
+    });
+}
+
+
+function renderTotalBlock(){
+const container=document.getElementById('totalDeltaBlock');
+if(!container) return;
+
+// Check: чи є хоча б одна дельта-категорія серед обраних
+const hasDeltaCats = [...selectedCols].some(k=>{
+const c=allCols.find(x=>x.key===k);
+return c && c.isDelta && isDeltaCat(c);
+});
+
+if(!hasDeltaCats){container.style.display='none';if(totalChartInstance){totalChartInstance.destroy();totalChartInstance=null;}return;}
+container.style.display='';
+
+if(compareMode){
+const p1rows=rowsForPeriods(periods1);
+const p2rows=rowsForPeriods(periods2);
+const t1=calcTotalDelta(p1rows);
+const t2=calcTotalDelta(p2rows);
+renderTotalTable(t1,t2,true);
+renderTotalChart(p1rows,p2rows,true);
+renderCatCompareChart(t1,t2,true);
+} else {
+const rows=activeRows();
+const total=calcTotalDelta(rows);
+renderTotalTable(total,null,false);
+renderTotalChart(rows,null,false);
+renderCatCompareChart(total,null,false);
+}
+}
+
+function renderTotalTable(t1,t2,isCompare){
+const el=document.getElementById('totalDeltaTable');
+if(!el) return;
+
+const mkRow=(label,v1,v2,isBold,isRatio)=>{
+const tr=document.createElement('tr');
+const tdL=document.createElement('td');tdL.textContent=label;tdL.style.cssText='padding:5px 8px;font-size:11px;color:#6e6e73;border-bottom:1px solid #f2f2f4;text-align:left;';
+if(isBold) tdL.style.fontWeight='700';
+tr.appendChild(tdL);
+const fmtVal=v=>v==null?'—':isRatio?v.toFixed(3):fmt(v);
+if(isCompare){
+const td1=document.createElement('td');td1.textContent=fmtVal(v1);td1.style.cssText='padding:5px 8px;font-size:11px;text-align:right;border-bottom:1px solid #f2f2f4;color:#0071e3;font-weight:'+(isBold?'700':'600');
+const td2=document.createElement('td');td2.textContent=fmtVal(v2);td2.style.cssText='padding:5px 8px;font-size:11px;text-align:right;border-bottom:1px solid #f2f2f4;color:#34c759;font-weight:'+(isBold?'700':'600');
+// delta cell
+const r1=v1,r2=v2;
+const tdD=document.createElement('td');
+if(r1!=null&&r2!=null){
+const diff=r2-r1,pct=r1?diff/Math.abs(r1)*100:null;
+const arrow=diff>0?'▲':diff<0?'▼':'→';
+const clr=diff>0?'#1a7f37':diff<0?'#c0392b':'#86868b';
+tdD.style.cssText=`padding:5px 8px;font-size:11px;text-align:right;border-bottom:1px solid #f2f2f4;color:${clr};font-weight:700;`;
+tdD.textContent=arrow+' '+(isRatio?(diff>0?'+':'')+diff.toFixed(3):(diff>0?'+':'')+fmt(Math.abs(diff)))+(pct!=null?' ('+pct.toFixed(1)+'%)':'');
+} else {tdD.textContent='—';tdD.style.cssText='padding:5px 8px;text-align:right;border-bottom:1px solid #f2f2f4;';}
+tr.appendChild(td1);tr.appendChild(td2);tr.appendChild(tdD);
+} else {
+const td=document.createElement('td');td.textContent=fmtVal(v1);td.style.cssText='padding:5px 8px;font-size:11px;text-align:right;border-bottom:1px solid #f2f2f4;font-weight:'+(isBold?'700':'600');
+if(isRatio&&v1!=null){const clr=getDeltaColor(v1);if(clr)td.style.color=clr;}
+tr.appendChild(td);
+}
+return tr;
+};
+
+el.innerHTML='';
+const thead=document.createElement('thead');
+const trH=document.createElement('tr');
+const ths=[['Показник','left'],isCompare?['Період 1','right']:['Значення','right']];
+if(isCompare){ths.push(['Період 2','right']);ths.push(['Δ','right']);}
+ths.forEach(([txt,align])=>{
+const th=document.createElement('th');th.textContent=txt;
+th.style.cssText=`padding:5px 8px;font-size:10px;font-weight:700;color:#86868b;text-transform:uppercase;letter-spacing:.05em;background:#f5f5f7;border-bottom:2px solid #e8e8ec;text-align:${align};white-space:nowrap;`;
+trH.appendChild(th);
+});
+thead.appendChild(trH);el.appendChild(thead);
+
+const tbody=document.createElement('tbody');
+const total=isCompare?t1:t1;
+
+// КОМФІ сума
+tbody.appendChild(mkRow('КОМФІ (сума ТО)',t1?.totalKomf??null,t2?.totalKomf??null,false,false));
+// ФОКСТРОТ сума
+tbody.appendChild(mkRow('ФОКСТРОТ (сума ТО)',t1?.totalFoks??null,t2?.totalFoks??null,false,false));
+// Дельта
+tbody.appendChild(mkRow('Дельта (КОМФІ / ФОКСТРОТ)',t1?.ratio??null,t2?.ratio??null,true,true));
+el.appendChild(tbody);
+}
+
+function renderTotalChart(rows1,rows2,isCompare){
+const wrap=document.getElementById('totalChartWrap');
+if(!wrap) return;
+if(totalChartInstance){totalChartInstance.destroy();totalChartInstance=null;}
+wrap.innerHTML='<canvas id="totalChart"></canvas>';
+
+const datasets=[];let labels=[];
+
+if(isCompare){
+const maxLen=Math.max(rows1.length,rows2.length);
+labels=Array.from({length:maxLen},(_,i)=>{
+const a=rows1[i],b=rows2[i];
+const la=a?MONTHS_UK[a.month-1].slice(0,3)+' '+String(a.year).slice(2):'';
+const lb=b?MONTHS_UK[b.month-1].slice(0,3)+' '+String(b.year).slice(2):'';
+if(la&&lb&&la!==lb)return la+' | '+lb;return la||lb;
+});
+const d1=calcTotalDeltaByRow(rows1);
+const d2=calcTotalDeltaByRow(rows2);
+datasets.push({label:'Дельта тотал (П1)',data:d1,borderColor:'#0071e3',backgroundColor:'#0071e360',pointBackgroundColor:'#0071e3',pointBorderColor:'#fff',pointBorderWidth:1.5,pointRadius:4,pointHoverRadius:7,tension:0.35,fill:false,spanGaps:false});
+datasets.push({label:'Дельта тотал (П2)',data:d2,borderColor:'#34c759',backgroundColor:'#34c75960',pointBackgroundColor:'#34c759',pointBorderColor:'#fff',pointBorderWidth:1.5,pointRadius:4,pointHoverRadius:7,tension:0.35,fill:false,spanGaps:false,borderDash:[5,3]});
+} else {
+labels=rows1.map(r=>MONTHS_UK[r.month-1].slice(0,3)+' '+String(r.year).slice(2));
+const vals=calcTotalDeltaByRow(rows1);
+datasets.push({label:'Дельта тотал',data:vals,borderColor:'#5856d6',backgroundColor:'#5856d660',pointBackgroundColor:'#5856d6',pointBorderColor:'#fff',pointBorderWidth:1.5,pointRadius:4,pointHoverRadius:7,tension:0.35,fill:false,spanGaps:true});
+}
+
+const allVals=datasets.flatMap(d=>d.data).filter(v=>v!=null);
+let yMin=allVals.length?Math.min(...allVals):0;
+let yMax=allVals.length?Math.max(...allVals):2;
+const rng=yMax-yMin;yMin=Math.max(0,yMin-rng*0.1);yMax=yMax+rng*0.1;
+
+const ctx2=document.getElementById('totalChart').getContext('2d');
+totalChartInstance=new Chart(ctx2,{
+type:'line',
+data:{labels,datasets},
+plugins:[{id:'smartLabelsTotal',afterDatasetsDraw(chart){
+const ctx=chart.ctx;ctx.save();
+const FS=10,PX=4,PY=3,LH=FS+PY*2+2,GAP=4;
+ctx.font=`600 ${FS}px Inter,sans-serif`;
+const pts=[];
+chart.data.datasets.forEach((ds,di)=>{
+const meta=chart.getDatasetMeta(di);if(meta.hidden)return;
+ds.data.forEach((val,pi)=>{
+if(val===null||val===undefined)return;
+const el=meta.data[pi];if(!el)return;
+const text=val.toFixed(3);
+pts.push({x:el.x,y:el.y,text,color:ds.borderColor,tw:ctx.measureText(text).width});
+});
+});
+const byX={};pts.forEach(p=>{const k=Math.round(p.x);if(!byX[k])byX[k]=[];byX[k].push(p);});
+Object.values(byX).forEach(grp=>{
+grp.sort((a,b)=>a.y-b.y);grp.forEach(p=>{p.ly=p.y-LH/2-6;});
+for(let it=0;it<20;it++){let ch=false;for(let i=1;i<grp.length;i++){const pr=grp[i-1],cu=grp[i],df=(pr.ly+LH+GAP)-cu.ly;if(df>0){pr.ly-=df/2;cu.ly+=df/2;ch=true;}}if(!ch)break;}
+grp.forEach(p=>{
+const bw=p.tw+PX*2,bh=FS+PY*2,bx=p.x-bw/2,by=p.ly-bh/2;
+ctx.shadowColor='rgba(0,0,0,0.15)';ctx.shadowBlur=4;ctx.shadowOffsetY=1;
+ctx.fillStyle='#fff';ctx.beginPath();ctx.roundRect(bx,by,bw,bh,4);ctx.fill();
+ctx.shadowColor='transparent';ctx.shadowBlur=0;
+ctx.strokeStyle=p.color;ctx.lineWidth=1.2;ctx.beginPath();ctx.roundRect(bx,by,bw,bh,4);ctx.stroke();
+ctx.fillStyle=p.color;ctx.font=`700 ${FS}px Inter,sans-serif`;
+ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(p.text,p.x,by+bh/2);
+ctx.textAlign='left';ctx.textBaseline='alphabetic';
+const lsy=by+bh;if(p.y-lsy>6){ctx.strokeStyle=p.color+'66';ctx.lineWidth=1;ctx.setLineDash([2,2]);ctx.beginPath();ctx.moveTo(p.x,lsy);ctx.lineTo(p.x,p.y-5);ctx.stroke();ctx.setLineDash([]);}
+});
+});
+ctx.restore();
+}}],
+options:{
+responsive:true,maintainAspectRatio:false,
+interaction:{mode:'index',intersect:false},
+layout:{padding:{top:35,left:8,right:8}},
+plugins:{
+legend:{display:isCompare,position:'top',labels:{font:{family:'Inter',size:10},boxWidth:20,padding:10}},
+tooltip:{enabled:tooltipEnabled,backgroundColor:'#1d1d1f',titleFont:{family:'Inter',size:11},bodyFont:{family:'Inter',size:11},padding:10,callbacks:{label:c=>` ${c.dataset.label}: ${(c.raw??0).toFixed(3)}`}},
+datalabels:false
+},
+scales:{
+x:{grid:{color:'#f0f0f0'},ticks:{font:{family:'Inter',size:isCompare?8:9},color:'#86868b',maxRotation:isCompare?45:30}},
+y:{grid:{color:'#f0f0f0'},ticks:{font:{family:'Inter',size:10},color:'#86868b',callback:v=>v.toFixed(2)},min:yMin,max:yMax}
+}
+}
+});
+}
 function aggCol(col, rows){
-    const vals=rows.map(r=>r.vals[col.key]).filter(v=>v!=null);
-    if(!vals.length) return null;
-    if(col.isPct) return vals.reduce((a,b)=>a+b,0)/vals.length; // avg for %
-    return vals.reduce((a,b)=>a+b,0); // sum for absolute
+const vals=rows.map(r=>r.vals[col.key]).filter(v=>v!=null);
+if(!vals.length) return null;
+if(col.isPct) return vals.reduce((a,b)=>a+b,0)/vals.length;
+return vals.reduce((a,b)=>a+b,0);
 }
-
 function mkDeltaBadge(v1, v2, isRatio){
-    if(v1==null||v2==null) return null;
-    const diff=v2-v1, pct=v1!==0?(diff/Math.abs(v1)*100):null;
-    const cls=Math.abs(diff)<0.0001?'flat':diff>0?'up':'down';
-    const arrow=cls==='up'?'▲':cls==='down'?'▼':'→';
-    let txt;
-    if(isRatio){
-        // ratio: різниця між двома коефіцієнтами (напр. 2.94 - 2.52 = +0.42)
-        txt=(diff>0?'+':'')+diff.toFixed(2);
-        if(pct!=null) txt+=' ('+pct.toFixed(1)+'%)';
-    } else {
-        txt=(diff>0?'+':'')+fmt(Math.abs(diff));
-        if(pct!=null) txt+=' ('+pct.toFixed(1)+'%)';
-    }
-    const dRow=document.createElement('div');dRow.className='delta-row';
-    const dLbl=document.createElement('div');dLbl.className='delta-label';dLbl.textContent='Відхилення П2 vs П1';
-    const badge=document.createElement('div');badge.className='delta-badge delta-'+cls;
-    badge.innerHTML=`<span class="delta-arrow">${arrow}</span>${txt}`;
-    dRow.appendChild(dLbl);dRow.appendChild(badge);
-    return dRow;
+if(v1==null||v2==null) return null;
+const diff=v2-v1, pct=v1!==0?(diff/Math.abs(v1)*100):null;
+const cls=Math.abs(diff)<0.0001?'flat':diff>0?'up':'down';
+const arrow=cls==='up'?'▲':cls==='down'?'▼':'→';
+let txt;
+if(isRatio){txt=(diff>0?'+':'')+diff.toFixed(2);if(pct!=null) txt+=' ('+pct.toFixed(1)+'%)';}
+else {txt=(diff>0?'+':'')+fmt(Math.abs(diff));if(pct!=null) txt+=' ('+pct.toFixed(1)+'%)';}
+const dRow=document.createElement('div');dRow.className='delta-row';
+const dLbl=document.createElement('div');dLbl.className='delta-label';dLbl.textContent='Відхилення П2 vs П1';
+const badge=document.createElement('div');badge.className='delta-badge delta-'+cls;
+badge.innerHTML=`<span class="delta-arrow">${arrow}</span>${txt}`;
+dRow.appendChild(dLbl);dRow.appendChild(badge);
+return dRow;
 }
-
-// ── SUMMARY ──
 function renderSummary(){
-    const panel=document.getElementById('summaryPanel');
-    const grid=document.getElementById('summaryGrid');grid.innerHTML='';
-    if(!selectedCols.size){panel.style.display='none';return;}
-
-    const colArr=[...selectedCols];
-
-    if(compareMode){
-        const p1rows=rowsForPeriods(periods1);
-        const p2rows=rowsForPeriods(periods2);
-        if(!p1rows.length&&!p2rows.length){panel.style.display='none';return;}
-
-        colArr.forEach((key)=>{
-            const col=allCols.find(c=>c.key===key);if(!col)return;
-            const card=document.createElement('div');card.className='summary-card';
-            const lbl=document.createElement('div');lbl.className='summary-card-label';
-            lbl.title=col.group+': '+col.sub;lbl.textContent=col.group+': '+col.sub;card.appendChild(lbl);
-            const rows2=document.createElement('div');rows2.className='summary-rows';card.appendChild(rows2);
-
-            if(col.isDelta){
-                // ── Правильний розрахунок для дельта: sum(КОМФІ)/sum(ФОКС) ──
-                const r1=calcDeltaRatio(col,p1rows);
-                const r2=calcDeltaRatio(col,p2rows);
-                // Якщо партнерів не знайдено — показуємо середнє самого показника
-                if(!r1&&!r2){
-                    const v1=aggCol(col,p1rows), v2=aggCol(col,p2rows);
-                    if(v1===null&&v2===null) return;
-                    const yl1f=document.createElement('div');yl1f.style.cssText='font-size:10px;font-weight:700;color:#0071e3;margin-bottom:2px;display:flex;align-items:center;gap:4px';
-                    yl1f.innerHTML='<span class="p1-dot"></span>Період 1';rows2.appendChild(yl1f);
-                    rows2.appendChild(mkSRow('Середнє', v1!=null?v1.toFixed(2):'—'));
-                    const hrf=document.createElement('hr');hrf.className='summary-divider';rows2.appendChild(hrf);
-                    const yl2f=document.createElement('div');yl2f.style.cssText='font-size:10px;font-weight:700;color:#34c759;margin-bottom:2px;display:flex;align-items:center;gap:4px';
-                    yl2f.innerHTML='<span class="p2-dot"></span>Період 2';rows2.appendChild(yl2f);
-                    rows2.appendChild(mkSRow('Середнє', v2!=null?v2.toFixed(2):'—'));
-                    const drf=mkDeltaBadge(v1,v2,true);if(drf)rows2.appendChild(drf);
-                    if(rows2.children.length)grid.appendChild(card);
-                    return;
-                }
-
-                const fmtV=(r,v)=>r.isAvgMode?v.toFixed(2):fmt(v);
-                const addPeriodRows=(rows2,r)=>{
-                    if(!r){rows2.appendChild(mkSRow('дані відсутні','—'));return;}
-                    rows2.appendChild(mkSRow('КОМФІ',fmtV(r,r.komfAgg)));
-                    rows2.appendChild(mkSRow('ФОКСТРОТ',fmtV(r,r.foksAgg)));
-                    rows2.appendChild(mkSRow('Відношення',r.ratio.toFixed(2)));
-                };
-                // П1
-                const yl1=document.createElement('div');yl1.style.cssText='font-size:10px;font-weight:700;color:#0071e3;margin-bottom:2px;display:flex;align-items:center;gap:4px';
-                yl1.innerHTML='<span class="p1-dot"></span>Період 1';rows2.appendChild(yl1);
-                addPeriodRows(rows2,r1);
-
-                const hr=document.createElement('hr');hr.className='summary-divider';rows2.appendChild(hr);
-
-                // П2
-                const yl2=document.createElement('div');yl2.style.cssText='font-size:10px;font-weight:700;color:#34c759;margin-bottom:2px;display:flex;align-items:center;gap:4px';
-                yl2.innerHTML='<span class="p2-dot"></span>Період 2';rows2.appendChild(yl2);
-                addPeriodRows(rows2,r2);
-
-                // Відхилення
-                const dRow=mkDeltaBadge(r1?.ratio??null, r2?.ratio??null, true);
-                if(dRow) rows2.appendChild(dRow);
-
-            } else {
-                // ── Звичайна агрегація ──
-                const v1=aggCol(col,p1rows), v2=aggCol(col,p2rows);
-                if(v1===null&&v2===null) return;
-
-                const yl1=document.createElement('div');yl1.style.cssText='font-size:10px;font-weight:700;color:#0071e3;margin-bottom:2px;display:flex;align-items:center;gap:4px';
-                yl1.innerHTML='<span class="p1-dot"></span>Період 1';rows2.appendChild(yl1);
-                if(col.isPct){ rows2.appendChild(mkSRow('Середнє',fmt(v1,true))); }
-                else { rows2.appendChild(mkSRow('Сума',fmt(v1))); if(p1rows.length>1) rows2.appendChild(mkSRow('Середнє',fmt(v1/p1rows.length))); }
-
-                const hr=document.createElement('hr');hr.className='summary-divider';rows2.appendChild(hr);
-
-                const yl2=document.createElement('div');yl2.style.cssText='font-size:10px;font-weight:700;color:#34c759;margin-bottom:2px;display:flex;align-items:center;gap:4px';
-                yl2.innerHTML='<span class="p2-dot"></span>Період 2';rows2.appendChild(yl2);
-                if(col.isPct){ rows2.appendChild(mkSRow('Середнє',fmt(v2,true))); }
-                else { rows2.appendChild(mkSRow('Сума',fmt(v2))); if(p2rows.length>1) rows2.appendChild(mkSRow('Середнє',fmt(v2/p2rows.length))); }
-
-                const dRow=mkDeltaBadge(v1,v2,false);
-                if(dRow) rows2.appendChild(dRow);
-            }
-
-            if(rows2.children.length) grid.appendChild(card);
-        });
-
-    } else {
-        // Normal mode (no compare)
-        const data=activeRows();if(!data.length){panel.style.display='none';return;}
-        colArr.forEach((key)=>{
-            const col=allCols.find(c=>c.key===key);if(!col)return;
-            const card=document.createElement('div');card.className='summary-card';
-            const lbl=document.createElement('div');lbl.className='summary-card-label';lbl.title=col.group+': '+col.sub;lbl.textContent=col.group+': '+col.sub;card.appendChild(lbl);
-            const rows2=document.createElement('div');rows2.className='summary-rows';card.appendChild(rows2);
-
-            if(col.isDelta){
-                const r=calcDeltaRatio(col,data);
-                if(!r) return;
-                rows2.appendChild(mkSRow('КОМФІ', r.isAvgMode?r.komfAgg.toFixed(2):fmt(r.komfAgg)));
-                rows2.appendChild(mkSRow('ФОКСТРОТ', r.isAvgMode?r.foksAgg.toFixed(2):fmt(r.foksAgg)));
-                rows2.appendChild(mkSRow('Відношення', r.ratio.toFixed(2)));
-            } else {
-                const vals=data.map(r=>r.vals[key]).filter(v=>v!=null);if(!vals.length)return;
-                if(col.isPct){ rows2.appendChild(mkSRow('Середнє',fmt(vals.reduce((a,b)=>a+b,0)/vals.length,true))); }
-                else {
-                    const sum=vals.reduce((a,b)=>a+b,0);
-                    rows2.appendChild(mkSRow('Сума',fmt(sum)));
-                    if(vals.length>1) rows2.appendChild(mkSRow('Середнє',fmt(sum/vals.length)));
-                }
-            }
-            grid.appendChild(card);
-        });
-    }
-    panel.style.display=grid.children.length?'block':'none';
+const panel=document.getElementById('summaryPanel');
+const grid=document.getElementById('summaryGrid');grid.innerHTML='';
+if(!selectedCols.size){panel.style.display='none';return;}
+const colArr=[...selectedCols];
+if(compareMode){
+const p1rows=rowsForPeriods(periods1);
+const p2rows=rowsForPeriods(periods2);
+if(!p1rows.length&&!p2rows.length){panel.style.display='none';return;}
+colArr.forEach((key)=>{
+const col=allCols.find(c=>c.key===key);if(!col)return;
+const card=document.createElement('div');card.className='summary-card';
+const lbl=document.createElement('div');lbl.className='summary-card-label';
+lbl.title=col.group+': '+col.sub;lbl.textContent=col.group+': '+col.sub;card.appendChild(lbl);
+const rows2=document.createElement('div');rows2.className='summary-rows';card.appendChild(rows2);
+if(col.isDelta){
+const r1=calcDeltaRatio(col,p1rows);
+const r2=calcDeltaRatio(col,p2rows);
+if(!r1&&!r2){
+const v1=aggCol(col,p1rows), v2=aggCol(col,p2rows);
+if(v1===null&&v2===null) return;
+const yl1f=document.createElement('div');yl1f.style.cssText='font-size:10px;font-weight:700;color:#0071e3;margin-bottom:2px;display:flex;align-items:center;gap:4px';
+yl1f.innerHTML='<span class="p1-dot"></span>Період 1';rows2.appendChild(yl1f);
+rows2.appendChild(mkSRow('Середнє', v1!=null?v1.toFixed(2):'—'));
+const hrf=document.createElement('hr');hrf.className='summary-divider';rows2.appendChild(hrf);
+const yl2f=document.createElement('div');yl2f.style.cssText='font-size:10px;font-weight:700;color:#34c759;margin-bottom:2px;display:flex;align-items:center;gap:4px';
+yl2f.innerHTML='<span class="p2-dot"></span>Період 2';rows2.appendChild(yl2f);
+rows2.appendChild(mkSRow('Середнє', v2!=null?v2.toFixed(2):'—'));
+const drf=mkDeltaBadge(v1,v2,true);if(drf)rows2.appendChild(drf);
+if(rows2.children.length)grid.appendChild(card);
+return;
+}
+const fmtV=(r,v)=>r.isAvgMode?v.toFixed(2):fmt(v);
+const addPeriodRows=(rows2,r)=>{
+if(!r){rows2.appendChild(mkSRow('дані відсутні','—'));return;}
+rows2.appendChild(mkSRow('КОМФІ',fmtV(r,r.komfAgg)));
+rows2.appendChild(mkSRow('ФОКСТРОТ',fmtV(r,r.foksAgg)));
+rows2.appendChild(mkSRow('Відношення',r.ratio.toFixed(2)));
+};
+const yl1=document.createElement('div');yl1.style.cssText='font-size:10px;font-weight:700;color:#0071e3;margin-bottom:2px;display:flex;align-items:center;gap:4px';
+yl1.innerHTML='<span class="p1-dot"></span>Період 1';rows2.appendChild(yl1);
+addPeriodRows(rows2,r1);
+const hr=document.createElement('hr');hr.className='summary-divider';rows2.appendChild(hr);
+const yl2=document.createElement('div');yl2.style.cssText='font-size:10px;font-weight:700;color:#34c759;margin-bottom:2px;display:flex;align-items:center;gap:4px';
+yl2.innerHTML='<span class="p2-dot"></span>Період 2';rows2.appendChild(yl2);
+addPeriodRows(rows2,r2);
+const dRow=mkDeltaBadge(r1?.ratio??null, r2?.ratio??null, true);
+if(dRow) rows2.appendChild(dRow);
+} else {
+const v1=aggCol(col,p1rows), v2=aggCol(col,p2rows);
+if(v1===null&&v2===null) return;
+const yl1=document.createElement('div');yl1.style.cssText='font-size:10px;font-weight:700;color:#0071e3;margin-bottom:2px;display:flex;align-items:center;gap:4px';
+yl1.innerHTML='<span class="p1-dot"></span>Період 1';rows2.appendChild(yl1);
+if(col.isPct){ rows2.appendChild(mkSRow('Середнє',fmt(v1,true))); }
+else { rows2.appendChild(mkSRow('Сума',fmt(v1))); if(p1rows.length>1) rows2.appendChild(mkSRow('Середнє',fmt(v1/p1rows.length))); }
+const hr=document.createElement('hr');hr.className='summary-divider';rows2.appendChild(hr);
+const yl2=document.createElement('div');yl2.style.cssText='font-size:10px;font-weight:700;color:#34c759;margin-bottom:2px;display:flex;align-items:center;gap:4px';
+yl2.innerHTML='<span class="p2-dot"></span>Період 2';rows2.appendChild(yl2);
+if(col.isPct){ rows2.appendChild(mkSRow('Середнє',fmt(v2,true))); }
+else { rows2.appendChild(mkSRow('Сума',fmt(v2))); if(p2rows.length>1) rows2.appendChild(mkSRow('Середнє',fmt(v2/p2rows.length))); }
+const dRow=mkDeltaBadge(v1,v2,false);
+if(dRow) rows2.appendChild(dRow);
+}
+if(rows2.children.length) grid.appendChild(card);
+});
+} else {
+const data=activeRows();if(!data.length){panel.style.display='none';return;}
+colArr.forEach((key)=>{
+const col=allCols.find(c=>c.key===key);if(!col)return;
+const card=document.createElement('div');card.className='summary-card';
+const lbl=document.createElement('div');lbl.className='summary-card-label';lbl.title=col.group+': '+col.sub;lbl.textContent=col.group+': '+col.sub;card.appendChild(lbl);
+const rows2=document.createElement('div');rows2.className='summary-rows';card.appendChild(rows2);
+if(col.isDelta){
+const r=calcDeltaRatio(col,data);
+if(!r) return;
+rows2.appendChild(mkSRow('КОМФІ', r.isAvgMode?r.komfAgg.toFixed(2):fmt(r.komfAgg)));
+rows2.appendChild(mkSRow('ФОКСТРОТ', r.isAvgMode?r.foksAgg.toFixed(2):fmt(r.foksAgg)));
+rows2.appendChild(mkSRow('Відношення', r.ratio.toFixed(2)));
+} else {
+const vals=data.map(r=>r.vals[key]).filter(v=>v!=null);if(!vals.length)return;
+if(col.isPct){ rows2.appendChild(mkSRow('Середнє',fmt(vals.reduce((a,b)=>a+b,0)/vals.length,true))); }
+else {
+const sum=vals.reduce((a,b)=>a+b,0);
+rows2.appendChild(mkSRow('Сума',fmt(sum)));
+if(vals.length>1) rows2.appendChild(mkSRow('Середнє',fmt(sum/vals.length)));
+}
+}
+grid.appendChild(card);
+});
+}
+panel.style.display=grid.children.length?'block':'none';
 }
 function mkSRow(label,val){
-    const row=document.createElement('div');row.className='summary-row';
-    const l=document.createElement('div');l.className='summary-row-lbl';l.textContent=label;
-    const v=document.createElement('div');v.className='summary-row-val';v.textContent=val;
-    row.appendChild(l);row.appendChild(v);return row;
+const row=document.createElement('div');row.className='summary-row';
+const l=document.createElement('div');l.className='summary-row-lbl';l.textContent=label;
+const v=document.createElement('div');v.className='summary-row-val';v.textContent=val;
+row.appendChild(l);row.appendChild(v);return row;
 }
-
-// ── VIEW ──
 function setView(mode){
-    viewMode=mode;
-    document.getElementById('btnTable').classList.toggle('active',mode==='table');
-    document.getElementById('btnChart').classList.toggle('active',mode==='chart');
-    document.getElementById('tableSection').style.display=mode==='table'?'':'none';
-    document.getElementById('chartPanel').classList.toggle('visible',mode==='chart');
-    if(mode==='chart'){renderChips();renderChart();}
-    else renderSummary();
+viewMode=mode;
+document.getElementById('btnTable').classList.toggle('active',mode==='table');
+document.getElementById('btnChart').classList.toggle('active',mode==='chart');
+document.getElementById('tableSection').style.display=mode==='table'?'':'none';
+document.getElementById('chartPanel').classList.toggle('visible',mode==='chart');
+if(mode==='chart'){renderChips();renderChart();}
+else renderSummary();
+renderTotalBlock();
 }
-
-// ── SKELETON ──
 function showSkeleton(card,r=14,c=8){
-    card.innerHTML='';const wrap=document.createElement('div');
-    for(let i=0;i<r;i++){const row=document.createElement('div');row.className='tbl-row-skel';for(let j=0;j<c;j++){const cell=document.createElement('div');cell.className='tbl-row-skel-cell skel'+(j<2?' wide':'');cell.style.animationDelay=(i*0.04+j*0.015)+'s';row.appendChild(cell);}wrap.appendChild(row);}
-    card.appendChild(wrap);
+card.innerHTML='';const wrap=document.createElement('div');
+for(let i=0;i<r;i++){const row=document.createElement('div');row.className='tbl-row-skel';for(let j=0;j<c;j++){const cell=document.createElement('div');cell.className='tbl-row-skel-cell skel'+(j<2?' wide':'');cell.style.animationDelay=(i*0.04+j*0.015)+'s';row.appendChild(cell);}wrap.appendChild(row);}
+card.appendChild(wrap);
 }
-
-// ── INIT ──
 async function init(){
-    const card=document.getElementById('tableCard');showSkeleton(card);
-    try{
-        const res=await fetch(CSV_URL+'&t='+Date.now());
-        if(!res.ok)throw new Error('HTTP '+res.status);
-        const text=await res.text();
-        const csvRows=parseCSV(text);
-        if(!csvRows.length)throw new Error('Порожній файл');
-        if(!detectStructure(csvRows))throw new Error('Не вдалось розпізнати структуру');
-        document.getElementById('filtersWrap').style.display='';
-        renderFilters();renderTable();setView('table');
-    }catch(e){
-        card.innerHTML=`<div class="status-box error">❌ ${e.message}</div>`;console.error(e);
-    }
+const card=document.getElementById('tableCard');showSkeleton(card);
+try{
+const res=await fetch(CSV_URL+'&t='+Date.now());
+if(!res.ok)throw new Error('HTTP '+res.status);
+const text=await res.text();
+const csvRows=parseCSV(text);
+if(!csvRows.length)throw new Error('Порожній файл');
+if(!detectStructure(csvRows))throw new Error('Не вдалось розпізнати структуру');
+document.getElementById('filtersWrap').style.display='';
+renderFilters();renderTable();setView('table');
+}catch(e){
+card.innerHTML=`<div class="status-box error">❌ ${e.message}</div>`;console.error(e);
+}
 }
 init();
 </script>
