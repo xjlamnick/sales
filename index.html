@@ -578,6 +578,7 @@ const AUTH = {
 
 <script>
     // --- АВТОРИЗАЦІЯ (auth.js підключено у <head>) ---
+    let _weightsPromise = null; // ваги днів місяця
 
     function checkPass() {
         const input = document.getElementById('pass-input').value;
@@ -656,8 +657,7 @@ const AUTH = {
         container.appendChild(cardsGrid);
     }
 
-    // Запускаємо все паралельно, чекаємо на ваги перед рендером метрик
-    const _weightsPromise = loadDayWeights();
+    _weightsPromise = loadDayWeights();
     loadPlanData().then(() => loadData());
     renderSkeletons(5);
     }
