@@ -972,28 +972,35 @@ const AUTH = {
         }
     }
 
-    // Нелінійний прогноз на основі ваг днів
+    // Нелінійний прогноз на основі ваг днів — повертає { tempo, plan }
     function calcPrognoz(fact, plan, today) {
-        if (!dayWeights.length || !plan) return null;
+        if (!dayWeights.length) return null;
         const year = today.getFullYear();
         const month = today.getMonth();
-        // Фільтруємо ваги поточного місяця
         const monthWeights = dayWeights.filter(w => w.date.getFullYear() === year && w.date.getMonth() === month);
         if (!monthWeights.length) return null;
-        // Сортуємо за датою
         monthWeights.sort((a, b) => a.date - b.date);
         const totalWeight = monthWeights.reduce((s, w) => s + w.weight, 0);
         if (!totalWeight) return null;
-        // Дні ДО сьогодні (вже відпрацьовані повністю), сьогодні ще не закінчився
         const todayDay = today.getDate();
+        // Вага вже відпрацьованих днів (до сьогодні, сьогодні ще не закінчився)
         const passedWeight = monthWeights
             .filter(w => w.date.getDate() < todayDay)
             .reduce((s, w) => s + w.weight, 0);
         if (!passedWeight) return null;
-        // Прогноз = факт / вагу відпрацьованих днів × загальна вага місяця
-        // (сьогодні ще попереду — залишається у totalWeight)
-        const prognoz = Math.round(fact / passedWeight * totalWeight);
-        return prognoz;
+        // Вага залишку: сьогодні + майбутні дні
+        const remainWeight = monthWeights
+            .filter(w => w.date.getDate() >= todayDay)
+            .reduce((s, w) => s + w.weight, 0);
+        // Прогноз (темп): екстраполяція поточного темпу на весь місяць
+        const tempo = Math.round(fact / passedWeight * totalWeight);
+        // Прогноз (план): факт + те що ще треба добрати по плану за залишок днів
+        let planPrognoz = null;
+        if (plan) {
+            const remainPlanShare = remainWeight / totalWeight;
+            planPrognoz = Math.round(fact + plan * remainPlanShare);
+        }
+        return { tempo, plan: planPrognoz };
     }
 
     // --- STORE METRICS ---
@@ -1024,9 +1031,15 @@ const AUTH = {
         const accPlan  = pl?.acc  || 0;
         const servPlan = pl?.serv || 0;
 
-        const toProgn   = calcPrognoz(toFact,   toPlan,   today);
-        const accProgn  = calcPrognoz(accFact,  accPlan,  today);
-        const servProgn = calcPrognoz(servFact, servPlan, today);
+        const toProgns   = calcPrognoz(toFact,   toPlan,   today);
+        const accProgns  = calcPrognoz(accFact,  accPlan,  today);
+        const servProgns = calcPrognoz(servFact, servPlan, today);
+        const toPrognTempo   = toProgns?.tempo   ?? null;
+        const toPrognPlan    = toProgns?.plan    ?? null;
+        const accPrognTempo  = accProgns?.tempo  ?? null;
+        const accPrognPlan   = accProgns?.plan   ?? null;
+        const servPrognTempo = servProgns?.tempo ?? null;
+        const servPrognPlan  = servProgns?.plan  ?? null;
 
         function pctBadge(fact, plan) {
             if (!plan) return '—';
@@ -1043,7 +1056,11 @@ const AUTH = {
         };
         const fDola = v => v ? v.toFixed(2) + '%' : '—';
 
-        function group(cls, icon, label, plan, fact, pct, prognoz, rest, sub) {
+        function group(cls, icon, label, plan, fact, pct, prognTempo, prognPlan, rest, sub) {
+            const pctPrognTempo = plan && prognTempo ? Math.round(prognTempo / plan * 100) : null;
+            const pctPrognPlan  = plan && prognPlan  ? Math.round(prognPlan  / plan * 100) : null;
+            const badgeTempo = pctPrognTempo !== null ? `<span class="sm-pct ${pctPrognTempo >= 100 ? 'pct-good' : pctPrognTempo >= 70 ? 'pct-mid' : 'pct-bad'}" style="font-size:9px">${pctPrognTempo}%</span>` : '';
+            const badgePlan  = pctPrognPlan  !== null ? `<span class="sm-pct ${pctPrognPlan  >= 100 ? 'pct-good' : pctPrognPlan  >= 70 ? 'pct-mid' : 'pct-bad'}" style="font-size:9px">${pctPrognPlan}%</span>` : '';
             return `
             <div class="sm-group ${cls}">
                 <div class="sm-group-title">${icon} ${label}</div>
@@ -1054,7 +1071,7 @@ const AUTH = {
                             <th>Факт / План</th>
                             <th>Вик.</th>
                             <th>Прогноз</th>
-                            <th>Залишок</th>
+                            <th>% від плану</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -1069,8 +1086,22 @@ const AUTH = {
                             <td>Факт${sub ? `<span class="sm-sub">${sub}</span>` : ''}</td>
                             <td>${fV(fact)}</td>
                             <td>${pctBadge(fact, plan)}</td>
-                            <td class="sm-val-prognoz">${fP(prognoz)}</td>
-                            <td class="sm-val-rest">${fRst(fact, plan)}</td>
+                            <td>—</td>
+                            <td>—</td>
+                        </tr>
+                        <tr style="color:#007aff">
+                            <td><span style="font-size:9px;font-weight:600;text-transform:uppercase;color:#6e6e73">Прогн. темп</span></td>
+                            <td class="sm-val-prognoz">${fP(prognTempo)}</td>
+                            <td>—</td>
+                            <td style="font-size:9px;color:#6e6e73">екстраполяція</td>
+                            <td>${badgeTempo}</td>
+                        </tr>
+                        <tr style="color:#34c759">
+                            <td><span style="font-size:9px;font-weight:600;text-transform:uppercase;color:#6e6e73">Прогн. план</span></td>
+                            <td class="sm-val-prognoz" style="color:#34c759">${fP(prognPlan)}</td>
+                            <td>—</td>
+                            <td style="font-size:9px;color:#6e6e73">факт + залишок плану</td>
+                            <td>${badgePlan}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -1078,9 +1109,9 @@ const AUTH = {
         }
 
         const html = `<div class="store-metrics-groups">
-            ${group('sm-group-to',   '💰', 'ТО',       toPlan,   toFact,   null, toProgn,   null, null)}
-            ${group('sm-group-serv', '🛠', 'Послуги',  servPlan, servFact, null, servProgn, null, servDola ? 'Доля: ' + fDola(servDola) : null)}
-            ${group('sm-group-acc',  '🎧', 'АСС',      accPlan,  accFact,  null, accProgn,  null, accDola  ? 'Доля: ' + fDola(accDola)  : null)}
+            ${group('sm-group-to',   '💰', 'ТО',       toPlan,   toFact,   null, toPrognTempo,   toPrognPlan,   null, null)}
+            ${group('sm-group-serv', '🛠', 'Послуги',  servPlan, servFact, null, servPrognTempo, servPrognPlan, null, servDola ? 'Доля: ' + fDola(servDola) : null)}
+            ${group('sm-group-acc',  '🎧', 'АСС',      accPlan,  accFact,  null, accPrognTempo,  accPrognPlan,  null, accDola  ? 'Доля: ' + fDola(accDola)  : null)}
         </div>`;
 
         document.getElementById('store-metrics-content').innerHTML = html;
