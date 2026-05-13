@@ -421,9 +421,9 @@
   },
   {
     "id": 5,
-    "name": "пк",
-    "position": "пк",
-    "initials": "П",
+    "name": "Алтухов Олександр Сергійович",
+    "position": "продавец-консультант",
+    "initials": "АО",
     "gradient": "linear-gradient(135deg, #FF6B6B 0%, #EE5253 100%)",
     "metrics": {
       "ТО": {
